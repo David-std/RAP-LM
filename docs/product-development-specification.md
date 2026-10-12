@@ -1,8 +1,10 @@
 # Product Development Specification
 
 Status: **planning baseline**  
-Scope source of truth: **Project Charter v1.2**  
+Scope source of truth: **Integrated project plan v1.5**, §3.11 Figures 5A–5E, Table 14A and requirements/EDT traceability (Project Charter v1.2 is historical background)  
 Repository baseline audited: `40217fd2b0168ca974d4e681600ccd05e17aa912`
+
+> **Architecture supersession note (v1.5):** Sections 12–15 previously described a request-time `RiskProvider` and flexible model runtime as an initial engineering strategy. That strategy is now **superseded** by the integrated plan's offline batch training/evaluation/publication, PostGIS-backed read-only API and grid-based CNN–LSTM reference architecture. The canonical executable design specification is [docs/architecture/architecture.md](architecture/architecture.md), with decisions, contracts, ML safeguards and migration steps linked there. Other data-source readiness gates in this document remain applicable until closed by evidence. No target, grid size or thresholds are frozen merely by these architecture documents.
 
 This document defines how the product must be developed while the remaining data and modeling decisions are progressively elaborated. It is intentionally stricter than a feature checklist: every analytical result must have a defensible data lineage, every model decision must be benchmarked, and every user-facing workflow must correspond to a real specialist task.
 
@@ -627,40 +629,13 @@ The selected configuration must explain why it is preferable to the baseline and
 
 ---
 
-## 12. Model lifecycle and `RiskProvider`
+## 12. Offline model lifecycle and publication
 
-The web/API layer must not know whether a result comes from LSTM, GRU, ConvLSTM, a baseline, or another candidate.
+The v1.5 integrated plan establishes **batch** CNN–LSTM training/evaluation followed by approval and publication of a versioned run. The web application and FastAPI read only PostGIS results from that run. No web request runs a model, downloads upstream datasets or trains PyTorch.
 
-Conceptual contract:
+`RiskProvider.predict()` is legacy prototype code and must not remain a production HTTP execution path. A provider-like interface may be retained *inside* the offline evaluator as an implementation abstraction; it is not a runtime API dependency. A complete artifact manifest binds code SHA, environment, dataset and source snapshots, tensor/schema versions, target semantics, baseline and model metrics, weights checksums and approval status.
 
-```python
-class RiskProvider(Protocol):
-    def predict(self, query: RiskQuery) -> RiskResult: ...
-    def compare(self, queries: list[RiskQuery]) -> list[RiskResult]: ...
-    def map(self, query: RiskMapQuery) -> list[RiskMapItem]: ...
-    def metadata(self) -> ModelMetadata: ...
-```
-
-Production metadata must include at least:
-
-```yaml
-model_id:
-model_version:
-model_family:
-artifact_hash:
-dataset_version:
-feature_schema_version:
-spatial_unit_version:
-temporal_unit:
-target_definition_version:
-training_period:
-test_period:
-benchmark_summary:
-created_at:
-status:
-```
-
-Never load an artifact when its expected feature schema/data contract is incompatible with the running application.
+Canonical contracts: [architecture blueprint](architecture/implementation-blueprint.md), [ML protocol](ml/analytical-protocol.md), [PostGIS publication](contracts/persistence-and-publication.md) and [migration plan](architecture/migration-plan.md).
 
 ---
 
@@ -685,36 +660,28 @@ System:
 
 - Raster Analytics Web: prepares selected data, produces versioned spatiotemporal analytical results, and lets specialists explore and compare them.
 
-### 13.2 C4 Container view
+### 13.2 C4 Container view — integrated plan v1.5
 
 ```text
-[Specialist]
-     |
-     v
-[Web Application: React/TypeScript]
-     |
-     | HTTPS/JSON
-     v
-[API: FastAPI]
-     |       \
-     |        \--> [Model Runtime / RiskProvider]
-     v
-[PostgreSQL + PostGIS]
-     ^
-     |
-[Data + Feature Pipelines]
-     ^
-     |
-[Versioned Source Snapshots]
-
-[Training / Evaluation Pipeline]
-     | reads versioned analytical dataset
-     | writes model + benchmark metadata
-     v
-[Model Artifacts]
+Official/public portals -> Offline Python/GeoPandas/PyTorch pipeline
+                                   |                  |
+                            versioned artifacts     approved run publisher
+                                                      |
+                                                      v
+                                            PostgreSQL + PostGIS
+                                                      |
+                                                      v
+                                      Read-only FastAPI/Pydantic
+                                                      |
+                                                      v
+                                   React + TypeScript + Leaflet / Nginx
 ```
 
-A local deployment may run several responsibilities in the same process/container. Logical separation is about ownership and coupling, not about forcing microservices.
+Figure 5B logically depicts five containers: web SPA, API, PostGIS, offline pipeline and artifact repository. Artifact storage may be a versioned volume/object store and Git manifest; not every C4 box is necessarily a running Docker service. Docker Compose reproduces the process/service environment, including a one-shot batch worker.
+
+Figure 5C specifies shared React Context and RF-01–RF-08 map/detail/filters/spatial+temporal comparison/provenance; Figure 5D specifies five GET resources; Figure 5E gives ordered, versioned pipeline stages and grid/CNN/LSTM reference. Exact responsibilities and traceability are specified in [implementation blueprint](architecture/implementation-blueprint.md) and [decision register](architecture/decision-register.md).
+
+---
 
 ### 13.3 Responsibility boundaries
 
@@ -824,78 +791,19 @@ Large raw datasets and binary model artifacts remain outside normal Git history.
 
 ## 14. Physical architecture and deployment
 
-The initial deployable shape should remain simple:
+Committed stack in v1.5: React/TypeScript/Leaflet via Nginx, Python/FastAPI/Pydantic with SQLAlchemy/GeoAlchemy2 for read-only services, PostgreSQL/PostGIS, offline Pandas/GeoPandas/PyTorch with scikit-learn for benchmarking, and Docker Compose reproducibility. The source/feature preparation pipeline and model evaluation run **outside** web requests. Version weights/datasets/manifests; separate API read permissions from batch publication and migrations.
 
-```text
-Browser
-  -> Web static assets
-  -> FastAPI
-  -> PostgreSQL/PostGIS
-  -> versioned model artifact available to API/model runtime
-```
-
-Batch data preparation/training executes separately from request-time inference.
-
-Do not train models inside an HTTP request.
-
-Containerization is acceptable for reproducibility, but a distributed production topology is not required to validate the MVP.
-
-The later deployment diagram must identify:
-
-- web build/runtime;
-- API runtime;
-- database;
-- artifact/data volume locations;
-- environment configuration;
-- network relationships;
-- reproducible startup/migrations.
+Run/geometry/period/provenance data flows exclusively through published SQL views to the API. `RiskProvider` direct inference is a legacy seam that requires planned replacement. See [persistence/publication](contracts/persistence-and-publication.md) for roles and atomic publication/rollback and [migration](architecture/migration-plan.md) for delivery sequence.
 
 ---
 
 ## 15. API contract principles
 
-Keep API output model-neutral and interpretation-aware.
+Figure 5D commits five **read-only** MVP resources: `GET /periodos`, `GET /unidades`, `GET /riesgo`, `GET /comparaciones`, `GET /procedencia`. A `/api/v1` mount prefix is proposed, not dictated by the report. The current English routes and `POST /risk/compare` are prototype-only until migrated with contract tests.
 
-Candidate result:
+Each result identifies the published `run_id`, unit, period, indicator numeric meaning and unit, low/medium/high threshold methodology if valid, availability/coverage mask, target population and provenance. A fatal-only exploratory output cannot masquerade as general pedestrian collision risk. The API is read-only at HTTP and database-role levels and never falls back to a mock if no approved publication exists.
 
-```json
-{
-  "spatial_unit_id": "...",
-  "period": {
-    "start": "...",
-    "end": "..."
-  },
-  "value": 0.0,
-  "representation": "relative_score",
-  "label": null,
-  "rank": null,
-  "model": {
-    "id": "...",
-    "version": "..."
-  },
-  "dataset_version": "...",
-  "feature_schema_version": "...",
-  "sources": ["..."],
-  "limitations": ["..."]
-}
-```
-
-Fields such as `probability`, `label`, or `rank` appear only when the selected target gives them that meaning.
-
-Required endpoint families are expected to cover:
-
-```text
-health
-source/methodology metadata
-spatial units
-periods
-risk/result query
-map result query
-comparison
-model metadata
-```
-
-Do not expose model-framework internals to the frontend as required input parameters.
+See the complete [typed GET API contract](contracts/read-api.md) and [PostGIS schema/publication specification](contracts/persistence-and-publication.md).
 
 ---
 
