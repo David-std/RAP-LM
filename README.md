@@ -7,22 +7,28 @@ Web application for spatiotemporal analysis of pedestrian collision risk in Metr
 The system combines a geospatial web interface, an API for risk queries, and a reproducible data pipeline for profiling and preparing source datasets.
 
 ```text
-Source data
+Official source snapshots
     |
     v
-Ingestion and processing
+Offline preparation -> CNN-LSTM evaluation
+    |                        |
+    |                   Versioned artifacts
+    v
+Approved batch publication
     |
     v
-Risk model
+PostgreSQL + PostGIS
     |
     v
-FastAPI
+Read-only FastAPI
     |
     v
-React geospatial application
+React + TypeScript + Leaflet
 ```
 
-The web application supports period filtering, map exploration, area selection, and side-by-side comparison. The model layer is isolated from the API so the scoring implementation can evolve without changing the client contract.
+The planned product supports polygon-based risk exploration by period, unit details, spatial/temporal comparison, and provenance. A model is trained and evaluated offline; requests read only **approved, published** results. The current frontend/API remain a synthetic-data integration prototype while that architecture is implemented.
+
+The latest integrated implementation specification is [Architecture](docs/architecture/architecture.md). Its analytical outcome and exposure release gates are still open; current fatal-only source records are not general pedestrian-collision risk evidence.
 
 ## Repository structure
 
@@ -45,7 +51,7 @@ pip install -e ".[dev]"
 uvicorn raster_api.main:app --app-dir apps/api/src --reload
 ```
 
-Available endpoints:
+Current **prototype-only** endpoints (not the final v1.5 read API):
 
 - `GET /health`
 - `GET /model/metadata`
@@ -98,4 +104,4 @@ npm run build
 ## Product and architecture documentation
 
 - `docs/product-development-specification.md` defines the evidence-driven data, ML, architecture, UX, validation, and implementation gates.
-- `docs/architecture/architecture.md` describes the current high-level application structure and responsibility boundaries.
+- `docs/architecture/architecture.md` is the v1.5 architecture entry point and links the C4 implementation, API, PostGIS publication, ML protocol and controlled migration contracts.
