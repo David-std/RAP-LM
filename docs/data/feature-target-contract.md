@@ -2,9 +2,10 @@
 
 Status: **candidate analytical contract; no final risk target or feature set selected**
 
-Scope basis: **Project Charter v1.2**
+Scope basis: **Integrated project plan v1.5** (§3.11 and Figures 5A–5E); **Project Charter v1.2** remains predecessor context.
 
 This document defines the rules that must hold before the repository can build a model-ready dataset.
+The architecture now has a committed **offline CNN–LSTM raster reference**, with training/evaluation followed by versioned batch publication to PostGIS and a read-only web API. The model configuration, accepted sources, risk target, exposure treatment, temporal windows and thresholds remain subject to the evidence gates here and in [the analytical protocol](../ml/analytical-protocol.md). This file's `candidate spatial unit x calendar month` is not a finalized grid/period decision.
 The contract narrows the space of valid implementations without pretending that missing exposure data
 or unresolved outcome semantics have already been solved.
 
