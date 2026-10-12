@@ -559,19 +559,12 @@ Candidate baseline families:
 
 The final benchmark must include at least one model that is meaningfully competitive, not only a deliberately weak baseline.
 
-### 11.2 CNN-RNN candidate families
+### 11.2 Reference CNN–LSTM and benchmarking
 
-Only evaluate architectures compatible with the selected representation.
+The integrated plan v1.5, Figure 5E, establishes a **regular-grid CNN spatial encoder followed by LSTM temporal processing** as the reference architecture. LSTM belongs to the RNN family, so this realizes the CNN–RNN scope. Evidence must still determine grid resolution, temporal buckets and lookback, feature channels, convolution/LSTM configuration and objective/loss.
 
-Examples:
+The mandatory experiment compares the selected CNN–LSTM with the historical mean on the **same target and independent held-out periods**. Exploratory CNN–GRU or ConvLSTM comparisons may be recorded as research evidence when useful; they are **not replacement commitments** and cannot silently change the v1.5 implementation architecture. See [ML protocol](ml/analytical-protocol.md).
 
-```text
-regular grid + sequence -> CNN encoder + LSTM
-regular grid + sequence -> CNN encoder + GRU
-regular raster sequence -> ConvLSTM candidate if justified
-```
-
-Do not use ConvLSTM merely because it combines convolution and recurrence. It is appropriate only when the tensor geometry and temporal sequence actually fit its assumptions.
 
 ### 11.3 Split strategy: leakage is a first-class concern
 
@@ -902,23 +895,10 @@ For maps/charts specifically:
 - tooltip-only information must have an accessible equivalent;
 - selected/highlighted state cannot depend on hue alone.
 
-### 16.5 Map technology decision
+### 16.5 Mapping technology — integrated plan v1.5
 
-Leaflet is acceptable for the current vertical slice.
+**Leaflet is the baseline technology specified in the plan's C4 web container.** Validate its handling of the selected grid/district polygon volume, focus/keyboard interaction, hover/selection latency, legend accessibility and attribution. A switch to another mapping engine is an explicit, reviewed architecture change supported by measured constraints, not an unresolved default decision.
 
-Before the final analytical map, compare whether current requirements justify staying with Leaflet or moving to a vector-WebGL library such as MapLibre GL JS.
-
-Evaluate:
-
-- polygon/grid/segment rendering volume;
-- vector-tile need;
-- style expressions;
-- hover/select performance;
-- accessibility integration;
-- bundle/runtime complexity;
-- team maintainability.
-
-Do not migrate for novelty.
 
 ---
 
@@ -1316,7 +1296,7 @@ Do not complete future iterations by:
 - calling ONSV fatal events the complete project dataset;
 - calling historical event density "risk" without a documented target/exposure formulation;
 - calling synthetic provider output model validation;
-- selecting LSTM, GRU or ConvLSTM before data representation evidence;
+- freezing CNN–LSTM hyperparameters, raster resolution or temporal window before profiling/benchmark evidence;
 - using a random record split as the only final evaluation;
 - fitting preprocessing on all data before splitting;
 - using final test data for iterative model selection;
@@ -1346,10 +1326,10 @@ Do not complete future iterations by:
 | final spatial unit | OPEN | sparsity, coverage, interpretability and model-representation comparison |
 | final temporal unit | OPEN | density, coverage, sequence utility and specialist task needs |
 | target/risk representation | OPEN | data distributions, exposure treatment and benchmark design |
-| LSTM vs GRU vs ConvLSTM/other compatible recurrent integration | OPEN | common benchmark on selected representation |
+| CNN–LSTM reference implementation configuration | OPEN PARAMETERS (family COMMITTED) | common baseline benchmark, tensor support and hyperparameter study |
 | primary model metrics | OPEN | target definition + operational analytical task |
 | acceptance threshold vs baseline | OPEN | pre-registered benchmark criterion before final test |
-| Leaflet vs MapLibre/other map renderer | OPEN | interaction/performance/accessibility prototype evidence |
+| Leaflet suitability under selected geometry load | VALIDATION REQUIRED (Leaflet COMMITTED) | rendering and accessibility tests; switch only through reviewed architecture change |
 | exact UI visual system | OPEN | high-fidelity prototype + heuristic/accessibility review + specialist feedback |
 
 ---
