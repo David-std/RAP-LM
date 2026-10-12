@@ -1,61 +1,59 @@
 # Architecture
 
-Raster Analytics separates data acquisition, analytical feature construction, model inference, API delivery, and map presentation so each responsibility can evolve independently.
+This page is the canonical **entry point** to the implementation specifications, aligned with the integrated project plan **v1.5**, §3.11, Figures 5A–5E and Table 14A. The v1.5 plan supersedes earlier prototype-oriented architecture notes. Project Charter v1.2 remains background, not the current architecture authority.
 
-This document is intentionally high level. The evidence-driven product, data, ML, UX, and architecture constraints are defined in `docs/product-development-specification.md` while the project is being progressively elaborated.
+## System architecture
 
-## System flow
+The product is a **modular, layered analytical web application** with a separately executed, offline **batch pipeline**. It is deliberately not microservices, online learning or request-time CNN/RNN inference.
 
-```text
-Data sources
-    |
-    v
-Ingestion, profiling, and source-specific normalization
-    |
-    v
-Spatial-temporal feature construction
-    |
-    v
-Model-ready analytical dataset
-    |
-    v
-RiskProvider
-    |
-    v
-FastAPI
-    |
-    v
-React geospatial application
-```
+\`\`\`text
+Official/public source portals          Project operator
+                |                               |
+                v                               v
+        Batch analytical pipeline (Python, GeoPandas, PyTorch)
+        acquire -> profile -> spatial/temporal features
+        -> raster tensors -> CNN + LSTM -> benchmark -> approve
+                |                               |
+                v                               v
+     Versioned artifacts                 Batch publisher
+        (Git/manifests,                         |
+       data/weights, hashes)                    v
+                                        PostgreSQL + PostGIS
+                                        published run + provenance
+                                                |
+                                                v
+                                     Read-only FastAPI application
+                                     Pydantic -> services -> SQL repos
+                                                |
+                                                v
+                                     React + TypeScript + Leaflet
+                                     Nginx SPA, shared query state
+                                     map/detail/compare/provenance
+\`\`\`
 
-## Backend
+The basemap is an external visualization service and does not supply authoritative risk observations. The API never trains or runs the CNN–LSTM on a web request. It returns only approved published results, or an explicit unavailable state.
 
-The API exposes metadata, risk queries, map results, comparison operations, and model/source traceability. `RiskProvider` owns risk inference and keeps model-specific logic out of the HTTP layer.
+## Component contract index
 
-Core domain objects currently include:
+| Subject | Canonical documentation |
+|---|---|
+| C4 system context, containers, web, API, eight pipeline stages and module ownership | [Implementation blueprint](implementation-blueprint.md) |
+| Committed vs proposed vs gated choices, figure/requirement/WBS mapping | [Decision register](decision-register.md) |
+| Exact five read-only product resources and JSON/GeoJSON response semantics | [Read API contract](../contracts/read-api.md) |
+| PostGIS entities, area/district relation, versioning, permission roles, staged and atomic publication | [Persistence & publication](../contracts/persistence-and-publication.md) |
+| Target/outcome population, exposure, severity, tensor shapes, leakage, baseline, metrics and thresholds | [Analytical ML protocol](../ml/analytical-protocol.md) |
+| Incremental migration from the existing RiskProvider/mock API | [Migration plan](migration-plan.md) |
+| Empirical candidate/data qualification before final target/model freeze | [Feature/target contract](../data/feature-target-contract.md), [source qualification](../data/source-qualification.md), [representation experiments](../data/representation-experiments.md) |
+| Broader product requirements, controls, specialist UX, acceptance and risk | [Product development specification](../product-development-specification.md) |
 
-- `RiskQuery`: spatial unit and period requested by the client.
-- `RiskResult`: analytical result and model traceability returned by the provider.
-- `RiskMapItem`: result enriched with map geometry/coordinates and display metadata.
-- `SpatialUnitMetadata`: map-facing spatial metadata.
-- `PeriodMetadata`: selectable temporal metadata.
+## Established design versus unresolved evidence
 
-As the analytical pipeline matures, feature construction and model evaluation remain outside HTTP handlers and are integrated through explicit application contracts.
+Established by v1.5: 43 districts of Lima Province excluding Callao; React/TS/Leaflet + Nginx; read-only FastAPI/Pydantic with SQLAlchemy/GeoAlchemy2; PostGIS; offline Pandas/GeoPandas/PyTorch pipeline; CNN spatial plus LSTM temporal reference; raster-to-district presentation; model artifacts with run IDs; relative indicator with low/medium/high levels; five GET resources; RF-01–RF-08 specialist workflows.
 
-## Frontend
+**Not established yet:** valid general pedestrian-collision outcome coverage, direct exposure denominator, severity across fatal/non-fatal events, selected grid resolution/period/window, complete feature/target formula, calibrated level thresholds, benchmark superiority, defensible district aggregation and publishable run. Do not turn documented proposals into empirical facts.
 
-The React application consumes the API through `apps/web/src/api.ts`. The map is the primary analytical surface; controls, comparison, detail, provenance, limitations, and methodology should remain separate UI responsibilities rather than model concerns.
+## Existing repository transition warning
 
-The current map library is an implementation choice, not an architectural commitment. It may be changed if vector geometries, interaction requirements, accessibility, or measured performance justify it.
+The current \`apps/api/src/raster_api/main.py\` calls \`RiskProvider.predict()\` per request and uses legacy endpoints. This is a **prototype seam**, not the architecture approved in v1.5. Preserve existing P1/P2/P3 audits while migrating to a separate batch publisher and PostGIS read-only API; do not remove gates or silently expose synthetic data. Migration slices are defined in [migration-plan.md](migration-plan.md).
 
-## Data pipeline
-
-Source workbooks/files are immutable inputs. `pipelines/ingestion` acquires and inventories sources, `pipelines/profiling` measures source fitness and data quality, and `pipelines/processing` performs source-specific normalization. Feature engineering and final spatial-temporal dataset construction must be reproducible and traceable to source versions.
-
-The current ONSV pedestrian fatal-crash table is one real source-derived event layer. It is not, by itself, the final model-ready risk dataset.
-
-## Model integration
-
-The API depends on `RiskProvider` rather than embedding training or inference logic in route handlers. Baselines, candidate CNN-RNN configurations, feature construction, artifact loading, and inference can therefore evolve behind the same application-facing contract.
-
-The production provider must expose enough metadata to identify the model version, data snapshot, feature schema, spatial/temporal representation, and benchmark evidence associated with a result.
+Any implementation PR must cite at least one ADR, Figure 5 component, requirement ID and WBS work package, with tests and a versioned evidence link. Do not change integrated-plan scope without documented change control.

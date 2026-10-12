@@ -1,8 +1,10 @@
 # Product Development Specification
 
 Status: **planning baseline**  
-Scope source of truth: **Project Charter v1.1**  
+Scope source of truth: **Integrated project plan v1.5**, §3.11 Figures 5A–5E, Table 14A and requirements/EDT traceability (Project Charter v1.2 is historical background)  
 Repository baseline audited: `40217fd2b0168ca974d4e681600ccd05e17aa912`
+
+> **Architecture supersession note (v1.5):** Sections 12–15 previously described a request-time `RiskProvider` and flexible model runtime as an initial engineering strategy. That strategy is now **superseded** by the integrated plan's offline batch training/evaluation/publication, PostGIS-backed read-only API and grid-based CNN–LSTM reference architecture. The canonical executable design specification is [docs/architecture/architecture.md](architecture/architecture.md), with decisions, contracts, ML safeguards and migration steps linked there. Other data-source readiness gates in this document remain applicable until closed by evidence. No target, grid size or thresholds are frozen merely by these architecture documents.
 
 This document defines how the product must be developed while the remaining data and modeling decisions are progressively elaborated. It is intentionally stricter than a feature checklist: every analytical result must have a defensible data lineage, every model decision must be benchmarked, and every user-facing workflow must correspond to a real specialist task.
 
@@ -17,7 +19,7 @@ That is an engineering starting point, not the final analytical product.
 The project must not degrade into any of the following:
 
 - a heat map of historical crash counts presented as risk;
-- a CNN-RNN selected because it appears in the title rather than because the data representation supports it;
+- a CNN-RNN configuration treated as technically settled before profiling and benchmarking support it;
 - a random train/test split that leaks spatial or temporal information;
 - a synthetic `RiskProvider` used as model evidence;
 - a polished map whose values cannot be explained, reproduced, or traced to sources;
@@ -35,12 +37,14 @@ These constraints are not implementation suggestions.
 1. The product analyzes **spatiotemporal pedestrian collision risk in Metropolitan Lima** and must support comparison between spatial units and periods.
 2. Metropolitan Lima means the **43 districts of the Province of Lima**. Callao is outside the product scope unless a later approved scope change says otherwise.
 3. Historical crash concentration is evidence of occurrence; it is **not, by itself, a comparable risk measure**.
-4. Risk modeling must investigate variables related to at least the following conceptual families where defensible data exists:
+4. Risk modeling must evaluate the Charter v1.2 dimensions where defensible data exists:
+   - observed pedestrian-collision occurrence;
+   - severity of collision consequences;
    - pedestrian exposure or defensible exposure proxies;
-   - motor-vehicle exposure/traffic;
+   - motor-vehicle exposure/traffic and mobility;
    - road and built-environment characteristics;
-   - temporal variation;
-   - observed pedestrian crash outcomes.
+   - spatial and temporal variation.
+   Occurrence and severity are outcome dimensions, not automatically same-period input features. Their exact mathematical treatment remains evidence-driven and leakage-safe.
 5. The exact spatial unit, temporal interval, historical coverage, risk representation, recurrent variant, benchmark metrics, and acceptance thresholds remain open until profiling and benchmarking close them.
 6. The software must contain a convolutional spatial component and a recurrent temporal component in the selected analytical architecture, but the concrete implementation is evidence-driven.
 7. The output is analytical decision support. It is not an official classification, enforcement recommendation, emergency system, or automated institutional decision.
@@ -213,6 +217,10 @@ reason:
 | ONSV people in fatal crashes 2021-2025 | ACCEPTED | identify pedestrian involvement/severity | same fatal-only scope |
 | ONSV vehicles in fatal crashes 2021-2025 | CANDIDATE | vehicle/context features for crash events | useful only after field completeness and join quality are profiled |
 | ONSV historical crashes 2008-2025 | AUXILIARY | historical trend/context | different aggregation/schema; do not merge as event-level records unless compatibility is proven |
+| INEI atropello statistics, first semester 2025 | AUXILIARY | broader occurrence/severity context | aggregate reporting confirms a broader outcome universe but is not a geocoded event-level training source |
+| SUTRAN road crashes 2020-2021 | AUXILIARY | partial-scope event/severity research | event-oriented with fatalities/injuries, but limited to national/departemental road jurisdiction and an older period |
+| OSITRAN concession-road accidents | AUXILIARY | partial transport-safety context | concession infrastructure is not the complete Lima urban road network or a pedestrian-specific citywide outcome |
+| San Isidro traffic-accident records 2026 | AUXILIARY | local outcome research/validation | one district only; pedestrian/severity schema must be profiled before any analytical use |
 | INEI Census 2017 REDATAM at block level | CANDIDATE | static population/socioeconomic exposure proxies | older but structurally detailed; must be treated as static context, not current pedestrian counts |
 | INEI Census 2025 detailed releases | CANDIDATE | newer structural context | use only when equivalent granular fields are actually available and documented |
 | Lima mobility/built-environment GIS layers from public GeoServer/GeoServidor services | CANDIDATE | crossings, signals, transit stops, cycling, road/intersection, zoning, land-use, congestion/context features | audit coverage, publication date, CRS, completeness, ownership and whether each layer covers the 43 districts |
@@ -222,6 +230,10 @@ reason:
 | OpenStreetMap Peru extract | CANDIDATE_FALLBACK | complete road/POI context if official layers are insufficient | public but not official; record extract date, ODbL provenance and feature completeness |
 | SENAMHI observations | CANDIDATE | temporal weather covariates | only if station coverage and temporal alignment are sufficient |
 | Direct pedestrian-volume/count data | BLOCKED/RESEARCH_PRIORITY | preferred pedestrian exposure | no citywide source accepted yet; this is a material project risk |
+
+The Charter v1.2 requires the data analysis to consider **occurrence, severity, exposure and spatial-temporal context** according to actual source availability. The current ONSV detailed source supports a fatal/high-severity stratum, not the complete severity spectrum of pedestrian collisions. Consequence variables from that stratum may be used for descriptive profiling and candidate severity formulations, but they cannot by themselves justify a general all-severity risk claim. Same-period severity outcomes must never be recycled as predictors of the same target period.
+
+A broader non-fatal source therefore remains a data gate. Until it is qualified, fatal-only modeling is allowed only as clearly labelled exploratory/benchmark evidence for high-severity events, not as the definitive product target.
 
 ### 5.4 Exposure is a first-class data risk
 
@@ -489,10 +501,13 @@ The exact mathematical output is intentionally open.
 Candidate formulations can include:
 
 - count/frequency conditional on exposure;
+- severity-aware outcome or severity burden, only when consequence coverage supports a defensible formulation;
 - normalized or relative risk score;
 - event probability over a unit-period;
 - ordinal risk level derived from a continuous model;
 - ranking score for comparing unit-periods.
+
+A fatal-only target must be named and interpreted as fatal/high-severity pedestrian-collision evidence. It cannot be relabelled as general pedestrian-collision risk unless broader outcome coverage is qualified or the approved product scope is formally revised.
 
 ### Target decision requirements
 
@@ -544,19 +559,12 @@ Candidate baseline families:
 
 The final benchmark must include at least one model that is meaningfully competitive, not only a deliberately weak baseline.
 
-### 11.2 CNN-RNN candidate families
+### 11.2 Reference CNN–LSTM and benchmarking
 
-Only evaluate architectures compatible with the selected representation.
+The integrated plan v1.5, Figure 5E, establishes a **regular-grid CNN spatial encoder followed by LSTM temporal processing** as the reference architecture. LSTM belongs to the RNN family, so this realizes the CNN–RNN scope. Evidence must still determine grid resolution, temporal buckets and lookback, feature channels, convolution/LSTM configuration and objective/loss.
 
-Examples:
+The mandatory experiment compares the selected CNN–LSTM with the historical mean on the **same target and independent held-out periods**. Exploratory CNN–GRU or ConvLSTM comparisons may be recorded as research evidence when useful; they are **not replacement commitments** and cannot silently change the v1.5 implementation architecture. See [ML protocol](ml/analytical-protocol.md).
 
-```text
-regular grid + sequence -> CNN encoder + LSTM
-regular grid + sequence -> CNN encoder + GRU
-regular raster sequence -> ConvLSTM candidate if justified
-```
-
-Do not use ConvLSTM merely because it combines convolution and recurrence. It is appropriate only when the tensor geometry and temporal sequence actually fit its assumptions.
 
 ### 11.3 Split strategy: leakage is a first-class concern
 
@@ -614,40 +622,13 @@ The selected configuration must explain why it is preferable to the baseline and
 
 ---
 
-## 12. Model lifecycle and `RiskProvider`
+## 12. Offline model lifecycle and publication
 
-The web/API layer must not know whether a result comes from LSTM, GRU, ConvLSTM, a baseline, or another candidate.
+The v1.5 integrated plan establishes **batch** CNN–LSTM training/evaluation followed by approval and publication of a versioned run. The web application and FastAPI read only PostGIS results from that run. No web request runs a model, downloads upstream datasets or trains PyTorch.
 
-Conceptual contract:
+`RiskProvider.predict()` is legacy prototype code and must not remain a production HTTP execution path. A provider-like interface may be retained *inside* the offline evaluator as an implementation abstraction; it is not a runtime API dependency. A complete artifact manifest binds code SHA, environment, dataset and source snapshots, tensor/schema versions, target semantics, baseline and model metrics, weights checksums and approval status.
 
-```python
-class RiskProvider(Protocol):
-    def predict(self, query: RiskQuery) -> RiskResult: ...
-    def compare(self, queries: list[RiskQuery]) -> list[RiskResult]: ...
-    def map(self, query: RiskMapQuery) -> list[RiskMapItem]: ...
-    def metadata(self) -> ModelMetadata: ...
-```
-
-Production metadata must include at least:
-
-```yaml
-model_id:
-model_version:
-model_family:
-artifact_hash:
-dataset_version:
-feature_schema_version:
-spatial_unit_version:
-temporal_unit:
-target_definition_version:
-training_period:
-test_period:
-benchmark_summary:
-created_at:
-status:
-```
-
-Never load an artifact when its expected feature schema/data contract is incompatible with the running application.
+Canonical contracts: [architecture blueprint](architecture/implementation-blueprint.md), [ML protocol](ml/analytical-protocol.md), [PostGIS publication](contracts/persistence-and-publication.md) and [migration plan](architecture/migration-plan.md).
 
 ---
 
@@ -672,36 +653,28 @@ System:
 
 - Raster Analytics Web: prepares selected data, produces versioned spatiotemporal analytical results, and lets specialists explore and compare them.
 
-### 13.2 C4 Container view
+### 13.2 C4 Container view — integrated plan v1.5
 
 ```text
-[Specialist]
-     |
-     v
-[Web Application: React/TypeScript]
-     |
-     | HTTPS/JSON
-     v
-[API: FastAPI]
-     |       \
-     |        \--> [Model Runtime / RiskProvider]
-     v
-[PostgreSQL + PostGIS]
-     ^
-     |
-[Data + Feature Pipelines]
-     ^
-     |
-[Versioned Source Snapshots]
-
-[Training / Evaluation Pipeline]
-     | reads versioned analytical dataset
-     | writes model + benchmark metadata
-     v
-[Model Artifacts]
+Official/public portals -> Offline Python/GeoPandas/PyTorch pipeline
+                                   |                  |
+                            versioned artifacts     approved run publisher
+                                                      |
+                                                      v
+                                            PostgreSQL + PostGIS
+                                                      |
+                                                      v
+                                      Read-only FastAPI/Pydantic
+                                                      |
+                                                      v
+                                   React + TypeScript + Leaflet / Nginx
 ```
 
-A local deployment may run several responsibilities in the same process/container. Logical separation is about ownership and coupling, not about forcing microservices.
+Figure 5B logically depicts five containers: web SPA, API, PostGIS, offline pipeline and artifact repository. Artifact storage may be a versioned volume/object store and Git manifest; not every C4 box is necessarily a running Docker service. Docker Compose reproduces the process/service environment, including a one-shot batch worker.
+
+Figure 5C specifies shared React Context and RF-01–RF-08 map/detail/filters/spatial+temporal comparison/provenance; Figure 5D specifies five GET resources; Figure 5E gives ordered, versioned pipeline stages and grid/CNN/LSTM reference. Exact responsibilities and traceability are specified in [implementation blueprint](architecture/implementation-blueprint.md) and [decision register](architecture/decision-register.md).
+
+---
 
 ### 13.3 Responsibility boundaries
 
@@ -811,78 +784,19 @@ Large raw datasets and binary model artifacts remain outside normal Git history.
 
 ## 14. Physical architecture and deployment
 
-The initial deployable shape should remain simple:
+Committed stack in v1.5: React/TypeScript/Leaflet via Nginx, Python/FastAPI/Pydantic with SQLAlchemy/GeoAlchemy2 for read-only services, PostgreSQL/PostGIS, offline Pandas/GeoPandas/PyTorch with scikit-learn for benchmarking, and Docker Compose reproducibility. The source/feature preparation pipeline and model evaluation run **outside** web requests. Version weights/datasets/manifests; separate API read permissions from batch publication and migrations.
 
-```text
-Browser
-  -> Web static assets
-  -> FastAPI
-  -> PostgreSQL/PostGIS
-  -> versioned model artifact available to API/model runtime
-```
-
-Batch data preparation/training executes separately from request-time inference.
-
-Do not train models inside an HTTP request.
-
-Containerization is acceptable for reproducibility, but a distributed production topology is not required to validate the MVP.
-
-The later deployment diagram must identify:
-
-- web build/runtime;
-- API runtime;
-- database;
-- artifact/data volume locations;
-- environment configuration;
-- network relationships;
-- reproducible startup/migrations.
+Run/geometry/period/provenance data flows exclusively through published SQL views to the API. `RiskProvider` direct inference is a legacy seam that requires planned replacement. See [persistence/publication](contracts/persistence-and-publication.md) for roles and atomic publication/rollback and [migration](architecture/migration-plan.md) for delivery sequence.
 
 ---
 
 ## 15. API contract principles
 
-Keep API output model-neutral and interpretation-aware.
+Figure 5D commits five **read-only** MVP resources: `GET /periodos`, `GET /unidades`, `GET /riesgo`, `GET /comparaciones`, `GET /procedencia`. A `/api/v1` mount prefix is proposed, not dictated by the report. The current English routes and `POST /risk/compare` are prototype-only until migrated with contract tests.
 
-Candidate result:
+Each result identifies the published `run_id`, unit, period, indicator numeric meaning and unit, low/medium/high threshold methodology if valid, availability/coverage mask, target population and provenance. A fatal-only exploratory output cannot masquerade as general pedestrian collision risk. The API is read-only at HTTP and database-role levels and never falls back to a mock if no approved publication exists.
 
-```json
-{
-  "spatial_unit_id": "...",
-  "period": {
-    "start": "...",
-    "end": "..."
-  },
-  "value": 0.0,
-  "representation": "relative_score",
-  "label": null,
-  "rank": null,
-  "model": {
-    "id": "...",
-    "version": "..."
-  },
-  "dataset_version": "...",
-  "feature_schema_version": "...",
-  "sources": ["..."],
-  "limitations": ["..."]
-}
-```
-
-Fields such as `probability`, `label`, or `rank` appear only when the selected target gives them that meaning.
-
-Required endpoint families are expected to cover:
-
-```text
-health
-source/methodology metadata
-spatial units
-periods
-risk/result query
-map result query
-comparison
-model metadata
-```
-
-Do not expose model-framework internals to the frontend as required input parameters.
+See the complete [typed GET API contract](contracts/read-api.md) and [PostGIS schema/publication specification](contracts/persistence-and-publication.md).
 
 ---
 
@@ -981,23 +895,10 @@ For maps/charts specifically:
 - tooltip-only information must have an accessible equivalent;
 - selected/highlighted state cannot depend on hue alone.
 
-### 16.5 Map technology decision
+### 16.5 Mapping technology — integrated plan v1.5
 
-Leaflet is acceptable for the current vertical slice.
+**Leaflet is the baseline technology specified in the plan's C4 web container.** Validate its handling of the selected grid/district polygon volume, focus/keyboard interaction, hover/selection latency, legend accessibility and attribution. A switch to another mapping engine is an explicit, reviewed architecture change supported by measured constraints, not an unresolved default decision.
 
-Before the final analytical map, compare whether current requirements justify staying with Leaflet or moving to a vector-WebGL library such as MapLibre GL JS.
-
-Evaluate:
-
-- polygon/grid/segment rendering volume;
-- vector-tile need;
-- style expressions;
-- hover/select performance;
-- accessibility integration;
-- bundle/runtime complexity;
-- team maintainability.
-
-Do not migrate for novelty.
 
 ---
 
@@ -1217,16 +1118,17 @@ code commit
 
 ## 22. Risk register for technical execution
 
-### R1 — Fatal-only outcome source is narrower than the intended problem
+### R1 — Fatal-only outcome source is narrower than the Charter v1.2 problem
 
-Trigger: no acceptable non-fatal collision source is found and final claims imply all pedestrian collisions.
+Trigger: no acceptable non-fatal collision source is found and final claims imply all pedestrian collisions or the full severity spectrum.
 
 Response:
 
-- continue using ONSV fatal events as a valid high-severity layer;
-- research other verifiable public/official sources;
-- never generalize silently;
-- if final product must be narrowed to fatal/high-severity risk, treat that as an explicit scope decision and update requirements/validation language.
+- continue using ONSV fatal events as valid high-severity evidence for profiling and exploratory benchmarking;
+- research other reproducible public/official sources, prioritizing event-level non-fatal pedestrian collisions and consequence severity;
+- never generalize a fatal-only model silently;
+- keep the definitive product target open while the broader outcome/severity source is unresolved;
+- if the approved product scope is ever narrowed to fatal/high-severity risk, treat that as a formal scope/review decision and update requirements, validation language and user-facing semantics before implementation.
 
 ### R2 — No defensible pedestrian exposure source
 
@@ -1394,7 +1296,7 @@ Do not complete future iterations by:
 - calling ONSV fatal events the complete project dataset;
 - calling historical event density "risk" without a documented target/exposure formulation;
 - calling synthetic provider output model validation;
-- selecting LSTM, GRU or ConvLSTM before data representation evidence;
+- freezing CNN–LSTM hyperparameters, raster resolution or temporal window before profiling/benchmark evidence;
 - using a random record split as the only final evaluation;
 - fitting preprocessing on all data before splitting;
 - using final test data for iterative model selection;
@@ -1424,10 +1326,10 @@ Do not complete future iterations by:
 | final spatial unit | OPEN | sparsity, coverage, interpretability and model-representation comparison |
 | final temporal unit | OPEN | density, coverage, sequence utility and specialist task needs |
 | target/risk representation | OPEN | data distributions, exposure treatment and benchmark design |
-| LSTM vs GRU vs ConvLSTM/other compatible recurrent integration | OPEN | common benchmark on selected representation |
+| CNN–LSTM reference implementation configuration | OPEN PARAMETERS (family COMMITTED) | common baseline benchmark, tensor support and hyperparameter study |
 | primary model metrics | OPEN | target definition + operational analytical task |
 | acceptance threshold vs baseline | OPEN | pre-registered benchmark criterion before final test |
-| Leaflet vs MapLibre/other map renderer | OPEN | interaction/performance/accessibility prototype evidence |
+| Leaflet suitability under selected geometry load | VALIDATION REQUIRED (Leaflet COMMITTED) | rendering and accessibility tests; switch only through reviewed architecture change |
 | exact UI visual system | OPEN | high-fidelity prototype + heuristic/accessibility review + specialist feedback |
 
 ---
