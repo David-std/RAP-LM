@@ -1,6 +1,6 @@
 # Architecture
 
-This page is the canonical **entry point** to the implementation specifications, aligned with the integrated project plan **v1.5**, §3.11, Figures 5A–5E and Table 14A. The v1.5 plan supersedes earlier prototype-oriented architecture notes. Project Charter v1.2 remains background, not the current architecture authority.
+This page is the canonical **entry point** to the implementation specifications, aligned with the integrated project plan **v1.6** (2026-11-09). Its §3.11, Figures 5A–5E and Table 14A retain the C4 architecture defined in v1.5; Chapter 8 adds acceptance metrics M-01–M-15. The v1.6 plan supersedes earlier prototype-oriented architecture notes. Project Charter v1.2 remains background, not the current project baseline. For implementation status versus acceptance evidence see [Delivery traceability](../delivery-traceability.md).
 
 ## System architecture
 
@@ -48,12 +48,12 @@ The basemap is an external visualization service and does not supply authoritati
 
 ## Established design versus unresolved evidence
 
-Established by v1.5: 43 districts of Lima Province excluding Callao; React/TS/Leaflet + Nginx; read-only FastAPI/Pydantic with SQLAlchemy/GeoAlchemy2; PostGIS; offline Pandas/GeoPandas/PyTorch pipeline; CNN spatial plus LSTM temporal reference; raster-to-district presentation; model artifacts with run IDs; relative indicator with low/medium/high levels; five GET resources; RF-01–RF-08 specialist workflows.
+Established by v1.6 (architecture retained from v1.5): 43 districts of Lima Province excluding Callao; React/TS/Leaflet + Nginx; read-only FastAPI/Pydantic with SQLAlchemy/GeoAlchemy2; PostGIS; offline Pandas/GeoPandas/PyTorch pipeline; CNN spatial plus LSTM temporal reference; raster-to-district presentation; model artifacts with run IDs; relative indicator with low/medium/high levels; five GET resources; RF-01–RF-08 specialist workflows.
 
 **Not established yet:** valid general pedestrian-collision outcome coverage, direct exposure denominator, severity across fatal/non-fatal events, selected grid resolution/period/window, complete feature/target formula, calibrated level thresholds, benchmark superiority, defensible district aggregation and publishable run. Do not turn documented proposals into empirical facts.
 
 ## Existing repository transition warning
 
-The current \`apps/api/src/raster_api/main.py\` calls \`RiskProvider.predict()\` per request and uses legacy endpoints. This is a **prototype seam**, not the architecture approved in v1.5. Preserve existing P1/P2/P3 audits while migrating to a separate batch publisher and PostGIS read-only API; do not remove gates or silently expose synthetic data. Migration slices are defined in [migration-plan.md](migration-plan.md).
+The current \`apps/api/src/raster_api/main.py\` calls \`RiskProvider.predict()\` per request and uses legacy endpoints. This is a **prototype seam**, not the architecture approved in v1.6. Preserve existing P1/P2/P3 audits while migrating to a separate batch publisher and PostGIS read-only API; do not remove gates or silently expose synthetic data. Migration slices are defined in [migration-plan.md](migration-plan.md).
 
 Any implementation PR must cite at least one ADR, Figure 5 component, requirement ID and WBS work package, with tests and a versioned evidence link. Do not change integrated-plan scope without documented change control.
