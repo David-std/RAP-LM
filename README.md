@@ -2,6 +2,8 @@
 
 Web application for spatiotemporal analysis of pedestrian collision risk in Metropolitan Lima.
 
+**Implementation status (project plan v1.6):** the current executable UI/API is a synthetic-data prototype; the offline CNN-LSTM, PostGIS publication, final read API and all-severity risk dataset are **not complete**. The latest C4 architecture is designed in draft PR #10, not yet deployed. Track delivery against the WBS dictionary and all 15 quality metrics in [Delivery traceability](docs/delivery-traceability.md). An automated CI pass is not product acceptance.
+
 ## Overview
 
 The system combines a geospatial web interface, an API for risk queries, and a reproducible data pipeline for profiling and preparing source datasets.
@@ -28,7 +30,7 @@ React + TypeScript + Leaflet
 
 The planned product supports polygon-based risk exploration by period, unit details, spatial/temporal comparison, and provenance. A model is trained and evaluated offline; requests read only **approved, published** results. The current frontend/API remain a synthetic-data integration prototype while that architecture is implemented.
 
-The latest integrated implementation specification is [Architecture](docs/architecture/architecture.md). Its analytical outcome and exposure release gates are still open; current fatal-only source records are not general pedestrian-collision risk evidence.
+The latest integrated project baseline is **v1.6** (the C4 architecture remains the design introduced in v1.5). The implementation specification is [Architecture](docs/architecture/architecture.md). Its analytical outcome and exposure release gates are still open; current fatal-only source records are not general pedestrian-collision risk evidence.
 
 ## Repository structure
 
@@ -51,7 +53,7 @@ pip install -e ".[dev]"
 uvicorn raster_api.main:app --app-dir apps/api/src --reload
 ```
 
-Current **prototype-only** endpoints (not the final v1.5 read API):
+Current **prototype-only** endpoints (not the final v1.6 plan read API):
 
 - `GET /health`
 - `GET /model/metadata`
@@ -105,3 +107,5 @@ npm run build
 
 - `docs/product-development-specification.md` defines the evidence-driven data, ML, architecture, UX, validation, and implementation gates.
 - `docs/architecture/architecture.md` is the v1.5 architecture entry point and links the C4 implementation, API, PostGIS publication, ML protocol and controlled migration contracts.
+
+- [Delivery traceability](docs/delivery-traceability.md) records WBS status, concrete repository evidence and verification requirements for metrics M-01–M-15 of project plan v1.6. No metric is automatically considered passed.
