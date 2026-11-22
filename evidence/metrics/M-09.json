@@ -1,0 +1,19 @@
+{
+  "metric": "M-09",
+  "target": "p95 <= 2 s",
+  "run_id": "fused-cnnlstm-2026.11-r1",
+  "measured_at": "2026-11-22T23:49:37.024678+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "machine": "AMD64",
+    "os": "Windows"
+  },
+  "value": 0.1947,
+  "unit": "seconds",
+  "requests": 200,
+  "errors": 0,
+  "median": 0.0755,
+  "max": 0.2221,
+  "load": "sequential; alternating full-map /risk (2,899 cells) and 4-unit /comparisons",
+  "status": "met"
+}

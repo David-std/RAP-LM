@@ -40,6 +40,35 @@ REPRESENTATIONS = {
 }
 
 
+# Official INEI names come in upper case without accents; these are display names only
+# (the key is always the UBIGEO).
+ACCENTED = {
+    "ANCON": "Ancón",
+    "BRENA": "Breña",
+    "JESUS MARIA": "Jesús María",
+    "LURIN": "Lurín",
+    "PACHACAMAC": "Pachacámac",
+    "RIMAC": "Rímac",
+    "SAN MARTIN DE PORRES": "San Martín de Porres",
+    "SANTA MARIA DEL MAR": "Santa María del Mar",
+    "VILLA MARIA DEL TRIUNFO": "Villa María del Triunfo",
+    "LIMA": "Cercado de Lima",
+    "VILLA EL SALVADOR": "Villa El Salvador",
+}
+LOWER_WORDS = {"DE", "DEL", "LA", "LAS", "LOS", "EL", "Y"}
+
+
+def display_name(official: str) -> str:
+    """Spanish display name: accents where known, connectors in lower case."""
+    key = " ".join(official.upper().split())
+    if key in ACCENTED:
+        return ACCENTED[key]
+    words = key.split()
+    return " ".join(
+        w.lower() if i > 0 and w in LOWER_WORDS else w.capitalize() for i, w in enumerate(words)
+    )
+
+
 class ReconciliationError(RuntimeError):
     """Raised when the staged rows do not match the exported run."""
 
@@ -57,7 +86,8 @@ def upsert_reference(cur: psycopg.Cursor, dataset: Path, catalog: dict) -> None:
     districts = json.loads((dataset / "districts.geojson").read_text(encoding="utf-8"))
     grid = json.loads((dataset / "grid.geojson").read_text(encoding="utf-8"))
     names = {
-        f["properties"]["ubigeo"]: f["properties"]["name"].title() for f in districts["features"]
+        f["properties"]["ubigeo"]: display_name(f["properties"]["name"])
+        for f in districts["features"]
     }
 
     for f in districts["features"]:
@@ -65,8 +95,14 @@ def upsert_reference(cur: psycopg.Cursor, dataset: Path, catalog: dict) -> None:
         cur.execute(
             """INSERT INTO district (district_id, name, area_km2, geom)
                VALUES (%s, %s, %s, ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
-               ON CONFLICT (district_id) DO NOTHING""",
+               ON CONFLICT (district_id) DO UPDATE SET name = EXCLUDED.name""",
             (p["ubigeo"], names[p["ubigeo"]], p["area_km2"], _geom_sql(f["geometry"])),
+        )
+        # Display names may be corrected between runs; geometry and keys are immutable.
+        cur.execute(
+            "UPDATE spatial_unit SET display_name = %s "
+            "WHERE representation_id = 'district-43' AND unit_id = %s",
+            (names[p["ubigeo"]], p["ubigeo"]),
         )
     for rep_id, (unit_type, label, resolution) in REPRESENTATIONS.items():
         cur.execute(
@@ -105,6 +141,9 @@ def upsert_reference(cur: psycopg.Cursor, dataset: Path, catalog: dict) -> None:
                 ),
             )
             for district_id, share in p["district_fractions"].items():
+                if share <= 0:
+                    # Border slivers below 1e-6 of the cell round to 0: not a membership.
+                    continue
                 cur.execute(
                     "INSERT INTO unit_district_relation VALUES ('grid-1km', %s, %s, %s)",
                     (p["unit_id"], district_id, share),
@@ -128,27 +167,35 @@ def upsert_reference(cur: psycopg.Cursor, dataset: Path, catalog: dict) -> None:
                (%(source_id)s, %(publisher)s, %(name)s, %(url)s, %(licence)s, %(captured_at)s,
                 NULL, %(coverage_start)s, %(coverage_end)s, %(spatial_coverage)s, %(population)s,
                 %(incorporated)s, %(exclusion_reason)s)
-               ON CONFLICT (source_id) DO NOTHING""",
+               ON CONFLICT (source_id) DO UPDATE SET name = EXCLUDED.name,
+                   licence = EXCLUDED.licence, spatial_coverage = EXCLUDED.spatial_coverage,
+                   population = EXCLUDED.population,
+                   exclusion_reason = EXCLUDED.exclusion_reason""",
             {"exclusion_reason": None} | s,
         )
     for v in catalog["variables"]:
         cur.execute(
             """INSERT INTO variable VALUES (%(variable_id)s, %(label)s, %(concept_group)s, %(unit)s,
                %(source_id)s, %(reference_period)s, %(description)s, %(incorporated)s)
-               ON CONFLICT (variable_id) DO NOTHING""",
+               ON CONFLICT (variable_id) DO UPDATE SET label = EXCLUDED.label,
+                   unit = EXCLUDED.unit, reference_period = EXCLUDED.reference_period,
+                   description = EXCLUDED.description""",
             v,
         )
     for lim in catalog["limitations"]:
         cur.execute(
             "INSERT INTO limitation VALUES (%(limitation_id)s, %(dimension)s, %(description)s) "
-            "ON CONFLICT (limitation_id) DO NOTHING",
+            "ON CONFLICT (limitation_id) DO UPDATE SET dimension = EXCLUDED.dimension, "
+            "description = EXCLUDED.description",
             lim,
         )
     td = catalog["target_definition"]
     cur.execute(
         """INSERT INTO target_definition VALUES (%(target_definition_id)s, %(population)s,
            %(definition)s, %(value_unit)s, %(index_method)s)
-           ON CONFLICT (target_definition_id) DO NOTHING""",
+           ON CONFLICT (target_definition_id) DO UPDATE SET population = EXCLUDED.population,
+               definition = EXCLUDED.definition, value_unit = EXCLUDED.value_unit,
+               index_method = EXCLUDED.index_method""",
         td,
     )
 
@@ -348,11 +395,22 @@ def main() -> None:
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--run", type=Path, required=True)
     parser.add_argument("--catalog", type=Path, default=Path("data/catalog/provenance.json"))
+    parser.add_argument(
+        "--reference-only",
+        action="store_true",
+        help="Only refresh reference data (display names, catalog); runs stay untouched.",
+    )
     args = parser.parse_args()
     url = os.environ.get("RAPLM_PUBLISHER_URL")
     if not url:
         raise SystemExit("Set RAPLM_PUBLISHER_URL (raplm_publisher role)")
     url = url.replace("postgresql+psycopg://", "postgresql://")
+    if args.reference_only:
+        catalog = json.loads(args.catalog.read_text(encoding="utf-8"))
+        with psycopg.connect(url) as conn, conn.cursor() as cur:
+            upsert_reference(cur, args.dataset, catalog)
+        print("reference data refreshed")
+        return
     print(json.dumps(publish(url, args.dataset, args.run, args.catalog), indent=2))
 
 

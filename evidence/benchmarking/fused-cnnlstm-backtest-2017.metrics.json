@@ -1,0 +1,427 @@
+{
+  "selected_variant": "cnn_lstm",
+  "selection_rule": "CNN-RNN candidate with the lowest validation Poisson NLL",
+  "candidates": {
+    "cnn_lstm": {
+      "variant": "cnn_lstm",
+      "best_epoch": 170,
+      "best_validation_nll": 1.062858,
+      "epochs_run": 211,
+      "history_tail": [
+        [
+          206,
+          1.132475,
+          1.064897
+        ],
+        [
+          207,
+          1.126828,
+          1.068849
+        ],
+        [
+          208,
+          1.135268,
+          1.06465
+        ],
+        [
+          209,
+          1.113938,
+          1.070322
+        ],
+        [
+          210,
+          1.129265,
+          1.069709
+        ]
+      ],
+      "validation": [
+        {
+          "family": "cenacom",
+          "year": 2016,
+          "observed_events": 1875.0,
+          "located_events": 1126.0,
+          "model": {
+            "district_mae": 1.6472426652908325,
+            "cell_mae": 0.04492681100964546,
+            "cell_deviance": 0.07840608805418015,
+            "capture_top10": 0.7780265808105469
+          },
+          "baseline": {
+            "district_mae": 1.8633720874786377,
+            "cell_mae": 0.04574809595942497,
+            "cell_deviance": 0.0999453216791153,
+            "capture_top10": 0.7900111079216003
+          },
+          "relative_improvement_pct": 11.5988
+        }
+      ],
+      "test": [
+        {
+          "family": "cenacom",
+          "year": 2017,
+          "observed_events": 1629.0,
+          "located_events": 946.0,
+          "model": {
+            "district_mae": 2.529536485671997,
+            "cell_mae": 0.03859735280275345,
+            "cell_deviance": 0.08918198198080063,
+            "capture_top10": 0.7912184596061707
+          },
+          "baseline": {
+            "district_mae": 2.379837989807129,
+            "cell_mae": 0.037970803678035736,
+            "cell_deviance": 0.09808328747749329,
+            "capture_top10": 0.7987058758735657
+          },
+          "relative_improvement_pct": -6.2903
+        }
+      ]
+    },
+    "convlstm": {
+      "variant": "convlstm",
+      "best_epoch": 94,
+      "best_validation_nll": 1.070144,
+      "epochs_run": 135,
+      "history_tail": [
+        [
+          130,
+          1.076808,
+          1.095368
+        ],
+        [
+          131,
+          1.076323,
+          1.104201
+        ],
+        [
+          132,
+          1.073925,
+          1.101064
+        ],
+        [
+          133,
+          1.071851,
+          1.099658
+        ],
+        [
+          134,
+          1.071477,
+          1.109004
+        ]
+      ],
+      "validation": [
+        {
+          "family": "cenacom",
+          "year": 2016,
+          "observed_events": 1875.0,
+          "located_events": 1126.0,
+          "model": {
+            "district_mae": 1.7358464002609253,
+            "cell_mae": 0.04517970234155655,
+            "cell_deviance": 0.07811754941940308,
+            "capture_top10": 0.7803729772567749
+          },
+          "baseline": {
+            "district_mae": 1.8633720874786377,
+            "cell_mae": 0.04574809595942497,
+            "cell_deviance": 0.0999453216791153,
+            "capture_top10": 0.7900111079216003
+          },
+          "relative_improvement_pct": 6.8438
+        }
+      ],
+      "test": [
+        {
+          "family": "cenacom",
+          "year": 2017,
+          "observed_events": 1629.0,
+          "located_events": 946.0,
+          "model": {
+            "district_mae": 2.4488699436187744,
+            "cell_mae": 0.03859909251332283,
+            "cell_deviance": 0.08995866030454636,
+            "capture_top10": 0.7877022624015808
+          },
+          "baseline": {
+            "district_mae": 2.379837989807129,
+            "cell_mae": 0.037970803678035736,
+            "cell_deviance": 0.09808328747749329,
+            "capture_top10": 0.7987058758735657
+          },
+          "relative_improvement_pct": -2.9007
+        }
+      ]
+    },
+    "cnn_only": {
+      "variant": "cnn_only",
+      "best_epoch": 151,
+      "best_validation_nll": 1.212375,
+      "epochs_run": 192,
+      "history_tail": [
+        [
+          187,
+          1.271851,
+          1.254269
+        ],
+        [
+          188,
+          1.349663,
+          1.253301
+        ],
+        [
+          189,
+          1.272209,
+          1.250633
+        ],
+        [
+          190,
+          1.267913,
+          1.246879
+        ],
+        [
+          191,
+          1.273318,
+          1.246484
+        ]
+      ],
+      "validation": [
+        {
+          "family": "cenacom",
+          "year": 2016,
+          "observed_events": 1875.0,
+          "located_events": 1126.0,
+          "model": {
+            "district_mae": 2.4436755180358887,
+            "cell_mae": 0.04760679602622986,
+            "cell_deviance": 0.09780564904212952,
+            "capture_top10": 0.7458816170692444
+          },
+          "baseline": {
+            "district_mae": 1.8633720874786377,
+            "cell_mae": 0.04574809595942497,
+            "cell_deviance": 0.0999453216791153,
+            "capture_top10": 0.7900111079216003
+          },
+          "relative_improvement_pct": -31.1426
+        }
+      ],
+      "test": [
+        {
+          "family": "cenacom",
+          "year": 2017,
+          "observed_events": 1629.0,
+          "located_events": 946.0,
+          "model": {
+            "district_mae": 3.177809953689575,
+            "cell_mae": 0.04063044860959053,
+            "cell_deviance": 0.11286947876214981,
+            "capture_top10": 0.7622151374816895
+          },
+          "baseline": {
+            "district_mae": 2.379837989807129,
+            "cell_mae": 0.037970803678035736,
+            "cell_deviance": 0.09808328747749329,
+            "capture_top10": 0.7987058758735657
+          },
+          "relative_improvement_pct": -33.5305
+        }
+      ]
+    },
+    "lstm_only": {
+      "variant": "lstm_only",
+      "best_epoch": 212,
+      "best_validation_nll": 1.059052,
+      "epochs_run": 253,
+      "history_tail": [
+        [
+          248,
+          1.21054,
+          1.068527
+        ],
+        [
+          249,
+          1.221983,
+          1.067638
+        ],
+        [
+          250,
+          1.21769,
+          1.06965
+        ],
+        [
+          251,
+          1.19847,
+          1.079385
+        ],
+        [
+          252,
+          1.211953,
+          1.080551
+        ]
+      ],
+      "validation": [
+        {
+          "family": "cenacom",
+          "year": 2016,
+          "observed_events": 1875.0,
+          "located_events": 1126.0,
+          "model": {
+            "district_mae": 1.7302522659301758,
+            "cell_mae": 0.045484643429517746,
+            "cell_deviance": 0.0765518993139267,
+            "capture_top10": 0.7889373898506165
+          },
+          "baseline": {
+            "district_mae": 1.8633720874786377,
+            "cell_mae": 0.04574809595942497,
+            "cell_deviance": 0.0999453216791153,
+            "capture_top10": 0.7900111079216003
+          },
+          "relative_improvement_pct": 7.144
+        }
+      ],
+      "test": [
+        {
+          "family": "cenacom",
+          "year": 2017,
+          "observed_events": 1629.0,
+          "located_events": 946.0,
+          "model": {
+            "district_mae": 2.5671913623809814,
+            "cell_mae": 0.038905683904886246,
+            "cell_deviance": 0.08816085010766983,
+            "capture_top10": 0.796892523765564
+          },
+          "baseline": {
+            "district_mae": 2.379837989807129,
+            "cell_mae": 0.037970803678035736,
+            "cell_deviance": 0.09808328747749329,
+            "capture_top10": 0.7987058758735657
+          },
+          "relative_improvement_pct": -7.8725
+        }
+      ]
+    },
+    "poisson_glm": {
+      "variant": "poisson_glm",
+      "best_epoch": 299,
+      "best_validation_nll": 1.127581,
+      "epochs_run": 300,
+      "history_tail": [
+        [
+          295,
+          1.274579,
+          1.12799
+        ],
+        [
+          296,
+          1.274472,
+          1.127886
+        ],
+        [
+          297,
+          1.274366,
+          1.127783
+        ],
+        [
+          298,
+          1.274262,
+          1.127682
+        ],
+        [
+          299,
+          1.274159,
+          1.127581
+        ]
+      ],
+      "validation": [
+        {
+          "family": "cenacom",
+          "year": 2016,
+          "observed_events": 1875.0,
+          "located_events": 1126.0,
+          "model": {
+            "district_mae": 1.9859954118728638,
+            "cell_mae": 0.04865768179297447,
+            "cell_deviance": 0.08570137619972229,
+            "capture_top10": 0.7645542025566101
+          },
+          "baseline": {
+            "district_mae": 1.8633720874786377,
+            "cell_mae": 0.04574809595942497,
+            "cell_deviance": 0.0999453216791153,
+            "capture_top10": 0.7900111079216003
+          },
+          "relative_improvement_pct": -6.5807
+        }
+      ],
+      "test": [
+        {
+          "family": "cenacom",
+          "year": 2017,
+          "observed_events": 1629.0,
+          "located_events": 946.0,
+          "model": {
+            "district_mae": 2.615152359008789,
+            "cell_mae": 0.04068560153245926,
+            "cell_deviance": 0.09334467351436615,
+            "capture_top10": 0.7673275470733643
+          },
+          "baseline": {
+            "district_mae": 2.379837989807129,
+            "cell_mae": 0.037970803678035736,
+            "cell_deviance": 0.09808328747749329,
+            "capture_top10": 0.7987058758735657
+          },
+          "relative_improvement_pct": -9.8878
+        }
+      ]
+    }
+  },
+  "validation": [
+    {
+      "family": "cenacom",
+      "year": 2016,
+      "observed_events": 1875.0,
+      "located_events": 1126.0,
+      "model": {
+        "district_mae": 1.6472426652908325,
+        "cell_mae": 0.04492681100964546,
+        "cell_deviance": 0.07840608805418015,
+        "capture_top10": 0.7780265808105469
+      },
+      "baseline": {
+        "district_mae": 1.8633720874786377,
+        "cell_mae": 0.04574809595942497,
+        "cell_deviance": 0.0999453216791153,
+        "capture_top10": 0.7900111079216003
+      },
+      "relative_improvement_pct": 11.5988
+    }
+  ],
+  "test": [
+    {
+      "family": "cenacom",
+      "year": 2017,
+      "observed_events": 1629.0,
+      "located_events": 946.0,
+      "model": {
+        "district_mae": 2.529536485671997,
+        "cell_mae": 0.03859735280275345,
+        "cell_deviance": 0.08918198198080063,
+        "capture_top10": 0.7912184596061707
+      },
+      "baseline": {
+        "district_mae": 2.379837989807129,
+        "cell_mae": 0.037970803678035736,
+        "cell_deviance": 0.09808328747749329,
+        "capture_top10": 0.7987058758735657
+      },
+      "relative_improvement_pct": -6.2903
+    }
+  ],
+  "reporting_factor": {
+    "cenacom": 1.0,
+    "onsv": 1.0
+  }
+}

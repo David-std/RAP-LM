@@ -1,0 +1,16 @@
+{
+  "metric": "M-02",
+  "target": ">= 95 %",
+  "run_id": "fused-cnnlstm-2026.11-r1",
+  "measured_at": "2026-11-22T23:49:01.833659+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "machine": "AMD64",
+    "os": "Windows"
+  },
+  "numerator": 258896,
+  "denominator": 258896,
+  "value": 100.0,
+  "scope": "all units x all published periods, cell and district views (API DTO)",
+  "failures_sample": []
+}

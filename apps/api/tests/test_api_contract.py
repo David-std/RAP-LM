@@ -45,7 +45,7 @@ def test_risk_every_result_has_full_context(client):  # RF-07, HU-22, M-02
         "level": "high",
         "min_index": 70.0,
         "max_index": 100.0,
-        "label": "High",
+        "label": "Alto",
     }
 
 
@@ -215,3 +215,9 @@ def test_series_aligns_years_and_keeps_nulls(client):  # analyst views, D-06
         client.get("/api/v1/series", params={"day_type": "weekday", "time_band": 9}).status_code
         == 422
     )
+
+
+def test_temporal_comparison_accepts_all_published_years(client):  # RF-06, defect I-08
+    from raster_api.config import get_settings
+
+    assert get_settings().max_compare_periods >= 11  # 2011-2017 + 2021-2024

@@ -43,11 +43,14 @@ from raster_api.v1.schemas import (
 )
 
 SCOPE_NOTICE = (
-    "Relative risk index of pedestrian collisions (all severities) estimated by a CNN-LSTM "
-    "from fused police-census and ONSV records. Analytical reference, not a real-time "
-    "prediction nor an intervention recommendation."
+    "Índice relativo de riesgo de atropello peatonal (todas las severidades) estimado por un "
+    "modelo CNN-RNN a partir de registros fusionados del censo de comisarías y del ONSV. "
+    "Referencia analítica: no es una predicción en tiempo real ni recomienda intervenciones."
 )
-DEMO_NOTICE = "DEMO DATA: synthetic values for interface testing. Not model results."
+DEMO_NOTICE = (
+    "DATOS DE EJEMPLO (DEMO): valores sintéticos para probar la interfaz, "
+    "no son resultados del modelo."
+)
 GROUPS = ("occurrence", "severity", "exposure", "context")
 
 
@@ -74,11 +77,11 @@ class Context:
             version=r["th_version"],
             method=r["th_method"],
             bands=[
-                LevelBand(level="low", min_index=0, max_index=low, label="Low"),
-                LevelBand(level="medium", min_index=low, max_index=mid, label="Medium"),
-                LevelBand(level="high", min_index=mid, max_index=100, label="High"),
+                LevelBand(level="low", min_index=0, max_index=low, label="Bajo"),
+                LevelBand(level="medium", min_index=low, max_index=mid, label="Medio"),
+                LevelBand(level="high", min_index=mid, max_index=100, label="Alto"),
             ],
-            no_result_label="No result (not equivalent to low risk)",
+            no_result_label="Sin resultado (no equivale a riesgo bajo)",
         )
         return Meta(
             run=RunSummary(

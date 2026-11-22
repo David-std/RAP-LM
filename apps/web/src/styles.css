@@ -28,7 +28,10 @@ button, input, select { font: inherit; color: inherit; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------------------------------------------------------------- shell */
-.app { display: grid; grid-template-rows: 46px auto 1fr 26px; height: 100%; }
+.app { display: flex; flex-direction: column; height: 100%; }
+.topbar, .statusbar { flex: none; }
+.topbar { height: 46px; }
+.statusbar { height: 26px; }
 .boot { display: grid; place-items: center; height: 100%; padding: 24px; color: var(--muted); }
 .topbar { display: flex; align-items: center; gap: 16px; padding: 0 14px; border-bottom: 1px solid var(--line); }
 .brand { display: flex; align-items: center; gap: 8px; color: var(--accent); font-weight: 600; letter-spacing: .02em; }
@@ -40,7 +43,7 @@ button, input, select { font: inherit; color: inherit; }
 .tab.on { background: var(--accent-bg); color: var(--accent); }
 .topbar-title { margin-left: auto; color: var(--muted); }
 .demo-banner { background: #fff4e5; color: var(--warn); padding: 6px 14px; border-bottom: 1px solid #f0d9b5; }
-.views { min-height: 0; overflow: hidden; }
+.views { flex: 1; min-height: 0; overflow: hidden; }
 .statusbar { display: flex; gap: 18px; align-items: center; padding: 0 14px; border-top: 1px solid var(--line);
   font: 11px var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; }
 .statusbar b { color: var(--ink); font-weight: 400; }
@@ -57,6 +60,7 @@ button, input, select { font: inherit; color: inherit; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .seg-row { display: flex; background: var(--seg); border-radius: 7px; padding: 2px; gap: 2px; }
 .seg-wrap .seg-row { flex-wrap: wrap; }
+.seg-wrap .seg-row button { flex: 1 1 28%; }
 .seg-row button { flex: 1; border: 0; background: none; padding: 5px 6px; border-radius: 5px; cursor: pointer;
   color: var(--ink-2); white-space: nowrap; min-width: 44px; }
 .seg-row button.on { background: var(--bg); color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,.05); }
@@ -89,7 +93,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .map-tip { position: absolute; top: 12px; right: 56px; z-index: 600; background: var(--bg); border: 1px solid var(--line);
   border-radius: 8px; padding: 9px 11px; display: flex; flex-direction: column; gap: 2px; min-width: 190px;
   box-shadow: 0 4px 14px rgba(0,0,0,.08); pointer-events: none; }
-.map-chip { position: absolute; top: 12px; left: 12px; z-index: 500; background: var(--bg); border: 1px solid var(--line);
+.map-chip { position: absolute; top: 12px; left: 56px; z-index: 500; background: var(--bg); border: 1px solid var(--line);
   border-radius: 8px; padding: 7px 11px; display: flex; flex-direction: column; }
 .map-home { width: 30px; height: 30px; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; cursor: pointer; font-size: 15px; }
 .map-badge { background: var(--ink); color: #fff; font: 600 11px var(--font); display: grid !important; place-items: center; border-radius: 4px; }

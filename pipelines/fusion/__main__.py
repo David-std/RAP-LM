@@ -19,7 +19,6 @@ import csv
 import hashlib
 import json
 import platform
-import subprocess
 import time
 from collections import Counter
 from pathlib import Path
@@ -35,6 +34,7 @@ from pipelines.fusion.events import (
 )
 from pipelines.fusion.geocode import DistrictStreetIndex
 from pipelines.fusion.streets import extract_streets, read_streets, write_streets
+from pipelines.lineage import git_sha, tree_is_clean
 from pipelines.spatial.grid import build_grid, load_districts, write_districts, write_grid
 
 DATASET_VERSION = "fused-v1.0.0"
@@ -46,13 +46,6 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
-
-
-def git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
 
 
 def main() -> None:
@@ -160,6 +153,7 @@ def main() -> None:
         ),
         "created_unix": int(started),
         "code_commit_sha": git_sha(),
+        "code_tree_clean": tree_is_clean(),
         "python": platform.python_version(),
         "grid": spec.to_dict() | {"cells": len(cells), "districts": len(districts)},
         "coverage": {

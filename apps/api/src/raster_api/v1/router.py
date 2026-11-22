@@ -123,7 +123,7 @@ def get_comparisons(
     period_id: Annotated[str | None, Query(pattern=ID_PATTERN)] = None,
     unit_id: Annotated[str | None, Query(pattern=ID_PATTERN)] = None,
     period_ids: Annotated[
-        str | None, Query(description="temporal: 2-8 comma-separated period ids")
+        str | None, Query(description="temporal: 2-24 comma-separated period ids")
     ] = None,
 ) -> Comparison:
     settings = get_settings()

@@ -16,7 +16,6 @@ import argparse
 import hashlib
 import json
 import platform
-import subprocess
 import time
 from pathlib import Path
 
@@ -26,6 +25,7 @@ import torch
 from ml.fused.model import VARIANTS, SpatioTemporalModel, expected_observations
 from ml.fused.tensors import Tensors, load_dataset
 from pipelines.fusion.events import SOURCE_FAMILIES, SUBPERIODS, days_of_type
+from pipelines.lineage import git_sha, tree_is_clean
 
 EPS = 1e-3
 # The plan commits a CNN-RNN: only these candidates can become the published model.
@@ -226,13 +226,6 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def git_sha() -> str:
-    try:
-        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
-
-
 def indicator(t: Tensors, lam: np.ndarray, area_floor: float) -> np.ndarray:
     """Annualised expected collisions per km2 for each [T, K, H, W]."""
     days = np.array(
@@ -311,6 +304,7 @@ def main() -> None:
         ),
         "model_family": f"pytorch:{selected}",
         "code_commit_sha": git_sha(),
+        "code_tree_clean": tree_is_clean(),
         "python": platform.python_version(),
         "torch": torch.__version__,
         "threads": cfg["threads"],

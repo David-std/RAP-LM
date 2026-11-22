@@ -39,7 +39,9 @@ export function MethodologyPage() {
         <Def term="Indicador">{p.target.value_unit}.</Def>
         <Def term="Índice 0 a 100">{p.target.index_method}</Def>
         <Def term="Niveles">
-          {p.meta.legend.bands.map((b) => `${b.label} ${b.min_index}–${b.max_index}`).join(", ")}. {p.meta.legend.method}
+          Bajo por debajo de {p.meta.legend.bands[0].max_index}, medio de {p.meta.legend.bands[1].min_index} a{" "}
+          {p.meta.legend.bands[1].max_index - 1} y alto desde {p.meta.legend.bands[2].min_index} (umbrales{" "}
+          {p.meta.legend.version}). Se fijaron antes de evaluar el modelo y se aplican igual a todos los periodos.
         </Def>
         <Def term="Sin resultado">Se dibuja con trama y nunca se interpreta como riesgo bajo.</Def>
         <Def term="Registro histórico">

@@ -12,7 +12,7 @@ naming decision D-02 and extra resource D-06 in `docs/DECISIONES_TECNICAS.md`.
 | `GET /periodos` | `GET /api/v1/periods` | — | RF-03 |
 | `GET /unidades` | `GET /api/v1/units` (`application/geo+json`) | `unit_type=cell\|district`, `district_ids` | RF-01, RG-01 |
 | `GET /riesgo` | `GET /api/v1/risk` | `period_id` (required), `unit_type`, `unit_id`, `district_ids`, `levels` | RF-01..RF-04, RF-07 |
-| `GET /comparaciones` | `GET /api/v1/comparisons` | `mode=spatial`: `unit_ids` (2–4) + `period_id`; `mode=temporal`: `unit_id` + `period_ids` (2–8) | RF-05, RF-06 |
+| `GET /comparaciones` | `GET /api/v1/comparisons` | `mode=spatial`: `unit_ids` (2–4) + `period_id`; `mode=temporal`: `unit_id` + `period_ids` (2–24) | RF-05, RF-06 |
 | `GET /procedencia` | `GET /api/v1/provenance` | optional `unit_type`, `unit_id` + `period_id` | RF-08, RD-05 |
 | (D-06) | `GET /api/v1/series` | `day_type`, `time_band`, `unit_type`, `district_ids` | RF-03, RF-06 |
 | operational | `GET /health` | — | — |

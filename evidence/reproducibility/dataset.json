@@ -1,0 +1,42 @@
+{
+  "requirement": "RD-06 / RNF-02",
+  "check": "rebuild of the fused dataset from committed code vs first build",
+  "first_build_commit": "05580608401966ce3160a3d4ae755ffca9c76bfb",
+  "rebuild_commit": "cf9cfb5786f0d2341186aef7577c38e4a6a0319c",
+  "inputs_identical": true,
+  "outputs": {
+    "context.npz": {
+      "first_build": "03cb74c3a581f72e6930c1101c4044b019f0f33882b74bd4facf019ea25beaba",
+      "rebuild": "03cb74c3a581f72e6930c1101c4044b019f0f33882b74bd4facf019ea25beaba",
+      "identical": true
+    },
+    "districts.geojson": {
+      "first_build": "e4defe19ef67963d27258fb410dd8d1121f1de4d4b87f48f5b09c66adfbd065a",
+      "rebuild": "e4defe19ef67963d27258fb410dd8d1121f1de4d4b87f48f5b09c66adfbd065a",
+      "identical": true
+    },
+    "events.csv": {
+      "first_build": "1a850541626c27fe76a0fbaefaa02696322c07e953da004019252748d46fbb55",
+      "rebuild": "1a850541626c27fe76a0fbaefaa02696322c07e953da004019252748d46fbb55",
+      "identical": true
+    },
+    "fusion_report.json": {
+      "first_build": "f27be96223491d9dff7756e43e8ca0d0f75f5b90c3b056a1d6fb71a85f6cb3e8",
+      "rebuild": "f27be96223491d9dff7756e43e8ca0d0f75f5b90c3b056a1d6fb71a85f6cb3e8",
+      "identical": true
+    },
+    "grid.geojson": {
+      "first_build": "4ce6ed2c2daebeb5c6687ed2f4513182eb24d0376a036b06e6afa197d30aa22a",
+      "rebuild": "4ce6ed2c2daebeb5c6687ed2f4513182eb24d0376a036b06e6afa197d30aa22a",
+      "identical": true
+    },
+    "streets.json": {
+      "first_build": "5b340c9120f2f630804df415f6b8a91646be3b432c042b44a2be535dd31488f7",
+      "rebuild": "5b340c9120f2f630804df415f6b8a91646be3b432c042b44a2be535dd31488f7",
+      "identical": true
+    }
+  },
+  "all_outputs_identical": true,
+  "fusion_report_identical": true,
+  "checked_at": "2026-11-22T23:32:01.205316+00:00"
+}

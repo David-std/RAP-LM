@@ -42,7 +42,7 @@ export function Legend({ legend, bands, title, subtitle }: Props) {
           <p className="legend-nodata">
             <span className="swatch hatch" aria-hidden="true" /> Sin resultado, no equivale a bajo
           </p>
-          <p className="legend-method" title={legend.method}>
+          <p className="legend-method">
             Umbrales {legend.version}: bajo &lt; {levels[0].max_index}, medio &lt; {levels[1].max_index}, alto ≥{" "}
             {levels[2].min_index}
           </p>

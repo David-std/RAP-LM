@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Read-only role (raplm_reader). The API never receives write credentials.
     database_url: str = "postgresql+psycopg://raplm_reader:raplm_reader_dev@127.0.0.1:5433/raplm"
     max_compare_units: int = 4
-    max_compare_periods: int = 8
+    max_compare_periods: int = 24  # all published years of one band
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

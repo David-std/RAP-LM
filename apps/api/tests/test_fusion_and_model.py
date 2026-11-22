@@ -146,3 +146,10 @@ def test_observation_operator_conserves_thinning():
     mu_c, mu_d = expected_observations(log_lambda, torch.zeros(2), cover, located, frac, valid)
     total = mu_c.sum(dim=(3, 4)) + mu_d.sum(dim=3)
     assert torch.allclose(total, torch.full_like(total, 4.0))
+
+
+def test_git_sha_is_resolved_without_git_executable():  # RNF-02, incident I-10
+    from pipelines.lineage import git_sha
+
+    sha = git_sha()
+    assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha)

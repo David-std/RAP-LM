@@ -73,7 +73,7 @@ test("E2E-06 RF-06 HU-20: compare one district between two periods", async ({ pa
 test("E2E-07 RF-08 HU-24..HU-26: methodology lists sources, variables, limitations and evaluation", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Metodología y fuentes" }).click();
-  await expect(page.getByRole("heading", { name: "Fuentes" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Fuentes", exact: true })).toBeVisible();
   await expect(page.getByText("No incorporada").first()).toBeVisible();
   await expect(page.getByRole("heading", { name: "Limitaciones" })).toBeVisible();
   await expect(page.getByText("Mejora relativa (M-05)")).toBeVisible();
