@@ -1,0 +1,85 @@
+# RAP-LM runtime (Figure 5B). WBS 3.4 / 5.3, RNF-02.
+#   docker compose up -d --build            -> db, migrate (one-shot), api, web
+#   docker compose --profile batch run --rm pipeline <command>   -> offline batch worker
+# The map tile service is external (basemap only) and not part of this file.
+name: rap-lm
+
+x-db-env: &db-env
+  POSTGRES_DB: raplm
+  POSTGRES_USER: raplm_owner
+  POSTGRES_PASSWORD: ${RAPLM_OWNER_PASSWORD:-raplm_owner_dev}
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      <<: *db-env
+      RAPLM_READER_PASSWORD: ${RAPLM_READER_PASSWORD:-raplm_reader_dev}
+      RAPLM_PUBLISHER_PASSWORD: ${RAPLM_PUBLISHER_PASSWORD:-raplm_publisher_dev}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:${RAPLM_DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raplm_owner -d raplm"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["alembic", "-c", "database/alembic.ini", "upgrade", "head"]
+    environment:
+      RAPLM_MIGRATION_URL: postgresql+psycopg://raplm_owner:${RAPLM_OWNER_PASSWORD:-raplm_owner_dev}@db:5432/raplm
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://raplm_reader:${RAPLM_READER_PASSWORD:-raplm_reader_dev}@db:5432/raplm
+      CORS_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: apps/web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:80"
+
+  pipeline:
+    profiles: ["batch"]
+    build:
+      context: .
+      dockerfile: pipelines/Dockerfile
+    environment:
+      RAPLM_PUBLISHER_URL: postgresql+psycopg://raplm_publisher:${RAPLM_PUBLISHER_PASSWORD:-raplm_publisher_dev}@db:5432/raplm
+    volumes:
+      - ${RAPLM_DATA_DIR:-../RAP-LM-DATA-LOCAL}:/data:ro
+      - ./artifacts:/workspace/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
