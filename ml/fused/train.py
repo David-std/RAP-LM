@@ -32,11 +32,12 @@ EPS = 1e-3
 CNN_RNN_VARIANTS = ("cnn_lstm", "convlstm")
 
 
-def set_determinism(seed: int) -> None:
+def set_determinism(seed: int, threads: int) -> None:
+    """Seeded, deterministic CPU execution with a fixed thread count (recorded in the manifest)."""
     torch.manual_seed(seed)
     np.random.seed(seed)
     torch.use_deterministic_algorithms(True)
-    torch.set_num_threads(1)
+    torch.set_num_threads(threads)
 
 
 def to_torch(t: Tensors) -> dict[str, torch.Tensor]:
@@ -77,7 +78,7 @@ def poisson_nll(model: SpatioTemporalModel, d: dict, mask: torch.Tensor) -> torc
 
 
 def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]:
-    set_determinism(cfg["seed"])
+    set_determinism(cfg["seed"], cfg["threads"])
     d = to_torch(t)
     model = SpatioTemporalModel(
         in_channels=t.X.shape[1],
@@ -102,6 +103,8 @@ def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]
         with torch.no_grad():
             val = poisson_nll(model, d, val_mask).item()
         history.append((epoch, round(loss.item(), 6), round(val, 6)))
+        if epoch % 25 == 0:
+            print(f"  {variant} epoch {epoch} train {loss.item():.5f} val {val:.5f}", flush=True)
         if val < best[0] - 1e-5:
             best = (val, {k: v.clone() for k, v in model.state_dict().items()}, epoch)
         elif epoch - best[2] >= cfg["patience"]:
@@ -310,6 +313,7 @@ def main() -> None:
         "code_commit_sha": git_sha(),
         "python": platform.python_version(),
         "torch": torch.__version__,
+        "threads": cfg["threads"],
         "weights_sha256": sha256_bytes(model_path.read_bytes()),
         "estimates_sha256": sha256_bytes((out / "estimates.npz").read_bytes()),
         "tensor_shapes": {"X": list(t.X.shape), "y_cell": list(t.y_cell.shape)},
