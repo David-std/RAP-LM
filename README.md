@@ -1,111 +1,90 @@
-# Raster Analytics Web
+# RAP-LM
 
-Web application for spatiotemporal analysis of pedestrian collision risk in Metropolitan Lima.
+Web application based on neural networks (CNN-LSTM) for the spatiotemporal analysis of **pedestrian
+collision risk** (all severities) in the 43 districts of the province of Lima (Callao excluded).
+Academic project SI727, UPC, Group 06. Baseline: integrated project plan v1.6.
 
-**Implementation status (project plan v1.6):** the current executable UI/API is a synthetic-data prototype; the offline CNN-LSTM, PostGIS publication, final read API and all-severity risk dataset are **not complete**. The latest C4 architecture is designed in draft PR #10, not yet deployed. Track delivery against the WBS dictionary and all 15 quality metrics in [Delivery traceability](docs/delivery-traceability.md). An automated CI pass is not product acceptance.
-
-## Overview
-
-The system combines a geospatial web interface, an API for risk queries, and a reproducible data pipeline for profiling and preparing source datasets.
-
-```text
-Official source snapshots
-    |
-    v
-Offline preparation -> CNN-LSTM evaluation
-    |                        |
-    |                   Versioned artifacts
-    v
-Approved batch publication
-    |
-    v
-PostgreSQL + PostGIS
-    |
-    v
-Read-only FastAPI
-    |
-    v
-React + TypeScript + Leaflet
-```
-
-The planned product supports polygon-based risk exploration by period, unit details, spatial/temporal comparison, and provenance. A model is trained and evaluated offline; requests read only **approved, published** results. The current frontend/API remain a synthetic-data integration prototype while that architecture is implemented.
-
-The latest integrated project baseline is **v1.6** (the C4 architecture remains the design introduced in v1.5). The implementation specification is [Architecture](docs/architecture/architecture.md). Its analytical outcome and exposure release gates are still open; current fatal-only source records are not general pedestrian-collision risk evidence.
-
-## Repository structure
+Specialists can query, filter, compare and export a relative risk index per 1 km cell or district and per
+period (year × day type × 6-hour band), together with its level (low, medium, high), historical record and
+provenance. It is an analytical reference: no real-time prediction and no intervention recommendations.
 
 ```text
-apps/api        FastAPI backend
-apps/web        React + TypeScript frontend
-pipelines       Data ingestion, profiling, and processing utilities
-data            Source registry and data documentation
-docs            Product and architecture documentation
+Public sources (CENACOM 2011-2017, ONSV 2021-2024, INEI, WorldPop, MINAM, OSM)
+   │  pipelines/fusion      grid 1 km (EPSG:32718), rule-based street geocoding, context
+   ▼
+fused dataset  ── ml/fused ──►  CNN-LSTM vs ConvLSTM, Poisson GLM, ablations, historical average
+   │                               (chronological split, frozen protocol)
+   ▼  pipelines/publication   one transaction, reconciliation, atomic pointer
+PostgreSQL + PostGIS  ──►  read-only FastAPI /api/v1  ──►  React + TypeScript + Leaflet (Nginx)
 ```
 
-## Run the API
+## Run the application (Docker Compose)
 
-Requirements: Python 3.12+.
+Requirements: Docker with Compose v2.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-uvicorn raster_api.main:app --app-dir apps/api/src --reload
+docker compose up -d --build          # db, migrate (one-shot), api, web
+open http://localhost:8088             # web; API docs at http://localhost:8000/docs
 ```
 
-Current **prototype-only** endpoints (not the final v1.6 plan read API):
+Without a published run the API answers `503 NO_PUBLISHED_RUN` and the web says so: no demo data is shown
+in its place. To publish a run, see the next section.
 
-- `GET /health`
-- `GET /model/metadata`
-- `GET /metadata/spatial-units`
-- `GET /metadata/periods`
-- `GET /risk?spatial_unit=...&period=...`
-- `GET /risk/map?period=...`
-- `POST /risk/compare`
+## Reproduce the data, the model and the publication
 
-## Run the web application
-
-With the API available at `http://localhost:8000`:
+The source snapshots are not in Git (size and licence review). Obtain the capture
+`RAP-LM-DATA-2026-11-17-v2.zip` and the harmonized `RAP-LM-HARMONIZED-2026-11-17-v0.2.0.zip`
+(SHA-256 in `docs/data/` and the handoff manifest) and extract them, e.g. under `../RAP-LM-DATA-LOCAL/raw` and
+`../RAP-LM-DATA-LOCAL/harmonized`.
 
 ```bash
-cd apps/web
-npm install
-npm run dev
+python -m venv .venv && .venv/Scripts/activate      # Windows; use bin/activate elsewhere
+pip install -e ".[dev,pipeline]"                    # torch CPU: --index-url https://download.pytorch.org/whl/cpu
+
+D=../RAP-LM-DATA-LOCAL
+# 1. Fused dataset (grid, geocoding, context, manifest with SHA-256)
+python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA \
+  --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv \
+  --out artifacts/datasets/fused-v1.0.0
+# 2. Benchmark + training + frozen test evaluation
+python -m ml.fused.train --dataset artifacts/datasets/fused-v1.0.0 \
+  --config ml/configs/run-main.json --out artifacts/runs/fused-cnnlstm-2026.11-r1
+# 3. Export publishable results (results.csv + SHA-256)
+python -m ml.fused.export --dataset artifacts/datasets/fused-v1.0.0 --run artifacts/runs/fused-cnnlstm-2026.11-r1
+# 4. Publish into PostGIS with the publisher role (atomic)
+RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm \
+python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.0.0 \
+  --run artifacts/runs/fused-cnnlstm-2026.11-r1
 ```
 
-The application is served at `http://localhost:5173` by default.
+The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
 
-## Data
-
-Official source workbooks are registered under `data/sources/`. To download the primary ONSV crash/person sources and build the normalized Metropolitan Lima pedestrian fatal-crash table:
+## Tests and quality metrics
 
 ```bash
-python -m pipelines.ingestion.onsv sync
-python -m pipelines.processing.onsv
-```
-
-Raw files and generated datasets remain outside version control.
-
-## Quality checks
-
-Backend and pipelines:
-
-```bash
+docker compose up -d db
+RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/raplm pytest   # unit + PostGIS contract
 ruff check .
-pytest
+cd apps/web && npm test && npm run typecheck && npm run build
+python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.0.0 \
+  --run artifacts/runs/fused-cnnlstm-2026.11-r1 --out evidence/metrics                    # M-01..M-05, M-08, M-09
 ```
 
-Frontend:
+## Repository map
 
-```bash
-cd apps/web
-npm run typecheck
-npm run build
-```
+| Path | Content |
+|---|---|
+| `pipelines/spatial`, `pipelines/fusion` | Grid, OSM street index, geocoding rules, event fusion, context (HT-05, HT-06) |
+| `ml/fused` | Tensors, CNN-LSTM and benchmark models, training/evaluation, export (HT-02, HT-07, HT-08) |
+| `pipelines/publication` | Atomic publisher with reconciliation (HT-11) |
+| `database` | Alembic migrations and DB roles (HT-04, HT-10) |
+| `apps/api` | Read-only FastAPI v1 (HT-09) and tests |
+| `apps/web` | React + TypeScript + Leaflet SPA (EP-01..EP-05) |
+| `tools/metrics`, `tools/validation` | Metric measurement and specialist-validation consolidation |
+| `data/catalog` | Provenance catalog (sources, variables, limitations) |
+| `docs/` | Architecture, API contract, ML protocol, decisions, control log, user manual, validation |
+| `evidence/` | Measured metric and benchmark reports |
 
-## Product and architecture documentation
-
-- `docs/product-development-specification.md` defines the evidence-driven data, ML, architecture, UX, validation, and implementation gates.
-- `docs/architecture/architecture.md` is the v1.5 architecture entry point and links the C4 implementation, API, PostGIS publication, ML protocol and controlled migration contracts.
-
-- [Delivery traceability](docs/delivery-traceability.md) records WBS status, concrete repository evidence and verification requirements for metrics M-01–M-15 of project plan v1.6. No metric is automatically considered passed.
+Key documents: [API contract](docs/api/contract.md), [benchmark protocol](docs/ml/benchmark-protocol.md),
+[technical decisions](docs/DECISIONES_TECNICAS.md), [development control](docs/CONTROL_DESARROLLO.md),
+[user manual](docs/manual_usuario.md), [delivery traceability](docs/delivery-traceability.md).
