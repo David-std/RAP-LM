@@ -1,253 +1,127 @@
-import { useEffect, useMemo, useState } from "react";
+// Application shell: top bar, views and status bar. Loads the reference data
+// (periods, cell and district geometry) once and shares it with every view.
 
-import {
-  compareRisk,
-  fetchPeriods,
-  fetchRiskMap,
-  fetchSpatialUnits,
-} from "./api";
-import { RiskMap } from "./components/RiskMap";
-import type {
-  PeriodMetadata,
-  RiskMapItem,
-  RiskResult,
-  SpatialUnitMetadata,
-} from "./types";
+import { useState } from "react";
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "An unexpected error occurred.";
-}
+import { api } from "./api/client";
+import type { Meta, UnitCollection } from "./api/types";
+import { useApi } from "./api/useApi";
+import { Notice } from "./components/Controls";
+import { BANDS, DAY_LABEL } from "./lib/format";
+import { AnalysisPage } from "./pages/AnalysisPage";
+import { ComparePage } from "./pages/ComparePage";
+import { MapPage } from "./pages/MapPage";
+import { MethodologyPage } from "./pages/MethodologyPage";
+import { QueryProvider, useQuery } from "./state/QueryContext";
 
-function formatValue(value: number | null): string {
-  return value === null ? "No value" : value.toFixed(4);
-}
+type View = "map" | "compare" | "analysis" | "method";
 
 export default function App() {
-  const [spatialUnits, setSpatialUnits] = useState<SpatialUnitMetadata[]>([]);
-  const [periods, setPeriods] = useState<PeriodMetadata[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = useState("");
-  const [mapItems, setMapItems] = useState<RiskMapItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<RiskMapItem | null>(null);
-  const [compareA, setCompareA] = useState("");
-  const [compareB, setCompareB] = useState("");
-  const [comparison, setComparison] = useState<RiskResult[] | null>(null);
-  const [loadingMap, setLoadingMap] = useState(false);
-  const [loadingComparison, setLoadingComparison] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const periods = useApi((s) => api.periods(s), []);
+  const cells = useApi((s) => api.units("cell", s), []);
+  const districts = useApi((s) => api.units("district", s), []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadMetadata() {
-      try {
-        const [units, availablePeriods] = await Promise.all([
-          fetchSpatialUnits(),
-          fetchPeriods(),
-        ]);
-
-        if (cancelled) return;
-        setSpatialUnits(units);
-        setPeriods(availablePeriods);
-        setSelectedPeriod(availablePeriods[0]?.period_id ?? "");
-        setCompareA(units[0]?.spatial_unit_id ?? "");
-        setCompareB(units[1]?.spatial_unit_id ?? units[0]?.spatial_unit_id ?? "");
-      } catch (metadataError) {
-        if (!cancelled) setError(errorMessage(metadataError));
-      }
-    }
-
-    void loadMetadata();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!selectedPeriod) return;
-    let cancelled = false;
-
-    async function loadMap() {
-      setLoadingMap(true);
-      setError(null);
-      try {
-        const items = await fetchRiskMap(selectedPeriod);
-        if (cancelled) return;
-        setMapItems(items);
-        setSelectedItem((current) => {
-          if (!current) return items[0] ?? null;
-          return (
-            items.find((item) => item.spatial_unit_id === current.spatial_unit_id) ??
-            items[0] ??
-            null
-          );
-        });
-        setComparison(null);
-      } catch (mapError) {
-        if (!cancelled) setError(errorMessage(mapError));
-      } finally {
-        if (!cancelled) setLoadingMap(false);
-      }
-    }
-
-    void loadMap();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedPeriod]);
-
-  const averageValue = useMemo(() => {
-    const values = mapItems
-      .map((item) => item.value)
-      .filter((value): value is number => value !== null);
-    if (values.length === 0) return null;
-    return values.reduce((sum, value) => sum + value, 0) / values.length;
-  }, [mapItems]);
-
-  function spatialUnitName(id: string): string {
-    return spatialUnits.find((unit) => unit.spatial_unit_id === id)?.name ?? id;
+  const error = periods.error ?? cells.error ?? districts.error;
+  if (error) {
+    return (
+      <div className="boot">
+        <Notice tone="error">
+          No se pudo conectar con la API de resultados publicados: {error.message}. No se muestran datos simulados en su
+          lugar.
+        </Notice>
+      </div>
+    );
   }
-
-  async function runComparison() {
-    if (!selectedPeriod || !compareA || !compareB) return;
-    setLoadingComparison(true);
-    setError(null);
-    try {
-      setComparison(await compareRisk(compareA, compareB, selectedPeriod));
-    } catch (comparisonError) {
-      setError(errorMessage(comparisonError));
-    } finally {
-      setLoadingComparison(false);
-    }
+  if (!periods.data || !cells.data || !districts.data) {
+    return <div className="boot">Cargando RAP-LM…</div>;
   }
-
   return (
-    <div className="app-shell">
+    <QueryProvider periods={periods.data.data}>
+      <Shell meta={periods.data.meta} cells={cells.data} districts={districts.data} />
+    </QueryProvider>
+  );
+}
+
+function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; districts: UnitCollection }) {
+  const [view, setView] = useState<View>("map");
+  const q = useQuery();
+  const tabs: { id: View; label: string }[] = [
+    { id: "map", label: "Mapa" },
+    { id: "compare", label: "Comparar" },
+    { id: "analysis", label: "Análisis" },
+    { id: "method", label: "Metodología y fuentes" },
+  ];
+  return (
+    <div className="app">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">Pedestrian risk analysis</p>
-          <h1>Raster Analytics</h1>
-          <p className="subtitle">
-            Explore spatiotemporal pedestrian collision risk across Metropolitan Lima.
-          </p>
-        </div>
+        <span className="brand" aria-label="RAP-LM">
+          <span className="brand-mark" aria-hidden="true" />
+          RAP-LM
+        </span>
+        <nav aria-label="Vistas">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={view === t.id ? "tab on" : "tab"}
+              aria-current={view === t.id ? "page" : undefined}
+              onClick={() => setView(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        <span className="topbar-title">Riesgo de atropello peatonal en Lima Metropolitana</span>
       </header>
 
-      {error && <section className="error-banner">{error}</section>}
+      {meta.run.is_demo && <div className="demo-banner">{meta.scope_notice}</div>}
 
-      <main className="dashboard-grid">
-        <section className="panel controls-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-kicker">Explore</p>
-              <h2>Period and map</h2>
-            </div>
-            {loadingMap && <span className="status-pill">Updating…</span>}
-          </div>
+      <div className="views">
+        {view === "map" && (
+          <MapPage
+            units={cells}
+            districts={districts}
+            legend={meta.legend}
+            goCompare={(mode) => {
+              q.setCompareMode(mode);
+              setView("compare");
+            }}
+          />
+        )}
+        {view === "compare" && <ComparePage units={cells} districts={districts} legend={meta.legend} />}
+        {view === "analysis" && (
+          <AnalysisPage
+            units={cells}
+            districts={districts}
+            legend={meta.legend}
+            meta={meta}
+            openUnit={(id) => {
+              q.select(id);
+              setView("map");
+            }}
+          />
+        )}
+        {view === "method" && <MethodologyPage />}
+      </div>
 
-          <label className="field">
-            <span>Period</span>
-            <select
-              value={selectedPeriod}
-              onChange={(event) => setSelectedPeriod(event.target.value)}
-              disabled={periods.length === 0}
-            >
-              {periods.map((period) => (
-                <option key={period.period_id} value={period.period_id}>
-                  {period.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="map-frame">
-            <RiskMap
-              items={mapItems}
-              selectedId={selectedItem?.spatial_unit_id ?? null}
-              onSelect={setSelectedItem}
-            />
-          </div>
-
-          <div className="legend">
-            <span><i className="legend-dot low" /> Lower score</span>
-            <span><i className="legend-dot medium" /> Mid-range score</span>
-            <span><i className="legend-dot high" /> Higher score</span>
-          </div>
-        </section>
-
-        <aside className="side-column">
-          <section className="panel detail-panel">
-            <p className="section-kicker">Selected area</p>
-            <h2>{selectedItem?.name ?? "Select an area"}</h2>
-            {selectedItem ? (
-              <>
-                <div className="risk-value">{formatValue(selectedItem.value)}</div>
-                <p className="muted">Score for the selected period.</p>
-                <dl className="metadata-list">
-                  <div><dt>Area</dt><dd>{selectedItem.spatial_unit_id}</dd></div>
-                  <div><dt>Period</dt><dd>{selectedItem.period_id}</dd></div>
-                </dl>
-              </>
-            ) : (
-              <p className="muted">Select an area on the map to inspect its result.</p>
-            )}
-          </section>
-
-          <section className="panel summary-panel">
-            <p className="section-kicker">Overview</p>
-            <div className="stat-row">
-              <div><strong>{mapItems.length}</strong><span>mapped areas</span></div>
-              <div><strong>{formatValue(averageValue)}</strong><span>average score</span></div>
-            </div>
-          </section>
-        </aside>
-
-        <section className="panel compare-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="section-kicker">Compare</p>
-              <h2>Two areas, same period</h2>
-            </div>
-          </div>
-
-          <div className="comparison-form">
-            <label className="field">
-              <span>Area A</span>
-              <select value={compareA} onChange={(event) => setCompareA(event.target.value)}>
-                {spatialUnits.map((unit) => (
-                  <option key={unit.spatial_unit_id} value={unit.spatial_unit_id}>{unit.name}</option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>Area B</span>
-              <select value={compareB} onChange={(event) => setCompareB(event.target.value)}>
-                {spatialUnits.map((unit) => (
-                  <option key={unit.spatial_unit_id} value={unit.spatial_unit_id}>{unit.name}</option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => void runComparison()}
-              disabled={loadingComparison || !compareA || !compareB || !selectedPeriod}
-            >
-              {loadingComparison ? "Comparing…" : "Compare"}
-            </button>
-          </div>
-
-          {comparison && (
-            <div className="comparison-results">
-              {comparison.map((result) => (
-                <article key={result.spatial_unit_id}>
-                  <span>{spatialUnitName(result.spatial_unit_id)}</span>
-                  <strong>{formatValue(result.value)}</strong>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
+      <footer className="statusbar">
+        <span>
+          Unidad: <b>{q.selectedUnitId ?? "—"}</b>
+        </span>
+        <span>
+          Periodo:{" "}
+          <b>
+            {q.active.year}, {DAY_LABEL[q.active.dayType].toLowerCase()}, {BANDS[q.active.band]}
+          </b>
+        </span>
+        <span>
+          Malla: <b>1 km, {cells.features.length.toLocaleString("es-PE")} celdas, {districts.features.length} distritos</b>
+        </span>
+        <span className="grow" />
+        <span className={meta.run.is_demo ? "status-demo" : "status-run"} title={meta.scope_notice}>
+          {meta.run.is_demo ? "Datos de ejemplo" : `Corrida publicada ${meta.run.run_id}`}
+        </span>
+      </footer>
     </div>
   );
 }
