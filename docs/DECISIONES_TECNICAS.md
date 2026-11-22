@@ -1,0 +1,118 @@
+# Registro de decisiones técnicas y solicitudes de cambio
+
+Cada entrada indica si **aplica sin cambiar la línea base** (decisión de implementación) o si es una
+**solicitud de cambio** que el equipo debe aprobar mediante el control integrado de cambios (comunicación
+C-05 del plan, métrica M-15). Una IA no aprueba cambios en nombre del equipo: el estado
+"Pendiente de aprobación" se mantiene hasta que el Project Manager lo registre.
+
+| ID | Fecha | Tipo | Estado |
+|---|---|---|---|
+| D-01 | 2026-11-22 | Solicitud de cambio (datos, objetivo) | Pendiente de aprobación del equipo |
+| D-02 | 2026-11-22 | Decisión de implementación (nombres de API) | Aplicada, a revisar en PR |
+| D-03 | 2026-11-22 | Decisión de implementación (malla) | Aplicada |
+| D-04 | 2026-11-22 | Decisión de implementación (persistencia) | Aplicada |
+| D-05 | 2026-11-22 | Decisión de implementación (benchmark) | Aplicada |
+| D-06 | 2026-11-22 | Solicitud de cambio (contrato API: recurso `/series`) | Pendiente de aprobación del equipo |
+| D-07 | 2026-11-22 | Decisión de implementación (retiro del prototipo sintético) | Aplicada |
+| D-08 | 2026-11-22 | Decisión de implementación (definición de periodos) | Aplicada |
+
+---
+
+## D-01. Objetivo "todos los atropellos" mediante fusión de fuentes
+
+**Requisitos y EDT:** RD-01..RD-06, RM-01..RM-05, RG-01; paquetes 3.1.1, 3.2.1, 3.2.2, 3.2.3, 4.4.
+**Contexto:** en la primera revisión el profesor observó que el riesgo no puede limitarse a atropellos fatales.
+El dataset v0.2.0 tenía los gates G1, G3, G4, G5 y G6 bloqueados: no existe una sola fuente reciente, de todas las
+severidades, con ubicación en los 43 distritos.
+**Decisión:** el objetivo es la intensidad latente de **todos los atropellos** (cualquier severidad y subtipo),
+estimada por un CNN-LSTM que trata cada fuente como una observación parcial del mismo fenómeno:
+
+- CENACOM 2011–2017 (todas las severidades) con factor de registro 1 (escala de referencia);
+- ONSV 2021–2024 (siniestros con fallecido) con factor de registro aprendido;
+- coberturas temporales como *offset* (2017 solo cubre enero a junio; 2018–2020 sin fuente: no se publican).
+
+CENACOM no tiene coordenadas. Se georreferencia con reglas explícitas contra calles de OpenStreetMap del
+distrito declarado: un cruce da un punto, una sola calle reparte el evento a lo largo de su tramo y, sin
+coincidencia, el evento queda a nivel distrito. No se inventan coordenadas
+(`pipelines/fusion/geocode.py`). Esto levanta el gate G4 con reglas documentadas y G1 mediante la fusión.
+G3 (factores de expansión) no se usa: se trabaja con conteos registrados. G6 (exposición) sigue sin medida
+directa y se declara como limitación.
+**Alternativas descartadas:**
+
+- Publicar solo fatales: contradice la observación del profesor y el título del proyecto.
+- Usar solo CENACOM por distrito: no sirve para la malla CNN y deja fuera 2021–2024.
+- Extrapolar con factores de expansión: no son confiables (1.117 factores inválidos auditados).
+
+**Impacto:**
+
+- Alcance y título: no cambian.
+- Calidad: el modelo se evalúa en 2024 solo contra la observación ONSV. Por eso se agrega un backtest de todas
+  las severidades (CENACOM 2017).
+- Riesgos: R-datos, porque el supuesto de un factor ONSV espacialmente constante queda como la limitación L02.
+- Cronograma: absorbido en la recuperación de la semana del MVP.
+
+**Pendiente:** aprobación del equipo, registro en la matriz de cambios y en la Matriz de Trazabilidad (RD-05).
+
+## D-02. Nombres de recursos de la API en inglés
+
+**Requisitos:** RT-02 (HT-03, HT-09). **Contexto:** el informe (Figura 5D) nombra `/periodos`, `/unidades`,
+`/riesgo`, `/comparaciones`, `/procedencia`. El usuario pidió nombres estándar en inglés.
+**Decisión:** `/api/v1/periods`, `/units`, `/risk`, `/comparisons`, `/provenance`, con correspondencia uno a
+uno documentada en `docs/api/contract.md`. El handoff ya indicaba que las rutas exactas no son requisito
+académico congelado; la obligación funcional y las pruebas se mantienen. **Impacto:** ninguno en requisitos; el
+frontend consume el contrato nuevo en el mismo PR.
+
+## D-03. Malla de 1 km en EPSG:32718 recortada a los 43 distritos
+
+**Requisitos:** RD-03, RD-04, RG-01 (HT-04, HT-05). **Contexto:** el prototipo de Design usa una malla en grados
+(0,009° × 0,0092°) con 2.750 celdas y descarta celdas con menos del 35 % de superficie.
+**Decisión:** la malla es de cuadrados reales de 1 km en UTM 18S (CRS métrico). Conserva toda celda que
+intersecta el ámbito, recortada al límite, para no perder eventos de bordes: quedan 2.899 celdas.
+La pertenencia se resuelve así:
+
+- `district_fractions` guarda la participación por área;
+- el distrito "dueño" es el de mayor área y solo sirve para filtrar y rotular;
+- los conteos se asignan por punto en polígono.
+
+Los IDs mantienen la convención `F{fila}-C{columna}` del diseño.
+
+## D-04. Una tabla de resultados por representación y publicación atómica
+
+**Requisitos:** RT-03, RM-04 (HT-10, HT-11). **Decisión:** `risk_result` guarda celdas y distritos con
+`representation_id`, en lugar de una tabla `district_result` separada, porque es el mismo contrato y las mismas
+reglas. El índice distrital agrega las intensidades de sus celdas por área (nunca promedia etiquetas) y tiene
+su propia distribución de referencia. La publicación ocurre en una sola transacción con conciliación de filas
+y sumas contra `results.csv`; el puntero activo solo puede apuntar a corridas `published` (trigger). Hay roles
+separados: `raplm_reader` (API, solo lectura), `raplm_publisher` (lotes) y el dueño (migraciones).
+
+## D-05. Benchmark ampliado con implementaciones de la literatura
+
+**Requisitos:** RM-01 (HT-02), M-05. **Decisión:** además del promedio histórico (enfoque base comprometido) se
+comparan ConvLSTM (Shi et al., 2015; base de Hetero-ConvLSTM, Yuan et al., 2018) y un GLM de Poisson,
+junto con dos ablaciones (solo CNN y solo LSTM). El modelo publicado es el candidato CNN-RNN con menor
+pérdida de validación; los demás se reportan aunque ganen. El protocolo se congeló antes de evaluar la
+prueba (`docs/ml/benchmark-protocol.md`).
+
+## D-06. Recurso adicional `GET /api/v1/series` para vistas de analista
+
+**Requisitos:** RF-03, RF-06; mejora pedida por el Product Owner para que la herramienta sea útil a analistas
+e instituciones (ranking, cambio, persistencia, perfil distrital y exportación). **Decisión:** se agrega un
+sexto recurso de solo lectura que devuelve, por unidad, el índice de todos los años publicados para un tipo de
+día y una franja. Calcular la persistencia con `/risk` exigiría 11 consultas de unas 2.900 filas.
+**Impacto:** amplía el contrato de la Figura 5D, sin escrituras ni recomendaciones (RG-02, RG-03). Necesita
+aprobación como cambio de contrato (C-05).
+
+## D-07. Retiro del `RiskProvider` sintético de la ruta de producción
+
+**Requisitos:** RT-02, RG-02. **Decisión:** se eliminan `GET /risk`, `GET /risk/map`, `POST /risk/compare` y
+`/metadata/*` del prototipo, junto con sus pruebas. Calculaban un puntaje SHA-256 en cada petición, lo que
+contradice la arquitectura por lotes. Si no hay corrida publicada, la API responde `503 NO_PUBLISHED_RUN` y no
+devuelve datos simulados. Los datos de ejemplo solo existen como fixture `is_demo=true` en las pruebas de
+contrato.
+
+## D-08. Periodo = año × tipo de día × franja de 6 horas
+
+**Requisitos:** RF-03. **Decisión:** se adopta la definición del prototipo validado (PR-01): laborable o fin de
+semana × 0–6, 6–12, 12–18 y 18–24 h, por año. Los años publicados son 2011–2017 y 2021–2024, es decir, los años
+con alguna fuente. El indicador se anualiza por número de días del tipo para que laborable y fin de semana sean
+comparables. Los eventos sin hora se excluyen de las franjas y quedan contados en el reporte de fusión.
