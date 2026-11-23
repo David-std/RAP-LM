@@ -65,7 +65,10 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
       <header className="topbar">
         <span className="brand" aria-label="RAP-LM">
           <span className="brand-mark" aria-hidden="true" />
-          RAP-LM <small>Riesgo de atropello peatonal, Lima</small>
+          <span className="brand-text">
+            <span className="brand-name"><span className="brand-accent">RAP</span>-<span className="brand-accent2">LM</span></span>
+            <small>Riesgo de atropello peatonal, Lima Metropolitana</small>
+          </span>
         </span>
         <nav aria-label="Vistas">
           {tabs.map((t) => (

@@ -293,3 +293,14 @@ details[open] summary { margin-bottom: 8px; }
 .env-row { display: grid; grid-template-columns: 132px 1fr 150px; align-items: center; gap: 8px; padding: 3px 0; }
 .env-track { position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--line-2) 0 25%, var(--bg-2) 25% 75%, var(--line-2) 75% 100%); border: 1px solid var(--line-2); }
 .env-mark { position: absolute; top: -4px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--accent); }
+
+/* ---------------------------------------------------------------- brand and segmented controls */
+.topbar { min-height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
+.brand-accent { color: #E0664D; }
+.brand-accent2 { color: #F09A80; }
+.brand-text small { font-size: 12px; opacity: .8; font-weight: 400; }
+.seg-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg-row button { flex: 1 1 auto; white-space: nowrap; padding: 6px 12px; min-width: max-content; }
