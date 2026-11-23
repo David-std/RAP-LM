@@ -117,6 +117,7 @@ def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]
         "best_validation_nll": round(best[0], 6),
         "epochs_run": len(history),
         "history_tail": history[-5:],
+        "history": history,  # (epoch, train NLL, validation NLL) for training curves
     }
 
 
