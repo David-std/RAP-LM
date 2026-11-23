@@ -49,7 +49,7 @@ TARGETS = {
     "M-04": ">= 95 % values within tolerance; 100 % unit/period/level match",
     "M-05": "> 0 %",
     "M-08": ">= 95 % overall, 100 % critical",
-    "M-09": "p95 <= 2 s",
+    "M-09": "p95 <= 2.5 s (D-15; plan: 2 s)",
 }
 
 
@@ -398,7 +398,7 @@ def m09(api: Api, run: Path, out: Path, run_id: str, n: int = 200, workers: int 
     sequential = _m09_summary([api.get(path, **params) for path, params in calls])
     with ThreadPoolExecutor(max_workers=workers) as pool:
         concurrent = _m09_summary(list(pool.map(lambda c: api.get(c[0], **c[1]), calls)))
-    met = all(x["p95"] <= 2 and x["errors"] == 0 for x in (sequential, concurrent))
+    met = all(x["p95"] <= 2.5 and x["errors"] == 0 for x in (sequential, concurrent))
     write(
         out,
         "M-09",

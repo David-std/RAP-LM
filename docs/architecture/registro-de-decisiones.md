@@ -21,6 +21,7 @@ registra la aprobación del equipo.
 | D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Pendiente de aprobación del equipo |
 | D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Pendiente de aprobación del equipo |
 | D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aplica sin cambiar la línea base (corrección de validez); registro para el equipo |
+| D-15 | 2026-11-23 | Solicitud de cambio (meta de M-09: p95 ≤ 2,5 s bajo carga concurrente) | Pendiente de aprobación del equipo |
 
 ---
 
@@ -236,4 +237,12 @@ comisaría coincide con el de ocurrencia en el 93,2 % de 5.378 eventos. **Decisi
 acepta como ubicación a nivel distrito, declarada; esos eventos ya no se geocodifican a calle ni celda, y la fusión
 rechaza cualquier evento de comisaría con geometría. Un brazo de sensibilidad los excluye por completo. **Impacto:**
 dataset v1.4, iteración v4 (enmienda A3), mapas de celda y vías críticas sin esos eventos.
+
+## D-15. Meta de M-09 bajo carga concurrente
+
+**Contexto:** el plan fija p95 ≤ 2 s sin precisar la carga. Con 200 consultas secuenciales el p95 es 0,4 a 0,5 s; con
+10 clientes simultáneos que piden el mapa completo de 2.899 celdas (4,4 MB por respuesta) queda entre 1,7 y 2,1 s,
+aun con 4 procesos de API y caché de respuestas. **Decisión propuesta:** meta de p95 ≤ 2,5 s medida en ambas
+condiciones (secuencial y 10 clientes). **Impacto:** cambia el umbral de una métrica de calidad de la línea base;
+requiere aprobación en el control de cambios (M-15). Mientras no se apruebe, los informes muestran ambos umbrales.
 

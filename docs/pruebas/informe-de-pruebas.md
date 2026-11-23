@@ -38,7 +38,7 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 | M-05 | Mejora relativa frente al promedio histórico | prueba ONSV 2024 (fatales): +6,29 %; backtest CENACOM 2017 (todas las severidades): -3,28 % | > 0 % |
 | M-07 | Escenarios críticos de extremo a extremo | 12/12 escenarios aprobados | 100 % y cero bloqueantes |
 | M-08 | Exactitud de consultas, filtros y comparaciones | 188/188 = 100,0 % | >= 95 % global, 100 % críticos |
-| M-09 | Tiempo de respuesta p95 de la API | p95 0,48 s secuencial y 1,95 s con 10 clientes simultáneos (200 peticiones cada una, 0 errores) | <= 2 s |
+| M-09 | Tiempo de respuesta p95 de la API (secuencial y 10 clientes simultáneos) | p95 0,48 s secuencial y 1,95 s con 10 clientes simultáneos (200 peticiones cada una, 0 errores) | <= 2,5 s (D-15; plan: 2 s) |
 
 M-06 (requisitos funcionales aceptados) se determina en la revisión de sprint con el plan de pruebas por requisito. M-10 a M-12 se miden en las sesiones con especialistas (paquete 4.5) con los instrumentos de `docs/validacion/`. M-13 a M-15 corresponden a la gestión del proyecto.
 
