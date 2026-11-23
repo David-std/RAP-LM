@@ -1,95 +1,115 @@
 # Manual de usuario de RAP-LM
 
 **Historia:** HU-29 (RNF-01). **Versión de la aplicación:** la de la rama que contiene este archivo. La corrida
-publicada que se consulta aparece siempre en la barra de estado inferior.
+publicada que se consulta aparece en la barra superior y en la barra de estado.
 
-RAP-LM permite consultar, comparar y exportar un **índice relativo de riesgo de atropello peatonal** (todas
-las severidades) por celda de 1 km o por distrito, en los 43 distritos de la provincia de Lima, para cada
-**periodo**: año, tipo de día (laborable o fin de semana) y franja horaria (0–6, 6–12, 12–18 o 18–24 h).
-Es una referencia analítica: **no es una predicción en tiempo real ni recomienda intervenciones**.
+RAP-LM permite consultar, comparar, analizar y exportar el **riesgo relativo de atropello peatonal** (todas las
+severidades y subtipos) en los 43 distritos de la provincia de Lima, por celda de 1 km, por distrito y por calle,
+para cada **periodo**: año, tipo de día (laborable o fin de semana) y franja horaria (0 a 6, 6 a 12, 12 a 18 o 18
+a 24 h). Es una referencia analítica para especialistas: **no es una predicción en tiempo real ni recomienda
+intervenciones**.
 
 ## 1. Conceptos
 
 | Término | Significado |
 |---|---|
-| Unidad espacial | Una celda de la malla de 1 km (código `F{fila}-C{columna}`) o un distrito (UBIGEO). Cada celda pertenece al distrito con mayor parte de su superficie. |
-| Indicador estimado | Atropellos esperados por km² y año en esa franja, estimados por el modelo CNN-LSTM a partir de los años anteriores y el contexto urbano. |
-| Índice (0 a 100) | Posición del indicador frente a la distribución de referencia: un índice de 85 significa que supera al 85 % de las celdas y periodos de referencia. **No es una probabilidad.** |
-| Nivel | Bajo (menos de 40), medio (40 a 69) y alto (70 o más). Los umbrales se fijaron antes de evaluar el modelo y se ven en la leyenda. |
+| Ámbito | Provincia de Lima, 43 distritos (UBIGEO 1501xx). En el mapa, lo que queda fuera (Callao y las otras provincias del departamento de Lima) se ve atenuado. |
+| Unidad espacial | Una celda de la malla de 1 km (código `F{fila}-C{columna}`), un distrito o un corredor (una calle dentro de un distrito). |
+| Frecuencia | Indicador principal: atropellos esperados por km² y año en esa franja, estimados por la red CNN-RNN con los años anteriores y el contexto urbano. Es el índice que colorea el mapa. |
+| Severidad esperada | Frecuencia × probabilidad de desenlace fatal de la zona. Señala dónde las consecuencias suelen ser más graves. |
+| Riesgo por exposición | Razón entre la frecuencia estimada y la que explicaría solo la exposición (población, comercio, transporte, veredas, vías arteriales). 1× = lo esperado por la exposición; 2× = el doble. |
+| Índice (0 a 100) | Posición del indicador frente a la distribución de referencia: 85 significa que supera al 85 % de las celdas y franjas de referencia. **No es una probabilidad.** |
+| Nivel | Bajo (menos de 40), medio (40 a 69) y alto (70 o más). Umbrales fijados antes de evaluar el modelo. |
 | Sin resultado (trama) | No hay estimación para esa unidad o periodo. **No equivale a riesgo bajo.** |
-| Registro histórico | Atropellos, lesionados y fallecidos observados en las fuentes. Es una referencia de frecuencia, no el riesgo estimado. |
+| Registro histórico | Atropellos registrados en las fuentes, con su desglose por subtipo (atropello, atropello y fuga, choque y atropello, otro) y por severidad (con fallecido, con lesionados, solo daños, sin dato). Es frecuencia observada, no el riesgo estimado. |
 | Promedio histórico | Enfoque base de comparación: promedio de los años previos de la misma fuente, unidad y franja. |
 
-## 2. Pantalla de mapa
+## 2. Mapa de riesgo
 
-1. **Periodo:** en el panel *Consulta* elija el año, el tipo de día y la franja. Solo aparecen los años con al menos
-   una fuente (2011–2017 y 2021–2024). El mapa, el detalle y las comparaciones abiertas se actualizan juntos.
-2. **Unidad de análisis:** alterne entre *Celda de 1 km* y *Distrito*. Los contornos negros son los límites
-   distritales.
-3. **Leyenda:** abajo a la izquierda. Seis tonos agrupados en tres niveles, con sus rangos numéricos. Se puede
-   plegar.
-4. **Navegación:** rueda o botones para acercar y alejar, arrastre para desplazarse y el botón ⤢ para volver a
-   la vista completa de Lima. Con el mapa enfocado también funcionan las flechas del teclado y las teclas `+` y `-`.
-5. **Información rápida:** al pasar el cursor por una unidad se ven su nombre, índice, nivel y periodo.
-6. **Buscar:** escriba un código de celda (por ejemplo `F54-C35`) o parte del nombre de un distrito y pulse
-   Enter.
+1. **Unidad y periodo:** en el panel izquierdo elija celda o distrito, el año, el tipo de día y la franja. Solo
+   aparecen años con alguna fuente (2011 a 2017 y 2021 a 2024). Todas las vistas usan el mismo periodo.
+2. **Filtros:** marque niveles (alto, medio, bajo) o elija un distrito. Las unidades fuera del filtro se atenúan;
+   *Quitar filtros* restablece el conjunto completo. Abrir o cerrar una zona no cambia los filtros.
+3. **Buscar:** escriba un código de celda (por ejemplo `F54-C35`) o parte del nombre de un distrito.
+4. **Navegar:** rueda o botones para acercar, arrastre para desplazarse, botón ⤢ para volver a toda Lima.
+5. **Leyenda:** abajo a la izquierda, con rangos numéricos y nombres de nivel (no depende solo del color).
 
-## 3. Filtros
+### Panel de zona
 
-- **Nivel de riesgo:** marque uno o varios niveles. Las unidades que no cumplen el filtro se ven atenuadas. Los
-  números indican cuántas unidades hay en cada nivel en el periodo activo.
-- **Distrito:** limita la consulta a una jurisdicción.
-- Los filtros activos se resumen en el panel; **Quitar filtros** restablece el conjunto completo.
-- Abrir o cerrar el detalle no cambia el periodo ni los filtros.
+Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 
-## 4. Detalle de una unidad
+| Tarjeta | Qué responde |
+|---|---|
+| Riesgo estimado | Nivel, índice de frecuencia, severidad esperada y riesgo por exposición; posición en Lima y diferencia frente al promedio histórico. |
+| La red año a año | Atropellos que la red esperaba registrar frente a los registrados, año por año. Muestra cómo la parte recurrente sigue la evolución; clic en un año para cambiar el periodo. |
+| Perfil horario | Índice en las ocho combinaciones de tipo de día y franja del año activo; clic para cambiar de franja. |
+| Registro histórico | Total del periodo con desglose por subtipo y por severidad, lesionados y fallecidos. |
+| Qué impulsa la estimación | Cuánto cambia la estimación si se retira cada grupo de variables (población, transporte, comercio, infraestructura peatonal, vías arteriales, atropellos del año previo). Rojo eleva, petróleo reduce. Es asociación del modelo, no causalidad. |
+| Simular contexto del distrito | Elija una variable y mueva el control (de 0 a 2 veces su valor actual): se muestra cómo cambia el riesgo estimado del distrito. Los escenarios se calcularon fuera de línea; no son recomendaciones. |
+| Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver corredores* abre la vista de calles. |
+| Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. |
 
-Haga clic en una unidad. El panel derecho muestra:
+## 3. Corredores
 
-- índice, nivel, periodo, tipo de unidad, indicador estimado, promedio histórico y posición en Lima;
-- **perfil horario** del año: los ocho periodos (dos tipos de día por cuatro franjas). Un clic cambia el
-  periodo activo;
-- **registro histórico** del periodo: atropellos registrados y peatones lesionados y fallecidos;
-- **procedencia**: fuentes que observan ese periodo, partición del modelo (entrenamiento, validación o
-  prueba), corrida, dataset, variables por grupo (ocurrencia, severidad, exposición y contexto) y limitaciones.
+Vista a nivel de calle, en la línea de las redes de alto riesgo de los programas Visión Cero:
 
-La barra inferior **Evolución temporal** muestra el índice de la unidad en todos los años para el mismo tipo
-de día y franja.
+- el mapa dibuja cada calle con grosor y color según sus atropellos por km;
+- el ranking ordena las calles por densidad; clic en una calle para ver sus atropellos por año, cuándo ocurren
+  (tipo de día y franja), lesionados, fallecidos, fuentes y el riesgo modelado medio de las celdas que cruza;
+- la curva de concentración muestra qué parte de los atropellos ubicados se acumula en una pequeña parte de la
+  longitud de calles;
+- *Exportar CSV* descarga el ranking.
 
-## 5. Comparar
+Un cruce reparte medio evento a cada una de sus calles; las avenidas de doble calzada suman ambas vías en su
+longitud. Es registro histórico, no predicción.
 
-- **Zonas en un periodo:** agregue de 2 a 4 zonas haciendo clic en el mapa (o con *Añadir distrito*). Todas usan
-  el periodo activo, la misma corrida y la misma escala. La tabla muestra índice, nivel, diferencia con la zona
-  A, promedio histórico y atropellos registrados. Use × para quitar una zona.
-- **Zona entre periodos:** elija una zona y dos periodos (A y B). Los dos mapas muestran la misma geometría. Se
-  muestran la variación y la serie de años, que no une 2017 con 2021 porque no hay fuente entre 2018 y 2020.
-- No se pueden comparar celdas con distritos: usan escalas distintas.
+## 4. Comparar
 
-## 6. Análisis
+- **Zonas en un periodo:** agregue de 2 a 4 zonas (clic en el mapa o *Añadir distrito*). Todas usan el periodo
+  activo, la misma corrida y la misma escala. La tabla muestra índice, nivel, diferencia con la zona A, promedio
+  histórico y registro.
+- **Zona entre periodos:** elija una zona y dos periodos (A y B); los dos mapas muestran la misma geometría. Se ven
+  la variación y la serie de años (sin unir 2017 con 2021, porque 2018 a 2020 no tienen fuente).
+- Celdas y distritos no se comparan entre sí: usan escalas distintas.
+
+## 5. Análisis
 
 | Herramienta | Para qué sirve |
 |---|---|
-| Ranking | Ordenar todas las unidades del periodo por índice, indicador, promedio histórico o atropellos registrados. Respeta los filtros del mapa. |
-| Cambio | Ver qué unidades subieron o bajaron entre dos periodos (rojo sube, azul baja) y cuántas cambiaron de nivel. |
+| Ranking | Ordenar todas las unidades del periodo por índice, indicador, promedio histórico o registro. Respeta los filtros del mapa. |
+| Cambio | Qué unidades subieron o bajaron entre dos periodos y cuántas cambiaron de nivel. |
 | Persistencia | Cuántos años estuvo cada unidad en nivel alto para un mismo tipo de día y franja. |
 | Distritos | Índice distrital y cuántas de sus celdas están en cada nivel. |
 
-**Exportar:** *Exportar CSV* (abre en Excel) y *Exportar GeoJSON* (abre en QGIS o ArcGIS) descargan lo que se ve.
-Cada archivo incluye la corrida, el dataset, el periodo y el aviso de alcance. Las celdas vacías significan sin
-resultado, no cero.
+*Exportar CSV* (Excel) y *Exportar GeoJSON* (QGIS o ArcGIS) descargan lo que se ve, con corrida, dataset, periodo
+y aviso de alcance. Las celdas vacías significan sin resultado, no cero. La dirección del navegador guarda periodo,
+vista, filtros y unidad seleccionada: copie el enlace para compartir la misma consulta.
 
-**Compartir:** la dirección del navegador guarda el periodo, la vista, los filtros y la unidad seleccionada.
-Copie el enlace para que otra persona vea la misma consulta.
+## 6. Modelo
+
+Muestra cómo está construida y cómo se evaluó la red publicada:
+
+- arquitectura (entrada, parte espacial, parte temporal, salida y vínculo con cada fuente);
+- particiones de entrenamiento, validación y prueba por año y fuente;
+- curvas de entrenamiento por época;
+- benchmark en la prueba independiente frente al promedio histórico y otras arquitecturas, con la mejora relativa
+  (M-05);
+- errores del nivel alto: zonas críticas detectadas, falsos negativos y falsos positivos del modelo y del promedio
+  histórico;
+- búsqueda de configuración, variables de entrada, ficha técnica y huella SHA-256 de los pesos.
 
 ## 7. Metodología y fuentes
 
-Explica qué representa el índice, cómo se obtiene, la evaluación frente al promedio histórico y a modelos de la
-literatura, las fuentes (incluidas las no incorporadas y por qué), las variables y las limitaciones.
+Qué representa cada componente, cómo se obtiene, las fuentes (incluidas las no incorporadas y por qué), las
+variables por grupo (ocurrencia, severidad, exposición y contexto) y las limitaciones.
 
 ## 8. Buenas prácticas de interpretación
 
-- Compare zonas siempre en el mismo periodo, o una zona consigo misma entre periodos.
-- Un nivel alto indica dónde se concentra el riesgo relativo, no una causa ni la intervención que corresponde.
-- Revise la procedencia antes de usar un resultado: 2021–2024 se observa solo con siniestros fatales (ONSV) y
-  el modelo los vincula al conjunto de atropellos; 2011–2017 proviene del censo de comisarías.
+- Compare zonas en el mismo periodo, o una zona consigo misma entre periodos.
+- Un nivel alto indica dónde se concentra el riesgo relativo, no su causa ni la intervención que corresponde.
+- Use los tres componentes juntos: una zona con frecuencia media pero severidad alta o riesgo por exposición alto
+  merece atención distinta de una con muchos atropellos leves en una zona muy transitada.
+- Revise la procedencia: 2021 a 2024 se observa solo con siniestros fatales (ONSV) y el modelo los vincula al
+  conjunto de atropellos; 2011 a 2017 proviene del censo de comisarías, de todas las severidades.
+- La exposición se representa con proxies (no hay aforos peatonales públicos para los 43 distritos).
 - Una celda con trama no tiene resultado: no la interprete como zona segura.
