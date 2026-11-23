@@ -81,14 +81,33 @@ python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
 | Path | Content |
 |---|---|
 | `pipelines/spatial`, `pipelines/fusion` | Grid, OSM street index, geocoding rules, event fusion, context (HT-05, HT-06) |
-| `ml/fused` | Tensors, CNN-LSTM and benchmark models, training/evaluation, export (HT-02, HT-07, HT-08) |
+| `ml/fused` | Tensors, ConvLSTM/CNN-LSTM and benchmark models, training, export, explanations, Grad-CAM, forecast (HT-02, HT-07, HT-08) |
 | `pipelines/publication` | Atomic publisher with reconciliation (HT-11) |
 | `database` | Alembic migrations and DB roles (HT-04, HT-10) |
 | `apps/api` | Read-only FastAPI v1 (HT-09) and tests |
 | `apps/web` | React + TypeScript + Leaflet SPA (EP-01..EP-05) |
-| `tools/metrics`, `tools/validation`, `tools/reports` | Metric measurement, specialist-validation consolidation, benchmark report |
+| `tools/metrics`, `tools/validation`, `tools/reports` | Metric measurement, specialist-validation consolidation, benchmark and test reports |
 | `data/catalog` | Provenance catalog (sources, variables, limitations) |
-| `docs/` | Architecture, API contract, ML protocol, decisions, control log, user manual, validation |
+| `docs/` | Architecture document and C4 diagrams, decision and incident registers, API contract, ML protocol, test plan and report, user manual, validation |
 | `evidence/` | Measured metric and benchmark reports |
 
 Documentation index: [docs/README.md](docs/README.md).
+
+## Branches and pull requests
+
+Git Flow: `main` holds released versions, `develop` integrates finished work. Each unit of work lives in its own
+branch created from `develop` and returns to it through a reviewed pull request:
+
+| Prefix | Use | Example |
+|---|---|---|
+| `feature/` | New functionality or analysis | `feature/forecast-view` |
+| `fix/` | Defect found in `develop` | `fix/period-order` |
+| `docs/` | Documentation only | `docs/architecture-c4` |
+| `refactor/` | Internal change without new behaviour | `refactor/api-repository` |
+| `release/` | Stabilisation before merging into `main` | `release/mvp-1.0` |
+| `hotfix/` | Urgent fix on `main` | `hotfix/ci-import-order` |
+
+Names are lowercase kebab-case. Commits follow Conventional Commits and cite the requirement codes they address
+(for example `feat(web): HU-10 continuous heat view`). Branches are deleted after merge; the pull request keeps
+the record.
+
