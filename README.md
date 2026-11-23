@@ -108,6 +108,6 @@ branch created from `develop` and returns to it through a reviewed pull request:
 | `hotfix/` | Urgent fix on `main` | `hotfix/ci-import-order` |
 
 Names are lowercase kebab-case. Commits follow Conventional Commits and cite the requirement codes they address
-(for example `feat(web): HU-10 continuous heat view`). Branches are deleted after merge; the pull request keeps
-the record.
+(for example `feat(web): HU-10 continuous heat view`). Merged branches are kept as project traceability, together
+with `develop` and `main`.
 
