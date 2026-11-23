@@ -221,3 +221,34 @@ def test_temporal_comparison_accepts_all_published_years(client):  # RF-06, defe
     from raster_api.config import get_settings
 
     assert get_settings().max_compare_periods >= 11  # 2011-2017 + 2021-2024
+
+
+def test_risk_components_and_breakdown(client):  # D-10: frequency, severity, exposure
+    item = client.get("/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F1-C1"}).json()["data"][0]
+    assert item["severity"] == {"value": 0.1, "index": 60.0}
+    assert item["exposure"] == {"value": 1.8, "index": 85.0}
+    assert item["breakdown"]["type"]["atropello"] == 2
+    missing = client.get("/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F5-C1"}).json()["data"][0]
+    assert missing["severity"] == {"value": None, "index": None}  # no result: never zero
+
+
+def test_corridors_geojson(client):  # D-09
+    fc = client.get("/api/v1/corridors", params={"district_ids": "150101"}).json()
+    assert fc["features"][0]["properties"]["street"] == "Abancay"
+    assert fc["features"][0]["geometry"]["type"] == "MultiLineString"
+    assert client.get("/api/v1/corridors", params={"district_ids": "070101"}).status_code == 422
+
+
+def test_explanation_cell_and_district(client):  # D-09, RM-02/RM-03 transparency
+    cell = client.get("/api/v1/explanations", params={"unit_id": "F1-C1"}).json()
+    assert cell["years"] == [2023, 2024] and cell["expected_events"] == [1.5, 1.0]
+    assert cell["whatif"] is None
+    dist = client.get("/api/v1/explanations", params={"unit_type": "district", "unit_id": "150101"}).json()
+    assert dist["whatif"]["population"] == [-20.0, 0.0, 15.0]
+    assert client.get("/api/v1/explanations", params={"unit_id": "F9-C9"}).status_code == 404
+
+
+def test_model_card(client):  # D-09
+    body = client.get("/api/v1/model").json()
+    assert body["card"]["variant"] == "cnn_lstm"
+    assert body["corridor_summary"]["corridors"] == 1

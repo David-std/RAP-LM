@@ -82,7 +82,20 @@ INSERT INTO risk_result VALUES
  ('demo-run', 'district-43', '150101', '2024-wd-1824', 'estimated', 0.6, 75, 'high', 0.5, 4, 3, 1),
  ('demo-run', 'district-43', '150131', '2024-wd-1824', 'estimated', 0.1, 20, 'low', 0.1, 1, 1, 0);
 -- F5-C1 has no row for any period: it must be served as no_result, never as zero.
+UPDATE risk_result SET severity_value = 0.1, severity_index = 60, exposure_ratio = 1.8, exposure_index = 85,
+  breakdown = '{{"severity": [1, 2, 0, 0], "type": [2, 1, 0, 0]}}'
+  WHERE unit_id = 'F1-C1' AND period_id = '2024-wd-1824';
 INSERT INTO publication_pointer VALUES ('active', 'demo-run', now());
+INSERT INTO model_card VALUES ('demo-run', '{{"run_id": "demo-run", "variant": "cnn_lstm"}}', '[2023, 2024]',
+  '["onsv", "onsv"]', 2024, '["population", "prior_collisions"]', '[0.5, 1.0, 2.0]', '["population"]',
+  '{{"corridors": 1, "events_assigned": 3, "events_not_on_corridor": 0, "total_length_km": 1.0,
+     "concentration": {{"10%_length": 1.0}}}}');
+INSERT INTO unit_explanation VALUES
+ ('demo-run', 'grid-1km', 'F1-C1', '[1.5, 1.0]', '[3, 1]', '[12.5, -4.0]', NULL),
+ ('demo-run', 'district-43', '150101', '[2.0, 1.2]', '[4, 1]', '[10.0, 2.0]', '{{"population": [-20.0, 0.0, 15.0]}}');
+INSERT INTO corridor VALUES ('demo-run', '150101:ABANCAY', '150101', 'Abancay', 1.0, 3, 3, 1, 1.0, 2, 0, 70,
+  '{{"cenacom": 3}}', '{{"2016": 3}}', '[0,0,0,3,0,0,0,0]', '{{"street": 3}}',
+  ST_Multi(ST_GeomFromText('LINESTRING(-77.035 -12.045, -77.03 -12.05)', 4326)));
 """
 
 
