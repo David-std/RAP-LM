@@ -85,6 +85,53 @@ def model_table(metrics: dict, high: list | None, title: str) -> list[str]:
     return lines + [""]
 
 
+def ablation_table(full: dict, ablated: dict) -> list[str]:
+    """Context ablation arm (amendment A2): same protocol without urban-context channels."""
+    rows = []
+    for label, part in (("Validación", "validation"), ("Prueba", "test")):
+        a, b = full[part][0], ablated[part][0]
+        rows.append(
+            f"| {label} {a['family'].upper()} {a['year']} | {num(a['model']['district_mae'])} | "
+            f"{num(b['model']['district_mae'])} | {pct(a['model']['capture_top10'])} | "
+            f"{pct(b['model']['capture_top10'])} | {num(a['model']['cell_deviance'], 4)} | "
+            f"{num(b['model']['cell_deviance'], 4)} |"
+        )
+    return [
+        "**Ablación de contexto (v3).** Mismo protocolo, datos y semillas, con todas las variables de exposición, "
+        "entorno y tránsito fijadas en su media; la red solo ve el historial de atropellos. Responde si esas "
+        "variables (Guo et al., 2024; Hu et al., 2024) mejoran la precisión.",
+        "",
+        "| Partición | E con contexto | E sin contexto | Captura con contexto | Captura sin contexto | "
+        "Devianza con contexto | Devianza sin contexto |",
+        "|---|---|---|---|---|---|---|",
+        *rows,
+        "",
+    ]
+
+
+def device_section(devices: dict | None) -> list[str]:
+    """Same configuration trained on CPU and on GPU: time and agreement of the results."""
+    if not devices:
+        return []
+    return [
+        "**Entrenamiento en CPU y en GPU.** La configuración publicada se entrenó en ambos dispositivos con la "
+        "misma semilla y el mismo protocolo (búsqueda de 16 configuraciones y ensamble de 5).",
+        "",
+        "| Dispositivo | Tiempo de búsqueda y ensamble | Error E de validación del ensamble |",
+        "|---|---|---|",
+        *(
+            f"| {d['device'].upper()} | {d['minutes']:.1f} min | {num(d['validation_E'], 4)} |"
+            for d in devices["runs"]
+        ),
+        "",
+        f"Concordancia entre dispositivos: nivel de riesgo igual en {_es(devices['level_match_pct'])} % de las "
+        f"unidad-periodo; diferencia relativa mediana del indicador {_es(devices['median_rel_diff_pct'], 2)} %. "
+        "Los resultados no son idénticos bit a bit entre dispositivos (aritmética de punto flotante distinta); "
+        "cada dispositivo es reproducible por sí mismo. La corrida publicada y su reproducibilidad (M-04) son las de CPU.",
+        "",
+    ]
+
+
 def _es(x: float, digits: int = 1) -> str:
     return f"{x:.{digits}f}".replace(".", ",")
 
@@ -98,9 +145,15 @@ def main() -> None:
     v1b = load("fused-cnnlstm-backtest-2017.metrics.json")
     v2 = load("fused-cnnlstm-2026.11-v2.metrics.json")
     v2b = load("fused-cnnlstm-backtest-2017-v2.metrics.json")
+    v3 = load("fused-cnnlstm-2026.11-v3.metrics.json")
+    v3b = load("fused-cnnlstm-backtest-2017-v3.metrics.json")
+    v3n = load("fused-cnnlstm-2026.11-v3-nocontext.metrics.json")
+    devices = load("device_comparison.json")
     spatial = load("spatial_units.json")
-    dataset = load("fused-v1.1.0.dataset_manifest.json") or load(
-        "fused-v1.0.0.dataset_manifest.json"
+    dataset = (
+        load("fused-v1.3.0.dataset_manifest.json")
+        or load("fused-v1.1.0.dataset_manifest.json")
+        or load("fused-v1.0.0.dataset_manifest.json")
     )
     m04 = json.loads((ROOT / "evidence/metrics/M-04.json").read_text(encoding="utf-8"))
     fusion = dataset["fusion_report"]
@@ -179,11 +232,26 @@ def main() -> None:
             load("fused-cnnlstm-backtest-2017-v2.high_level.json"),
             "Iteración v2, backtest de todas las severidades",
         )
+    if v3:
+        L += model_table(
+            v3,
+            load("fused-cnnlstm-2026.11-v3.high_level.json"),
+            "Iteración v3 (dataset v1.2, población anual; publicada), corrida principal",
+        )
+    if v3b:
+        L += model_table(
+            v3b,
+            load("fused-cnnlstm-backtest-2017-v3.high_level.json"),
+            "Iteración v3, backtest de todas las severidades",
+        )
+    if v3 and v3n:
+        L += ablation_table(v3, v3n)
     L += [
         f"Reproducibilidad (M-04), corrida {m04['run_id']} reentrenada desde cero: "
         f"{_es_int(m04['numerator'])}/{_es_int(m04['denominator'])} valores dentro de la tolerancia "
         f"({_es(m04['value'])} %), coincidencia de unidad, periodo y nivel {_es(m04['level_match_pct'])} %.",
         "",
+        *device_section(devices),
         "### 3.4. Análisis de alternativas",
         "",
         "- En la medida principal E por distrito, el GLM de Poisson y el promedio histórico son competidores fuertes: "
