@@ -21,7 +21,9 @@ intervenciones**.
 | Índice (0 a 100) | Posición del indicador frente a la distribución de referencia: 85 significa que supera al 85 % de las celdas y franjas de referencia. **No es una probabilidad.** |
 | Nivel | Bajo (menos de 40), medio (40 a 69) y alto (70 o más). Umbrales fijados antes de evaluar el modelo. |
 | Sin resultado (trama) | No hay estimación para esa unidad o periodo. **No equivale a riesgo bajo.** |
-| Registro histórico | Atropellos registrados en las fuentes, con su desglose por subtipo (atropello, atropello y fuga, choque y atropello, otro) y por severidad (con fallecido, con lesionados, solo daños, sin dato). Es frecuencia observada, no el riesgo estimado. |
+| Registro histórico | Atropellos registrados en las fuentes, con su desglose por subtipo (atropello, atropello y fuga, choque y atropello, otro) por severidad (con fallecido, con lesionados, solo daños, sin dato), por vehículo involucrado, por servicio de transporte (público, particular, carga) y por los factores que registró la policía. Es frecuencia observada, no el riesgo estimado. |
+| Factores registrados | Causas que la policía anota después de cada atropello: exceso de velocidad, ebriedad del conductor o del peatón, conducta del conductor o del peatón, señalización defectuosa, falta de iluminación, vía en mal estado, falla o carga del vehículo, clima. Un atropello puede tener varios. **Describen el registro; no entran a la estimación de la red**, porque solo existen después del hecho. |
+| Entorno de la zona | Condiciones previas que lee la red (semáforos y cruces por km de vía, veredas, vías arteriales, comercio, centros educativos y de salud, paraderos, población) comparadas con el resto de Lima: bajo (cuarto inferior), medio o alto (cuarto superior). |
 | Promedio histórico | Enfoque base de comparación: promedio de los años previos de la misma fuente, unidad y franja. |
 
 ## 2. Mapa de riesgo
@@ -50,8 +52,10 @@ Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 | Riesgo estimado | Nivel, índice de frecuencia, severidad esperada y riesgo por exposición; posición en Lima y diferencia frente al promedio histórico. |
 | La red año a año | Atropellos que la red esperaba registrar frente a los registrados, año por año. Muestra cómo la parte recurrente sigue la evolución; clic en un año para cambiar el periodo. |
 | Perfil horario | Índice en las ocho combinaciones de tipo de día y franja del año activo; clic para cambiar de franja. |
-| Registro histórico | Total del periodo con desglose por subtipo y por severidad, lesionados y fallecidos. |
+| Registro histórico | Total del periodo con desglose por subtipo, severidad, vehículo, servicio de transporte y factores registrados; lesionados y fallecidos. |
+| Entorno de la zona | Cada indicador del entorno con su valor y su posición en Lima (bajo, medio, alto), por ejemplo pocos semáforos por km de vía. Describe el entorno; no recomienda intervenciones. |
 | Qué impulsa la estimación | Cuánto cambia la estimación si se retira cada grupo de variables (población, transporte, comercio, infraestructura peatonal, vías arteriales, atropellos del año previo). Rojo eleva, petróleo reduce. Es asociación del modelo, no causalidad. |
+| Influencia (Grad-CAM) | Con la capa Grad-CAM del mapa, qué celdas pesan en la estimación de la zona elegida. |
 | Simular contexto del distrito | Elija una variable y mueva el control (de 0 a 2 veces su valor actual): se muestra cómo cambia el riesgo estimado del distrito. Los escenarios se calcularon fuera de línea; no son recomendaciones. |
 | Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver vías críticas* abre la vista de calles. |
 | Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. |
@@ -73,6 +77,7 @@ Vista a nivel de calle, en la línea de las redes de alto riesgo de los programa
   (tipo de día y franja), lesionados, fallecidos, fuentes y el riesgo modelado medio de las celdas que cruza;
 - la curva de concentración muestra qué parte de los atropellos ubicados se acumula en una pequeña parte de la
   longitud de calles;
+- el detalle de cada calle incluye los vehículos involucrados y los factores registrados más frecuentes;
 - *Exportar CSV* descarga el ranking.
 
 Un cruce reparte medio evento a cada una de sus calles; las avenidas de doble calzada suman ambas vías en su
