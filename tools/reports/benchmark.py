@@ -114,20 +114,23 @@ def device_section(devices: dict | None) -> list[str]:
     if not devices:
         return []
     return [
-        "**Entrenamiento en CPU y en GPU.** La configuración publicada se entrenó en ambos dispositivos con la "
-        "misma semilla y el mismo protocolo (búsqueda de 16 configuraciones y ensamble de 5).",
+        "**Entrenamiento en CPU y en GPU.** Mismo protocolo, datos y semillas en ambos dispositivos (búsqueda de "
+        "16 configuraciones y ensamble de 5).",
         "",
-        "| Dispositivo | Tiempo de búsqueda y ensamble | Error E de validación del ensamble |",
-        "|---|---|---|",
+        "| Dispositivo | Tiempo de búsqueda y ensamble | Configuración elegida en validación | Error E de validación del ensamble |",
+        "|---|---|---|---|",
         *(
-            f"| {d['device'].upper()} | {d['minutes']:.1f} min | {num(d['validation_E'], 4)} |"
+            f"| {d['device'].upper()} | {_es(d['minutes'])} min | {d['selected']['variant']}, h={d['selected']['hidden']}, "
+            f"lr={d['selected']['lr']} | {num(d['validation_E'], 4)} |"
             for d in devices["runs"]
         ),
         "",
-        f"Concordancia entre dispositivos: nivel de riesgo igual en {_es(devices['level_match_pct'])} % de las "
-        f"unidad-periodo; diferencia relativa mediana del indicador {_es(devices['median_rel_diff_pct'], 2)} %. "
-        "Los resultados no son idénticos bit a bit entre dispositivos (aritmética de punto flotante distinta); "
-        "cada dispositivo es reproducible por sí mismo. La corrida publicada y su reproducibilidad (M-04) son las de CPU.",
+        f"Concordancia de los resultados: nivel de riesgo igual en {_es(devices['level_match_pct'])} % de las "
+        f"unidad-periodo; diferencia media del índice {_es(devices['index_mean_abs_diff'])} puntos (percentil 95: "
+        f"{_es(devices['index_p95_abs_diff'])}); correlación de rangos {_es(devices['index_spearman'], 3)}. "
+        "La aritmética de punto flotante difiere entre dispositivos, y cuando dos configuraciones empatan casi en "
+        "validación la búsqueda puede elegir una distinta en cada uno. ",
+        "Cada dispositivo es reproducible por sí mismo. La corrida publicada y su reproducibilidad (M-04) son las de CPU.",
         "",
     ]
 
