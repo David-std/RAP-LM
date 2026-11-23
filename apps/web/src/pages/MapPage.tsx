@@ -3,7 +3,7 @@
 // subset are drawn faded, units without result are hatched (HU-21). The area
 // outside the 43 districts is dimmed so the scope is unambiguous (RG-01).
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import type { Legend as LegendDto, RiskLevel, RiskResult, UnitCollection } from "../api/types";
@@ -15,6 +15,20 @@ import { ZonePanel } from "../components/ZonePanel";
 import { BANDS, DAY_LABEL, fmtIndex, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
 import { ALL_LEVELS, useQuery } from "../state/QueryContext";
+
+type MapLayer = "risk" | "record" | "influence";
+const DENSITY_RAMP = ["#F6DFC4", "#EDB97F", "#D9822B", "#A8561A", "#6B3410"];
+const INFLUENCE_RAMP = ["#D7EFEB", "#9FD6CD", "#4FB3A5", "#0B7F73", "#064C45"];
+
+/** Quantile cut points of the non-zero recorded density (events per km2) of the period. */
+function quantileCuts(rows: RiskResult[]): number[] {
+  const d = rows
+    .map((r) => (r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1))
+    .filter((v) => v > 0)
+    .sort((a, b) => a - b);
+  if (!d.length) return [0, 0, 0, 0];
+  return [0.2, 0.4, 0.6, 0.8].map((p) => d[Math.min(d.length - 1, Math.floor(p * d.length))]);
+}
 
 interface Props {
   units: UnitCollection;
@@ -30,6 +44,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
   const periodId = q.periodId(q.active);
   const [hover, setHover] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [layer, setLayer] = useState<MapLayer>("risk");
 
   const risk = useApi(
     (s) => api.risk({ periodId: periodId!, unitType: q.unitType, districtIds: q.districtIds, levels: q.levels }, s),
@@ -43,9 +58,35 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     !!periodId && !!q.selectedUnitId,
   );
 
+  // Influence map (Grad-CAM style) of the selected unit, precomputed offline.
+  const explanation = useApi(
+    (s) => api.explanation(q.unitType, q.selectedUnitId!, s),
+    [q.unitType, q.selectedUnitId],
+    !!q.selectedUnitId && layer === "influence",
+  );
   const results = useMemo(() => new Map((risk.data?.data ?? []).map((r) => [r.unit.unit_id, r] as [string, RiskResult])), [risk.data]);
   const visible = useMemo(() => new Set(results.keys()), [results]);
   const filtersOn = q.levels.length > 0 || q.districtIds.length > 0;
+  const densityCuts = useMemo(() => quantileCuts(risk.data?.data ?? []), [risk.data]);
+  const influence = useMemo(
+    () => new Map((explanation.data?.saliency ?? []).map(([u, w]) => [u, w] as [string, number])),
+    [explanation.data],
+  );
+  const colorize = useCallback(
+    (id: string): string | null => {
+      if (layer === "record") {
+        const r = results.get(id);
+        if (!r) return null;
+        const d = (r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1);
+        if (d <= 0) return "#F4F3EF";
+        return DENSITY_RAMP[densityCuts.filter((c) => d > c).length];
+      }
+      const w = influence.get(id);
+      if (w === undefined) return "#F4F3EF";
+      return INFLUENCE_RAMP[Math.min(4, Math.floor(w * 5))];
+    },
+    [layer, results, densityCuts, influence],
+  );
   const counts = risk.data?.counts;
   const hovered = hover ? results.get(hover) : undefined;
   const districtOptions = useMemo(
@@ -83,6 +124,18 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             { value: "district", label: "Distrito" },
           ]}
           onChange={q.setUnitType}
+        />
+        <Segmented<MapLayer>
+          label="Capa del mapa"
+          wrap
+          value={layer}
+          options={[
+            { value: "risk", label: "Riesgo estimado" },
+            { value: "record", label: "Registro histórico" },
+            { value: "influence", label: "Influencia de la red" },
+          ]}
+          onChange={setLayer}
+          hint="Riesgo estimado por la red; densidad de atropellos registrados; o qué celdas pesan en la estimación de la zona seleccionada"
         />
         <PeriodPicker years={q.years} value={q.active} onChange={q.setActive} />
         {!periodId && <Notice tone="warn">Este periodo no tiene resultados publicados.</Notice>}
@@ -138,7 +191,8 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           scope={districts}
           results={results}
           bands={bands}
-          visible={filtersOn ? visible : null}
+          visible={filtersOn && layer === "risk" ? visible : null}
+          colorize={layer === "risk" ? undefined : colorize}
           selected={q.selectedUnitId ? [q.selectedUnitId] : []}
           focus={q.selectedUnitId}
           onSelect={(id) => q.select(id)}
@@ -163,12 +217,41 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           </div>
         )}
         <div className="legend-dock">
-          <Legend
+          {layer === "record" && (
+            <section className="legend">
+              <strong>Atropellos registrados por km²</strong>
+              <p className="legend-sub">{q.active.year}, {DAY_LABEL[q.active.dayType].toLowerCase()}, {BANDS[q.active.band]}. Registro de las fuentes, no estimación.</p>
+              <ul className="legend-classes">
+                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin eventos registrados</li>
+                {DENSITY_RAMP.map((c, i) => (
+                  <li key={c}><span className="swatch" style={{ background: c }} /> {i === 0 ? "≤" : ">"} {densityCuts[Math.max(0, i - 1)]?.toFixed(2) ?? "0"}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {layer === "influence" && (
+            <section className="legend">
+              <strong>Influencia en la estimación</strong>
+              <p className="legend-sub">
+                {q.selectedUnitId
+                  ? explanation.data?.saliency
+                    ? `Celdas cuyos datos más pesan en la estimación de ${q.selectedUnitId} (gradiente × entrada, estilo Grad-CAM).`
+                    : "Disponible para distritos y para las celdas de mayor riesgo de 2024."
+                  : "Seleccione una zona en el mapa."}
+              </p>
+              <ul className="legend-classes">
+                {INFLUENCE_RAMP.map((c, i) => (
+                  <li key={c}><span className="swatch" style={{ background: c }} /> {i * 20} a {(i + 1) * 20} % de la máxima</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {layer === "risk" && <Legend
             legend={legend}
             bands={bands}
             title={`Riesgo por ${q.unitType === "cell" ? "celda de 1 km" : "distrito"}`}
             subtitle={`${q.active.year}, ${DAY_LABEL[q.active.dayType].toLowerCase()}, ${BANDS[q.active.band]}. Escala común a todos los periodos.`}
-          />
+          />}
         </div>
         <div className="map-scope">Provincia de Lima, 43 distritos (Callao excluido)</div>
       </main>

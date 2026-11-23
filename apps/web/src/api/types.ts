@@ -289,6 +289,7 @@ export interface Explanation {
   attribution_pct: number[];
   whatif_factors: number[] | null;
   whatif: Record<string, number[]> | null;
+  saliency: [string, number][] | null;
 }
 
 export interface TrainingPoint {
