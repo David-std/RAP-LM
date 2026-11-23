@@ -19,7 +19,10 @@ import type {
   DayType,
 } from "./types";
 
-const BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+// Same origin behind Nginx (Docker Compose); a separate host on the cloud demo, where the
+// build receives the API host without scheme (render.yaml).
+const RAW_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const BASE = RAW_BASE && !RAW_BASE.includes("://") ? `https://${RAW_BASE}` : RAW_BASE;
 
 export class ApiError extends Error {
   constructor(

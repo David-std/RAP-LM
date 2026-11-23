@@ -74,6 +74,25 @@ when the run config sets `"device": "cuda"`; prediction, export and explanations
 environment from `requirements-gpu.txt` (outside the repository) and run the same commands with its interpreter.
 Each run manifest records the device type (`cpu` or `cuda`), the PyTorch version and the training time.
 
+## Cloud demonstration (Render)
+
+`render.yaml` describes the demo deployment: managed PostgreSQL with PostGIS, the read-only API container
+and the SPA as a static site. Web and API redeploy on every push to `main`; data changes only through a
+publication.
+
+1. Render > New > Blueprint, select this repository: it creates `raplm-db`, `raplm-api` and `raplm-web`.
+2. Load the database from a machine with the artifacts, using the external URL of `raplm-db`:
+
+   ```bash
+   RAPLM_REMOTE_OWNER_URL="<external URL of raplm-db>" python -m tools.deploy.remote_setup      --dataset artifacts/datasets/fused-v1.3.0 --run artifacts/runs/fused-cnnlstm-2026.11-v3
+   ```
+
+   It creates the reader and publisher roles, applies the migrations and publishes the run.
+3. Set `DATABASE_URL` of `raplm-api` to the read-only URL the script prints, and redeploy the API.
+
+On the free plan the API sleeps after 15 minutes without traffic (first request takes about a minute) and
+the database expires after 30 days; open the site a few minutes before a session.
+
 ## Tests and quality metrics
 
 ```bash

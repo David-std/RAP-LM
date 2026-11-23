@@ -19,6 +19,7 @@ registra la aprobación del equipo.
 | D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Pendiente de aprobación del equipo |
 | D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Pendiente de aprobación del equipo |
 | D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Pendiente de aprobación del equipo |
+| D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Pendiente de aprobación del equipo |
 
 ---
 
@@ -205,4 +206,23 @@ participó en cada atropello ni si era transporte público o particular, aunque 
 **Alcance:** la v3 reemplaza a la v2 solo si mejora el error de validación. Los factores y el perfil describen;
 no generan recomendaciones de intervención (RG-03). **Impacto:** datasets nuevos, migraciones 0006 (vehículos y
 factores por calle) y 0007 (perfil del entorno), y campos opcionales en el desglose y la explicación de la API.
+
+## D-13. Activación de recursos condicionales: GPU y despliegue web de demostración
+
+**Requisitos:** plan v1.6, recursos condicionales (cómputo con GPU y despliegue web, presupuestados con
+precios de referencia y registrados sin asignación mientras no se activen); RNF-02; validación con
+especialistas (paquete 4.5). **Necesidad técnica:**
+
+1. GPU: cada iteración del protocolo (búsqueda de 16 configuraciones y ensamble de 5) tomaba unos 33 minutos
+   en CPU y las explicaciones varias horas. En GPU la misma búsqueda toma unos 4 minutos y las explicaciones
+   minutos, lo que permitió las corridas de ablación y de backtest dentro del plazo. La corrida publicada y su
+   reproducibilidad (M-04) se mantienen en CPU.
+2. Despliegue web: la demostración en clase y las sesiones con especialistas requieren abrir la aplicación sin
+   instalar Docker. `render.yaml` crea la base gestionada con PostGIS, la API de solo lectura y la web estática;
+   `tools/deploy/remote_setup.py` carga los datos con roles separados y publicación atómica.
+
+**Alcance:** demostración y validación, no operación productiva (exclusión del plan). **Impacto en costos:** GPU
+local sin costo adicional; despliegue en el plan gratuito de Render, o el plan inicial de la API durante el mes
+de la demostración si se requiere evitar la suspensión por inactividad. El Project Manager registra el monto
+que se active contra la reserva correspondiente.
 

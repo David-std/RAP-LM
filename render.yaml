@@ -1,0 +1,66 @@
+# Cloud demonstration on Render (plan resource "despliegue web", activated for the class
+# demonstration and the specialist sessions). Infrastructure as code: Render > New > Blueprint.
+#
+#   raplm-db   managed PostgreSQL 16 with PostGIS (schema by Alembic, data by the publisher)
+#   raplm-api  read-only FastAPI container (same image as Docker Compose)
+#   raplm-web  static SPA on Render's CDN
+#
+# Web and API redeploy automatically on every push to `main`. Data never changes on a push:
+# it is loaded with tools/deploy/remote_setup.py, which creates the separated roles, applies
+# the migrations and publishes the run atomically (same publisher as local).
+databases:
+  - name: raplm-db
+    plan: free
+    databaseName: raplm
+    user: raplm_owner
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: raplm-api
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: APP_ENV
+        value: demo
+      # Read-only role URL printed by tools/deploy/remote_setup.py; set it in the dashboard.
+      - key: DATABASE_URL
+        sync: false
+      - key: WEB_ORIGIN_HOST
+        fromService:
+          type: web
+          name: raplm-web
+          property: host
+
+  - type: web
+    name: raplm-web
+    runtime: static
+    branch: main
+    autoDeploy: true
+    rootDir: apps/web
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: raplm-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: same-origin
