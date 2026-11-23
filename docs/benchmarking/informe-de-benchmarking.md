@@ -103,7 +103,7 @@ Nivel alto (23192 celdas × franjas, 2299 altas observadas):
 | Modelo | 2210 | 89 | 4557 | 96.1 % | 32.7 % |
 | Promedio histórico | 2051 | 248 | 3056 | 89.2 % | 40.2 % |
 
-Reproducibilidad (M-04): 258896/258896 valores dentro de la tolerancia (100.0 %), coincidencia de unidad, periodo y nivel 100.0 %.
+Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v2 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
 
 ### 3.4. Análisis de alternativas
 

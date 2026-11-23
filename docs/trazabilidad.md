@@ -18,7 +18,8 @@ outside the repository (Sprint Review, change control). Measured values are in
 | 3.2.1 | Versioned analytical dataset | `pipelines/fusion`, dataset manifests with SHA-256, `evidence/reproducibility/dataset.json` | Implemented, reproduced |
 | 3.2.2 | CNN component | `ml/fused/model.py`, tests `test_model_output_shape`, `test_cnn_uses_spatial_neighbourhood` | Implemented |
 | 3.2.3 | RNN component | `ml/fused/model.py`, test `test_recurrence_never_reads_the_future` | Implemented |
-| 3.2.4 | Explicabilidad del modelo | `ml/fused/explain.py` (atribución, qué pasaría si), `ml/fused/saliency.py` (Grad-CAM), test `test_gradcam_is_non_negative_and_localised`; vistas Modelo y capa Grad-CAM | Implemented |
+| 3.2.4 | Explicabilidad del modelo | `ml/fused/explain.py` (atribución, qué pasaría si), `ml/fused/saliency.py` (Grad-CAM, variante HiResCAM), test `test_gradcam_is_non_negative_and_localised`; vistas Modelo y capa Grad-CAM | Implemented |
+| 3.2.5 | Pronóstico un paso adelante (D-11) | `ml/fused/forecast.py`, migración 0005, `GET /api/v1/forecast`, vista Pronóstico; test `test_forecast_next_year`, E2E-12 | Implemented |
 | 3.3.1 | Read API | `apps/api`, contract tests against PostGIS | Implemented |
 | 3.3.2 | Spatial database | PostGIS, GiST indexes, separated roles | Implemented |
 | 3.3.3 | Web interface | `apps/web` (map, corridors, comparators, analysis, model, methodology) | Implemented |

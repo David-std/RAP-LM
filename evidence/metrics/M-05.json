@@ -1,8 +1,8 @@
 {
   "metric": "M-05",
   "target": "> 0 %",
-  "run_id": "fused-cnnlstm-2026.11-r1",
-  "measured_at": "2026-11-22T23:49:06.181835+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v2",
+  "measured_at": "2026-11-23T18:51:19.385180+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",
@@ -10,24 +10,15 @@
   },
   "evaluations": [
     {
-      "run": "fused-cnnlstm-2026.11-r1",
+      "run": "fused-cnnlstm-2026.11-v2",
       "variant": "convlstm",
       "family": "onsv",
       "year": 2024,
       "E_baseline": 0.606589138507843,
-      "E_model": 0.5832201838493347,
-      "improvement_pct": 3.8525
-    },
-    {
-      "run": "fused-cnnlstm-backtest-2017",
-      "variant": "cnn_lstm",
-      "family": "cenacom",
-      "year": 2017,
-      "E_baseline": 2.379837989807129,
-      "E_model": 2.529536485671997,
-      "improvement_pct": -6.2903
+      "E_model": 0.5799821615219116,
+      "improvement_pct": 4.3863
     }
   ],
-  "value": 3.8525,
+  "value": 4.3863,
   "formula": "(E_baseline - E_model) / E_baseline * 100, E = district x subperiod MAE"
 }

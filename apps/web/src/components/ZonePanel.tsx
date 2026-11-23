@@ -132,7 +132,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
         <header>
           <div>
             <h3>La red año a año</h3>
-            <p className="card-sub">Atropellos que la CNN-LSTM esperaba registrar frente a los registrados, {DAY_LABEL[q.active.dayType].toLowerCase()} y fin de semana, todas las franjas</p>
+            <p className="card-sub">Atropellos que la red CNN-RNN esperaba registrar frente a los registrados, {DAY_LABEL[q.active.dayType].toLowerCase()} y fin de semana, todas las franjas</p>
           </div>
         </header>
         {explanation.loading && <Notice>Cargando…</Notice>}
@@ -337,7 +337,7 @@ function YearCard({ e, year, onYear }: { e: Explanation; year: number; onYear: (
         onSelectYear={onYear}
       />
       <p className="card-note">
-        Cada año la LSTM solo ve los años anteriores y el contexto. 2011-2017 se compara con el censo de comisarías (todas
+        Cada año la parte recurrente de la red solo ve los años anteriores y el contexto. 2011-2017 se compara con el censo de comisarías (todas
         las severidades); 2021-2024, con el ONSV (fatales), escalado por su factor de registro. Error medio absoluto en
         esta zona: {err.toFixed(2)} eventos por año.
       </p>

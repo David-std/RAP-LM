@@ -50,7 +50,7 @@
     "shard": null,
     "updateSnapshots": "missing",
     "version": "1.49.1",
-    "workers": 16,
+    "workers": 2,
     "webServer": null
   },
   "suites": [
@@ -75,12 +75,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 2499,
+                  "duration": 2582,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:05.298Z",
+                  "startTime": "2026-11-23T18:54:04.550Z",
                   "attachments": []
                 }
               ],
@@ -107,12 +107,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1043,
+                  "duration": 938,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:07.930Z",
+                  "startTime": "2026-11-23T18:54:07.226Z",
                   "attachments": []
                 }
               ],
@@ -125,7 +125,7 @@
           "column": 1
         },
         {
-          "title": "E2E-03 RF-02 RF-08 HU-06 HU-07: unit detail with index, level, record and provenance",
+          "title": "E2E-03 RF-02 RF-08 HU-06 HU-07 HU-23: zone panel with risk, network series, record and provenance",
           "ok": true,
           "tags": [],
           "tests": [
@@ -139,19 +139,19 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1267,
+                  "duration": 1623,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:08.984Z",
+                  "startTime": "2026-11-23T18:54:08.173Z",
                   "attachments": []
                 }
               ],
               "status": "expected"
             }
           ],
-          "id": "fb826a1077208bd6107d-d7557ce56e6be10981e7",
+          "id": "fb826a1077208bd6107d-8f4304c3f0c38bcf7b7b",
           "file": "critical.spec.ts",
           "line": 30,
           "column": 1
@@ -171,12 +171,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1137,
+                  "duration": 1247,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:10.264Z",
+                  "startTime": "2026-11-23T18:54:09.806Z",
                   "attachments": []
                 }
               ],
@@ -185,7 +185,7 @@
           ],
           "id": "fb826a1077208bd6107d-78180a71036db32ad144",
           "file": "critical.spec.ts",
-          "line": 42,
+          "line": 44,
           "column": 1
         },
         {
@@ -203,12 +203,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1174,
+                  "duration": 1530,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:11.410Z",
+                  "startTime": "2026-11-23T18:54:11.064Z",
                   "attachments": []
                 }
               ],
@@ -217,7 +217,7 @@
           ],
           "id": "fb826a1077208bd6107d-2a40ec51d8b575144f2b",
           "file": "critical.spec.ts",
-          "line": 52,
+          "line": 56,
           "column": 1
         },
         {
@@ -235,12 +235,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1763,
+                  "duration": 1908,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:12.596Z",
+                  "startTime": "2026-11-23T18:54:12.604Z",
                   "attachments": []
                 }
               ],
@@ -249,7 +249,7 @@
           ],
           "id": "fb826a1077208bd6107d-27d3ccbe38255ecfce06",
           "file": "critical.spec.ts",
-          "line": 63,
+          "line": 67,
           "column": 1
         },
         {
@@ -267,12 +267,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1023,
+                  "duration": 1113,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:14.369Z",
+                  "startTime": "2026-11-23T18:54:14.523Z",
                   "attachments": []
                 }
               ],
@@ -281,7 +281,103 @@
           ],
           "id": "fb826a1077208bd6107d-a0f504fcfd2ce90a4823",
           "file": "critical.spec.ts",
-          "line": 73,
+          "line": 77,
+          "column": 1
+        },
+        {
+          "title": "E2E-09 RM-01 RM-05: model view shows architecture, benchmark and high-level errors",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "passed",
+                  "duration": 1050,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T18:54:15.647Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fb826a1077208bd6107d-fc07c9613b633ffed355",
+          "file": "critical.spec.ts",
+          "line": 85,
+          "column": 1
+        },
+        {
+          "title": "E2E-10 D-09: corridors view ranks streets and opens a street detail",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "passed",
+                  "duration": 1280,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T18:54:16.708Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fb826a1077208bd6107d-e8a10f6a42a22cfe2076",
+          "file": "critical.spec.ts",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "E2E-11 D-09: recorded density, continuous heat view and Grad-CAM layer",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "passed",
+                  "duration": 1733,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T18:54:17.999Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fb826a1077208bd6107d-7caafe1750337ce22cc6",
+          "file": "critical.spec.ts",
+          "line": 103,
           "column": 1
         },
         {
@@ -299,12 +395,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 2099,
+                  "duration": 2133,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-22T23:48:15.404Z",
+                  "startTime": "2026-11-23T18:54:19.741Z",
                   "attachments": []
                 }
               ],
@@ -313,7 +409,39 @@
           ],
           "id": "fb826a1077208bd6107d-bd252255adb017fc7fc6",
           "file": "critical.spec.ts",
-          "line": 82,
+          "line": 115,
+          "column": 1
+        },
+        {
+          "title": "E2E-12 D-11: forecast view with ranking, ensemble range and 2024 validation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "passed",
+                  "duration": 1156,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-23T18:54:21.887Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fb826a1077208bd6107d-902a0653349d3889bbca",
+          "file": "critical.spec.ts",
+          "line": 127,
           "column": 1
         }
       ]
@@ -321,9 +449,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-22T23:48:04.783Z",
-    "duration": 13396.474,
-    "expected": 8,
+    "startTime": "2026-11-23T18:54:03.873Z",
+    "duration": 20904.151,
+    "expected": 12,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

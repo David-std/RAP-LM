@@ -60,13 +60,29 @@ def e2e() -> tuple[int, int, list[str]] | None:
                 total += 1
                 ok = all(r.get("status") == "passed" for r in test.get("results", []))
                 passed += ok
-                titles.append(("Aprobado" if ok else "Fallido") + ": " + spec["title"])
+                titles.append((spec["title"].split(" ")[0], "Aprobado" if ok else "Fallido"))
         for child in suite.get("suites", []):
             walk(child)
 
     for s in data.get("suites", []):
         walk(s)
     return passed, total, titles
+
+
+def es(x: float, digits: int = 1) -> str:
+    """Spanish decimal comma."""
+    return f"{x:.{digits}f}".replace(".", ",")
+
+
+def plan_journeys() -> dict[str, str]:
+    """E2E id -> description and requirements, from the test plan table."""
+    plan = ROOT / "docs" / "pruebas" / "plan-de-pruebas.md"
+    rows = {}
+    for line in plan.read_text(encoding="utf-8").splitlines():
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) == 3 and cells[0].startswith("E2E-"):
+            rows[cells[0]] = f"{cells[1]} ({cells[2]})"
+    return rows
 
 
 def metric(mid: str) -> dict | None:
@@ -78,14 +94,16 @@ def fmt_metric(mid: str, m: dict) -> str:
     if mid == "M-05":
         rows = m.get("evaluations", [])
         return "; ".join(
-            f"{r['run'].replace('fused-cnnlstm-', '')}: {r['improvement_pct']:+.2f} %"
+            f"prueba {r['family'].upper()} {r['year']}: {'+' if r['improvement_pct'] > 0 else ''}"
+            f"{es(r['improvement_pct'], 2)} %"
             for r in rows
             if r.get("improvement_pct") is not None
         )
     if mid == "M-09":
-        return f"p95 {m['value']:.2f} s ({m['requests']} peticiones, {m['errors']} errores)"
+        return f"p95 {es(m['value'], 2)} s ({m['requests']} peticiones, {m['errors']} errores)"
     if m.get("numerator") is not None:
-        return f"{m['numerator']:,}/{m['denominator']:,} = {m['value']} %".replace(",", ".")
+        n, d = (f"{v:,}".replace(",", ".") for v in (m["numerator"], m["denominator"]))
+        return f"{n}/{d} = {es(m['value'])} %"
     return str(m.get("value"))
 
 
@@ -118,7 +136,9 @@ def main() -> None:
         )
     L += ["", "## 2. Escenarios críticos de extremo a extremo (M-07)", ""]
     if pw:
-        L += [f"- {t}" for t in pw[2]]
+        desc = plan_journeys()
+        L += ["| ID | Recorrido | Resultado |", "|---|---|---|"]
+        L += [f"| {i} | {desc.get(i, '')} | {r} |" for i, r in sorted(pw[2])]
     L += [
         "",
         "## 3. Métricas de calidad del producto",

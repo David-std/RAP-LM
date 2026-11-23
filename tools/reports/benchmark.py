@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 EV = ROOT / "evidence" / "benchmarking"
-OUT = ROOT / "docs" / "benchmarking" / "BENCHMARKING.md"
+OUT = ROOT / "docs" / "benchmarking" / "informe-de-benchmarking.md"
 
 VARIANT = {
     "historical_average": "Promedio histórico (B0)",
@@ -83,6 +83,14 @@ def model_table(metrics: dict, high: list | None, title: str) -> list[str]:
                     f"| {who} | {c['tp']} | {c['fn']} | {c['fp']} | {pct(c['recall'])} | {pct(c['precision'])} |"
                 )
     return lines + [""]
+
+
+def _es(x: float, digits: int = 1) -> str:
+    return f"{x:.{digits}f}".replace(".", ",")
+
+
+def _es_int(n: int) -> str:
+    return f"{n:,}".replace(",", ".")
 
 
 def main() -> None:
@@ -172,8 +180,9 @@ def main() -> None:
             "Iteración v2, backtest de todas las severidades",
         )
     L += [
-        f"Reproducibilidad (M-04): {m04['numerator']}/{m04['denominator']} valores dentro de la tolerancia "
-        f"({m04['value']} %), coincidencia de unidad, periodo y nivel {m04['level_match_pct']} %.",
+        f"Reproducibilidad (M-04), corrida {m04['run_id']} reentrenada desde cero: "
+        f"{_es_int(m04['numerator'])}/{_es_int(m04['denominator'])} valores dentro de la tolerancia "
+        f"({_es(m04['value'])} %), coincidencia de unidad, periodo y nivel {_es(m04['level_match_pct'])} %.",
         "",
         "### 3.4. Análisis de alternativas",
         "",
@@ -184,7 +193,6 @@ def main() -> None:
         "En seguridad vial, no marcar una zona crítica suele ser el error más costoso.",
         "- Las ablaciones muestran el aporte de cada parte: sin recurrencia (solo CNN) el error empeora; la "
         "secuencia temporal aporta información.",
-
         "",
         "### 3.5. Selección",
         "",
