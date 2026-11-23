@@ -7,8 +7,9 @@ API (`/api/v1`); it never computes risk.
 
 | View | Purpose | Stories |
 |---|---|---|
-| Mapa de riesgo | Map by 1 km cell or district, period and filters; zone panel with risk components, network expected vs observed, hour profile, record breakdown, drivers, what-if and critical streets | HU-01 to HU-16, HU-21 to HU-27 |
-| Corredores | Street-level ranking of recorded collisions, concentration curve, export | D-09 |
+| Mapa de riesgo | Map by 1 km cell, district or continuous heat surface; layers for estimated risk, recorded density and Grad-CAM; zone panel with risk components, network expected vs observed, hour profile, record breakdown (subtype, severity, vehicle, service, recorded factors), environment profile, drivers, what-if and critical streets | HU-01 to HU-16, HU-21 to HU-27 |
+| Pronóstico | One-year-ahead forecast by district or cell with ensemble range and 2024 validation | D-11 |
+| Vías críticas | Street-level ranking of recorded collisions with vehicles and recorded factors, concentration curve, export | D-09, D-12 |
 | Comparar | Units in one period and one unit across periods | HU-17 to HU-21 |
 | Análisis | Ranking, change, persistence, district profile, CSV and GeoJSON export | analyst tools |
 | Modelo | Architecture, partitions, training curves, benchmark, high-level errors, weights card | RM-01 to RM-05 |
@@ -38,7 +39,8 @@ npm run build
 npm run e2e          # needs `docker compose up -d` and a published run (http://localhost:8088)
 ```
 
-`VITE_API_BASE_URL` overrides the API origin when the SPA is not served behind the Nginx proxy.
+`VITE_API_BASE_URL` sets the API origin when the web is served apart from the API (cloud demo,
+`render.yaml`); it accepts a host without scheme and defaults to the same origin.
 
 ## Design rules
 

@@ -31,6 +31,7 @@ outside the repository (Sprint Review, change control). Measured values are in
 | 4.4 | Technical evaluation against the historical average | `evidence/benchmarking`, M-05 and high-level errors | Measured |
 | 4.5 | Validation with at least five specialists | Instruments in `docs/validacion`, consolidation `tools/validation` | Instruments ready; sessions run by the team |
 | 5.1 to 5.3 | Manual, closure, clean installation | `docs/manual-de-usuario.md`, `README.md` | Implemented |
+| 5.3 | Despliegue de demostración (D-13) | `render.yaml`, `tools/deploy/remote_setup.py` (probado sobre una base vacía), test `test_config.py` | Implemented, pending cloud account |
 
 ## Quality metrics (Table 35)
 

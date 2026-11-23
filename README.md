@@ -45,25 +45,39 @@ python -m venv .venv && .venv/Scripts/activate      # Windows; use bin/activate 
 pip install -e ".[dev,pipeline]"                    # torch CPU: --index-url https://download.pytorch.org/whl/cpu
 
 D=../RAP-LM-DATA-LOCAL
-# 1. Fused dataset (grid, geocoding, context, manifest with SHA-256)
-python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA \
-  --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv \
-  --out artifacts/datasets/fused-v1.1.0
-# 2. v1 benchmark of all architectures (CNN-LSTM, ConvLSTM, Poisson GLM, ablations) on dataset v1.0
-python -m ml.fused.train --dataset artifacts/datasets/fused-v1.0.0   --config ml/configs/run-main.json --out artifacts/runs/fused-cnnlstm-2026.11-r1
-# 3. v2 (published): validation search, 5-seed ensemble, single test evaluation, high-level errors
-R=artifacts/runs/fused-cnnlstm-2026.11-v2
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.1.0 --config ml/configs/v2-main.json --out $R
-python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.1.0 --run $R
-# 4. Export results (frequency, severity, exposure, breakdown) and explanations
-python -m ml.fused.export --dataset artifacts/datasets/fused-v1.1.0 --run $R
-python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.1.0 --run $R
-python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.1.0   --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv   --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
-# 5. Publish into PostGIS with the publisher role (atomic), then the analyst layers
+H=$D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv
+# 1. Fused dataset v1.3 (grid, street geocoding, annual population, context, vehicle, service and recorded
+#    factors; manifest with SHA-256). v3 was trained on v1.2 (commit eeb9083), whose network inputs are
+#    byte-identical to v1.3; with v1.3 the commands below reproduce it.
+python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --out artifacts/datasets/fused-v1.3.0
+# 2. v3 (published, protocol v2 with amendment A2): validation search, 5-seed ensemble, single test evaluation
+R=artifacts/runs/fused-cnnlstm-2026.11-v3
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-main.json --out $R
+python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.3.0 --run $R
+#    benchmark arms: all-severity backtest and context ablation (not published)
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-backtest-2017.json \
+  --out artifacts/runs/fused-cnnlstm-backtest-2017-v3
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-ablation-no-context.json \
+  --out artifacts/runs/fused-cnnlstm-2026.11-v3-nocontext
+# 3. Export (with --training-dataset when the run was trained on another dataset version: inputs must be
+#    byte-identical), explanations, Grad-CAM, forecast, street corridors
+python -m ml.fused.export --dataset artifacts/datasets/fused-v1.3.0 --run $R
+python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.3.0 --run $R
+python -m ml.fused.saliency --dataset artifacts/datasets/fused-v1.3.0 --run $R
+python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.3.0 --run $R
+python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.3.0 --harmonized $H \
+  --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
+# 4. Publish into PostGIS with the publisher role (atomic), then the analyst layers
 export RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm
-python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.1.0 --run $R
-python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.1.0 --run $R
+python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.3.0 --run $R
+python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.3.0 --run $R
+# 5. Reproducibility (M-04): retrain into a new folder and compare
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-main.json \
+  --out artifacts/runs/fused-cnnlstm-2026.11-v3-repro
 ```
+
+Earlier iterations (v1 on dataset v1.0, v2 on v1.1) keep their configs in `ml/configs/` and their evidence in
+`evidence/benchmarking/`. Explanations and Grad-CAM accept `--device cuda` for their forward passes.
 
 The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
 
@@ -84,7 +98,8 @@ publication.
 2. Load the database from a machine with the artifacts, using the external URL of `raplm-db`:
 
    ```bash
-   RAPLM_REMOTE_OWNER_URL="<external URL of raplm-db>" python -m tools.deploy.remote_setup      --dataset artifacts/datasets/fused-v1.3.0 --run artifacts/runs/fused-cnnlstm-2026.11-v3
+   RAPLM_REMOTE_OWNER_URL="<external URL of raplm-db>" python -m tools.deploy.remote_setup \
+     --dataset artifacts/datasets/fused-v1.3.0 --run artifacts/runs/fused-cnnlstm-2026.11-v3
    ```
 
    It creates the reader and publisher roles, applies the migrations and publishes the run.
@@ -100,8 +115,11 @@ docker compose up -d db
 RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/raplm pytest   # unit + PostGIS contract
 ruff check .
 cd apps/web && npm test && npm run typecheck && npm run build
-python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
-  --run artifacts/runs/fused-cnnlstm-2026.11-v2 --out evidence/metrics                    # M-01..M-05, M-08, M-09
+python -m tools.metrics.measure --api http://127.0.0.1:8088 --dataset artifacts/datasets/fused-v1.3.0 \
+  --run artifacts/runs/fused-cnnlstm-2026.11-v3 --rerun artifacts/runs/fused-cnnlstm-2026.11-v3-repro \
+  --harmonized $H --out evidence/metrics                                                    # M-01..M-05, M-08, M-09
+cd apps/web && npx playwright test                                                          # M-07, 12 journeys
+python -m tools.reports.test_report && python -m tools.reports.benchmark                    # docs/pruebas, docs/benchmarking
 ```
 
 ## Repository map
@@ -114,7 +132,9 @@ python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
 | `database` | Alembic migrations and DB roles (HT-04, HT-10) |
 | `apps/api` | Read-only FastAPI v1 (HT-09) and tests |
 | `apps/web` | React + TypeScript + Leaflet SPA (EP-01..EP-05) |
-| `tools/metrics`, `tools/validation`, `tools/reports` | Metric measurement, specialist-validation consolidation, benchmark and test reports |
+| `tools/metrics`, `tools/validation`, `tools/reports` | Metric measurement, specialist-validation consolidation, benchmark, test and CPU/GPU reports |
+| `tools/deploy`, `render.yaml` | Cloud demonstration: managed database loading and Render blueprint (D-13) |
+| `requirements-gpu.txt` | Optional CUDA training environment |
 | `data/catalog` | Provenance catalog (sources, variables, limitations) |
 | `docs/` | Architecture document and C4 diagrams, decision and incident registers, API contract, ML protocol, test plan and report, user manual, validation |
 | `evidence/` | Measured metric and benchmark reports |

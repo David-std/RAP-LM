@@ -6,7 +6,7 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 
 | Conjunto | Alcance | Casos | Fallidos |
 |---|---|---|---|
-| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 118 | 0 |
+| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 120 | 0 |
 | Vitest | Leyenda, colores por umbral, cliente de API | 7 | 0 |
 | Playwright | Recorridos críticos sobre la aplicación desplegada | 12 | 0 |
 

@@ -54,6 +54,15 @@ Only GET routes exist (tested). The service reads with the `raplm_reader` role.
 * `period_id`: `{year}-{wd|we}-{HHHH}`, e.g. `2024-wd-1824` = 2024, weekdays, 18:00–24:00.
 * Dates are ISO 8601, periods half-open `[start_date, end_date)`. GeoJSON is EPSG:4326.
 
+### Fields added by dataset v1.2 and v1.3 (D-12)
+
+- `risk[].breakdown.vehicle` (9 classes), `breakdown.service` (público, particular, carga, no identificado)
+  and `breakdown.factor` (12 recorded factors, multi-label). Optional: absent for runs on older datasets.
+- `explanations.context_profile`: `[indicator, value, percentile in Lima]` for the urban environment.
+- `corridors[].properties.by_vehicle` and `by_factor`.
+
+Recorded factors describe the record; they are never inputs of the network.
+
 ### `GET /api/v1/forecast`
 
 Pronóstico un paso adelante de la red publicada (D-11). Parámetros: `unit_type` (`district` por defecto o `cell`),

@@ -65,7 +65,7 @@ Las decisiones de detalle y las solicitudes de cambio están en [architecture/re
 |---|---|---|
 | Aplicación web | React, TypeScript, Leaflet, servida por Nginx | Mapa en malla de 1 km, por distrito o como superficie de calor continua; vistas de corredores, comparación, análisis, modelo y metodología; proxy inverso `/api` |
 | API de consulta | Python, FastAPI, Pydantic, SQLAlchemy | Recursos de solo lectura con contratos validados y errores definidos |
-| Base de datos espacial | PostgreSQL + PostGIS | Geometrías, periodos, corridas, resultados, corredores, explicaciones y procedencia |
+| Base de datos espacial | PostgreSQL + PostGIS | Geometrías, periodos, corridas, resultados, vías críticas, explicaciones, pronóstico y procedencia |
 | Migración | Alembic | Contenedor de un solo uso que aplica el esquema versionado |
 | Pipeline analítico | Python, PyTorch, Shapely, PyProj | Fusión de fuentes, malla, tensores, entrenamiento, evaluación, explicaciones y publicación |
 
@@ -76,7 +76,7 @@ Las decisiones de detalle y las solicitudes de cambio están en [architecture/re
 - **Mapa:** capas de riesgo estimado, registro histórico e influencia de la red.
 - **Panel de zona:** riesgo con tres componentes, la red año a año, perfil horario, desglose del registro,
   influencia, atribución, simulación de contexto, calles críticas y procedencia.
-- **Vistas de apoyo:** Corredores, Comparadores, Análisis, Modelo y Metodología.
+- **Vistas de apoyo:** Pronóstico, Vías críticas, Comparadores, Análisis, Modelo y Metodología.
 
 ### 4.4. Componentes de la API (C4 nivel 3, Figura 5D; [`c4/5D_componentes_api.puml`](c4/5D_componentes_api.puml))
 
@@ -115,6 +115,18 @@ Docker Compose define los servicios:
 La configuración se inyecta por variables de entorno (`.env.example`). La API no guarda estado y puede replicarse
 detrás del proxy.
 
+Para la demostración en clase y las sesiones con especialistas se activa el recurso condicional de despliegue web
+(decisión D-13), descrito como infraestructura en código en `render.yaml`:
+
+| Entorno | Base de datos | API | Web | Actualización |
+|---|---|---|---|---|
+| Local (Docker Compose) | Contenedor PostGIS | Contenedor detrás de Nginx, mismo origen | Nginx con proxy inverso `/api` | `docker compose up -d --build` |
+| Demostración (Render) | PostgreSQL gestionado con PostGIS | Mismo contenedor de solo lectura | Sitio estático en CDN; llama a la API por su dominio (CORS limitado al origen de la web) | Automática con cada push a `main` |
+
+En ambos entornos los datos solo cambian mediante una publicación atómica con el rol publicador
+(`tools/deploy/remote_setup.py` en la nube); un despliegue de código nunca altera los resultados. El
+entrenamiento puede ejecutarse en CPU o en GPU (`requirements-gpu.txt`); la corrida publicada se entrena en CPU.
+
 ## 5. Patrones de diseño
 
 | Patrón | Aplicación |
@@ -147,8 +159,11 @@ detrás del proxy.
 - **Procedencia:** `source_snapshot`, `dataset_version`, `variable`, `limitation`, `target_definition` y
   `threshold_set`.
 - **Corridas y resultados:** `model_run` con sus relaciones de fuentes, variables, limitaciones y periodos, y
-  `risk_result` con frecuencia, severidad, exposición y desglose.
-- **Capas de análisis:** `corridor`, `unit_explanation` y `model_card`.
+  `risk_result` con frecuencia, severidad, exposición y desglose (subtipo, severidad, vehículo, servicio y
+  factores registrados).
+- **Capas de análisis:** `corridor` (vías críticas, con vehículos y factores), `unit_explanation` (serie,
+  atribución, simulación, Grad-CAM y perfil del entorno), `model_card` y `forecast` (pronóstico un paso
+  adelante).
 - **Publicación:** `publication_pointer` y `publication_log`.
 
 Las migraciones están en `database/migrations`.
