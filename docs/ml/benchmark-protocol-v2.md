@@ -86,3 +86,17 @@ partitions, with every urban-context channel held at its standardised mean so th
 history informs the network. It is compared with v3 on validation E and, once, on the test partitions.
 It is never published and does not take part in the v3 publication rule.
 
+
+### Erratum to A2 (2026-11-23, written after the v3 search and test evaluation)
+
+A2 quoted the v2 reference as 0.5736, the best **single-seed** validation E of the v2 search. The publication rule
+was applied to v1 → v2 with the **ensemble** validation E, the quantity of the model that is published (v1 0.5982 →
+v2 0.5871). Applied the same way, v3 improves validation: ensemble E 0.5806 against 0.5871, with lower cell error
+and deviance and higher capture (70.4 % against 69.0 %). Under the single-seed reading of the A2 text, v3 would not
+qualify (0.5797 against 0.5736). Both readings are reported; v3 is published following the precedent of the rule.
+Per configuration, v3 is better in 7 of 16 searches (mean difference +0.0018, standard deviation 0.0116): the
+difference between iterations is of the order of the validation noise, which is why the ensemble is compared.
+
+The search also showed that dropout has no effect in the ConvLSTM variant (identical scores at 0.1 and 0.3), so
+4 of its 8 configurations repeat others. Results are unaffected; a later iteration should search another
+hyperparameter there.
