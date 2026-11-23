@@ -17,6 +17,7 @@ registra la aprobación del equipo.
 | D-08 | 2026-11-22 | Decisión de implementación (definición de periodos) | Aplicada |
 | D-09 | 2026-11-22 | Solicitud de cambio (contrato API: corredores, explicaciones y ficha del modelo) | Pendiente de aprobación del equipo |
 | D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Pendiente de aprobación del equipo |
+| D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Pendiente de aprobación del equipo |
 
 ---
 
@@ -158,3 +159,19 @@ no se reportaban los falsos positivos y negativos del nivel alto que define el p
 La v2 del modelo se entrena sobre v1.1 con la enmienda A1, registrada antes de reiniciar la búsqueda.
 **Limitación que persiste:** no existe exposición peatonal medida (aforos) para los 43 distritos; los proxies se
 declaran como tales (L06). **Impacto:** migración `0003`, campos `severity`, `exposure` y `breakdown` en la API.
+
+## D-11. Pronóstico anual un paso adelante
+
+**Requisitos:** RM-04, RF-01; propuesta del curso (datos de tránsito e historial → ConvLSTM → predicción de riesgo
+→ mapa de calor); restricción RG-02. **Contexto:** el producto presentaba la estimación de los años observados; la
+capacidad de la red de proyectar el año siguiente solo se evidenciaba en la evaluación de 2024.
+**Decisión:** la red es causal (las entradas del año t solo usan observaciones de t-1), por lo que añadir el año
+siguiente al eje temporal produce un pronóstico genuino con los pesos publicados, sin reentrenar.
+`ml.fused.forecast` verifica que los años observados reproduzcan exactamente las estimaciones publicadas, y luego
+escribe por unidad y subperiodo del año siguiente el índice, el nivel, el rango del ensamble (mínimo y máximo de los
+cinco modelos), el índice del último año observado y, por distrito, los atropellos esperados en la escala de
+referencia. Se publica en la tabla `forecast` (migración 0005), se sirve en `GET /api/v1/forecast` y se muestra en la
+vista Pronóstico con la validación del mismo procedimiento en 2024.
+**Alcance:** pronóstico anual para planificación y priorización; no es alerta en tiempo real ni se ejecuta a demanda
+(RG-02). **Impacto:** una tabla, un recurso de lectura y una vista; sin cambios en los requisitos existentes.
+

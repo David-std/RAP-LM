@@ -12,12 +12,13 @@ import { classBands } from "./lib/levels";
 import { AnalysisPage } from "./pages/AnalysisPage";
 import { ComparePage } from "./pages/ComparePage";
 import { CorridorsPage } from "./pages/CorridorsPage";
+import { ForecastPage } from "./pages/ForecastPage";
 import { MapPage } from "./pages/MapPage";
 import { MethodologyPage } from "./pages/MethodologyPage";
 import { ModelPage } from "./pages/ModelPage";
 import { QueryProvider, useQuery } from "./state/QueryContext";
 
-type View = "map" | "corridors" | "compare" | "analysis" | "model" | "method";
+type View = "map" | "forecast" | "corridors" | "compare" | "analysis" | "model" | "method";
 
 export default function App() {
   const periods = useApi((s) => api.periods(s), []);
@@ -52,6 +53,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
   const bands = useMemo(() => classBands(meta.legend), [meta.legend]);
   const tabs: { id: View; label: string }[] = [
     { id: "map", label: "Mapa de riesgo" },
+    { id: "forecast", label: "Pronóstico" },
     { id: "corridors", label: "Corredores" },
     { id: "compare", label: "Comparar" },
     { id: "analysis", label: "Análisis" },
@@ -113,6 +115,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
           />
         )}
         {view === "corridors" && <CorridorsPage districts={districts} meta={meta} bands={bands} initialDistrict={corridorDistrict} />}
+        {view === "forecast" && <ForecastPage units={cells} districts={districts} legend={meta.legend} />}
         {view === "model" && <ModelPage />}
         {view === "method" && <MethodologyPage />}
       </div>

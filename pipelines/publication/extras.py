@@ -1,4 +1,4 @@
-"""Publish analyst layers of an already published run (corridors, explanations, card).
+"""Publish analyst layers of an already published run (corridors, explanations, card, forecast).
 
 Usage::
 
@@ -13,6 +13,7 @@ outputs. Decision D-09.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 from pathlib import Path
@@ -37,7 +38,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
         row = cur.fetchone()
         if not row or row[0] != "published":
             raise SystemExit(f"run {run_id} is not published")
-        for table in ("corridor", "unit_explanation", "model_card"):
+        for table in ("corridor", "unit_explanation", "model_card", "forecast"):
             cur.execute(f"DELETE FROM {table} WHERE run_id = %s", (run_id,))  # noqa: S608
         cur.execute(
             "INSERT INTO model_card VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
@@ -97,7 +98,46 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                     json.dumps(f["geometry"]),
                 ),
             )
-    return {"run_id": run_id, "explained_units": n_units, "corridors": len(corridors["features"])}
+        n_forecast = publish_forecast(cur, run_id, run / "forecast.csv")
+    return {
+        "run_id": run_id,
+        "explained_units": n_units,
+        "corridors": len(corridors["features"]),
+        "forecast_rows": n_forecast,
+    }
+
+
+def publish_forecast(cur, run_id: str, path: Path) -> int:
+    """Load ``ml.fused.forecast`` output (decision D-11); absent file publishes nothing."""
+    if not path.exists():
+        return 0
+    rep = {"cell": "grid-1km", "district": "district-43"}
+    with path.open(encoding="utf-8", newline="") as handle:
+        rows = [
+            (
+                run_id,
+                rep[r["unit_type"]],
+                r["unit_id"],
+                int(r["horizon_year"]),
+                r["day_type"],
+                int(r["band"]),
+                float(r["risk_index"]),
+                r["risk_level"],
+                float(r["index_low"]),
+                float(r["index_high"]),
+                float(r["previous_index"]),
+                float(r["expected_events"]) if r["expected_events"] else None,
+            )
+            for r in csv.DictReader(handle)
+        ]
+    with cur.copy(
+        """COPY forecast (run_id, representation_id, unit_id, horizon_year, day_type, band,
+           risk_index, risk_level, index_low, index_high, previous_index, expected_events)
+           FROM STDIN"""
+    ) as copy:
+        for row in rows:
+            copy.write_row(row)
+    return len(rows)
 
 
 def main() -> None:

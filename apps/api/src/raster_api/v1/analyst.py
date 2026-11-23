@@ -148,3 +148,69 @@ def get_model(conn: Conn) -> ModelCard:
         benchmark=metrics,
         corridor_summary=card["corridor_summary"],
     )
+
+
+class ForecastRow(BaseModel):
+    unit_id: str
+    display_name: str
+    district_id: str
+    district_name: str
+    risk_index: float
+    risk_level: str
+    index_low: float
+    index_high: float
+    previous_index: float
+    expected_events: float | None
+
+
+class Forecast(BaseModel):
+    meta: Meta
+    unit_type: str
+    horizon_year: int
+    last_observed_year: int
+    day_type: str
+    band: int
+    data: list[ForecastRow]
+
+
+@router.get(
+    "/forecast",
+    response_model=Forecast,
+    summary="One-step-ahead forecast of the network for the year after the last observed one",
+)
+def get_forecast(
+    conn: Conn,
+    unit_type: UnitTypeQ = "district",
+    day_type: Annotated[str, Query(pattern="^(weekday|weekend)$")] = "weekday",
+    band: Annotated[int, Query(ge=0, le=3)] = 0,
+) -> Forecast:
+    ctx = Context(conn)
+    rows = (
+        conn.execute(
+            text("""
+                SELECT f.unit_id, u.display_name, u.district_id, d.name AS district_name,
+                       f.horizon_year, f.risk_index, f.risk_level, f.index_low, f.index_high,
+                       f.previous_index, f.expected_events
+                FROM forecast f
+                JOIN spatial_unit u USING (representation_id, unit_id)
+                JOIN district d ON d.district_id = u.district_id
+                WHERE f.run_id = :r AND f.representation_id = :rep
+                  AND f.day_type = :dt AND f.band = :b
+                ORDER BY f.risk_index DESC, f.unit_id"""),
+            {"r": ctx.run_id, "rep": repo.REPRESENTATION[unit_type], "dt": day_type, "b": band},
+        )
+        .mappings()
+        .all()
+    )
+    if not rows:
+        raise ApiError(404, "NO_FORECAST", "The published run has no forecast.")
+    horizon = rows[0]["horizon_year"]
+    return Forecast(
+        meta=ctx.meta(),
+        unit_type=unit_type,
+        horizon_year=horizon,
+        last_observed_year=horizon - 1,
+        day_type=day_type,
+        band=band,
+        data=[ForecastRow(**{k: v for k, v in r.items() if k != "horizon_year"}) for r in rows],
+    )

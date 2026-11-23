@@ -65,6 +65,7 @@ Definidos en `apps/web/e2e/critical.spec.ts` y ejecutados sobre la aplicación d
 | E2E-09 | Vista Modelo con arquitectura, benchmark y errores del nivel alto | RM-01, RM-05 |
 | E2E-10 | Corredores: ranking de calles y detalle de una calle | D-09 |
 | E2E-11 | Densidad registrada, vista de calor continua y capa Grad-CAM | D-09 |
+| E2E-12 | Pronóstico del año siguiente con ranking, rango del ensamble y validación 2024 | D-11 |
 
-M-07 = escenarios críticos aprobados / escenarios críticos previstos (11). Un defecto bloqueante se registra en
+M-07 = escenarios críticos aprobados / escenarios críticos previstos (12). Un defecto bloqueante se registra en
 el [registro de incidencias](../registro-de-incidencias.md), se corrige y se vuelve a ejecutar.

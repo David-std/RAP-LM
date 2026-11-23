@@ -253,3 +253,17 @@ def test_model_card(client):  # D-09
     body = client.get("/api/v1/model").json()
     assert body["card"]["variant"] == "cnn_lstm"
     assert body["corridor_summary"]["corridors"] == 1
+
+
+def test_forecast_next_year(client):  # D-11: one-step-ahead forecast, ranked, with ensemble range
+    body = client.get("/api/v1/forecast", params={"unit_type": "district", "band": 3}).json()
+    assert body["horizon_year"] == 2025 and body["last_observed_year"] == 2024
+    ids = [r["unit_id"] for r in body["data"]]
+    assert ids == ["150101", "150131"]
+    top = body["data"][0]
+    assert top["index_low"] <= top["risk_index"] <= top["index_high"]
+    assert top["expected_events"] == 3.2 and top["district_name"]
+    cell = client.get("/api/v1/forecast", params={"unit_type": "cell", "band": 3}).json()
+    assert cell["data"][0]["expected_events"] is None
+    assert client.get("/api/v1/forecast", params={"band": 0}).status_code == 404
+    assert client.get("/api/v1/forecast", params={"band": 7}).status_code == 422

@@ -360,3 +360,26 @@ export interface HighLevelRow {
   model: Confusion;
   baseline?: Confusion;
 }
+
+export interface ForecastRow {
+  unit_id: string;
+  display_name: string;
+  district_id: string;
+  district_name: string;
+  risk_index: number;
+  risk_level: RiskLevel;
+  index_low: number;
+  index_high: number;
+  previous_index: number;
+  expected_events: number | null;
+}
+
+export interface ForecastDto {
+  meta: Meta;
+  unit_type: UnitType;
+  horizon_year: number;
+  last_observed_year: number;
+  day_type: DayType;
+  band: number;
+  data: ForecastRow[];
+}

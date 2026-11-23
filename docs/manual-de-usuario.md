@@ -56,7 +56,15 @@ Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 | Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver corredores* abre la vista de calles. |
 | Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. |
 
-## 3. Corredores
+## 3. Pronóstico
+
+La vista *Pronóstico* muestra el riesgo que la red espera para el año siguiente al último observado, por distrito o
+por celda, en el tipo de día y la franja elegidos. El pronóstico usa solo el historial hasta el último año; el rango
+indica el desacuerdo entre los cinco modelos del ensamble (un rango amplio pide cautela). La tabla ordena las zonas
+por índice esperado y compara con el último año observado; la tarjeta *¿Es confiable?* muestra cómo le fue al mismo
+procedimiento al pronosticar 2024 sin haberlo visto. Es un insumo de planificación, no una alerta en tiempo real.
+
+## 4. Corredores
 
 Vista a nivel de calle, en la línea de las redes de alto riesgo de los programas Visión Cero:
 
@@ -70,7 +78,7 @@ Vista a nivel de calle, en la línea de las redes de alto riesgo de los programa
 Un cruce reparte medio evento a cada una de sus calles; las avenidas de doble calzada suman ambas vías en su
 longitud. Es registro histórico, no predicción.
 
-## 4. Comparar
+## 5. Comparar
 
 - **Zonas en un periodo:** agregue de 2 a 4 zonas (clic en el mapa o *Añadir distrito*). Todas usan el periodo
   activo, la misma corrida y la misma escala. La tabla muestra índice, nivel, diferencia con la zona A, promedio
@@ -79,7 +87,7 @@ longitud. Es registro histórico, no predicción.
   la variación y la serie de años (sin unir 2017 con 2021, porque 2018 a 2020 no tienen fuente).
 - Celdas y distritos no se comparan entre sí: usan escalas distintas.
 
-## 5. Análisis
+## 6. Análisis
 
 | Herramienta | Para qué sirve |
 |---|---|
@@ -92,7 +100,7 @@ longitud. Es registro histórico, no predicción.
 y aviso de alcance. Las celdas vacías significan sin resultado, no cero. La dirección del navegador guarda periodo,
 vista, filtros y unidad seleccionada: copie el enlace para compartir la misma consulta.
 
-## 6. Modelo
+## 7. Modelo
 
 Muestra cómo está construida y cómo se evaluó la red publicada:
 
@@ -105,12 +113,12 @@ Muestra cómo está construida y cómo se evaluó la red publicada:
   histórico;
 - búsqueda de configuración, variables de entrada, ficha técnica y huella SHA-256 de los pesos.
 
-## 7. Metodología y fuentes
+## 8. Metodología y fuentes
 
 Qué representa cada componente, cómo se obtiene, las fuentes (incluidas las no incorporadas y por qué), las
 variables por grupo (ocurrencia, severidad, exposición y contexto) y las limitaciones.
 
-## 8. Buenas prácticas de interpretación
+## 9. Buenas prácticas de interpretación
 
 - Compare zonas en el mismo periodo, o una zona consigo misma entre periodos.
 - Un nivel alto indica dónde se concentra el riesgo relativo, no su causa ni la intervención que corresponde.

@@ -53,3 +53,11 @@ Only GET routes exist (tested). The service reads with the `raplm_reader` role.
 * `unit_id`: `F{row}-C{col}` for 1 km cells (EPSG:32718 grid, row 1 = north), UBIGEO for districts.
 * `period_id`: `{year}-{wd|we}-{HHHH}`, e.g. `2024-wd-1824` = 2024, weekdays, 18:00–24:00.
 * Dates are ISO 8601, periods half-open `[start_date, end_date)`. GeoJSON is EPSG:4326.
+
+### `GET /api/v1/forecast`
+
+Pronóstico un paso adelante de la red publicada (D-11). Parámetros: `unit_type` (`district` por defecto o `cell`),
+`day_type` (`weekday` o `weekend`), `band` (0 a 3). Devuelve `horizon_year`, `last_observed_year` y, ordenadas por
+índice descendente, filas con `risk_index`, `risk_level`, `index_low`, `index_high` (rango del ensamble),
+`previous_index` y `expected_events` (solo distritos). `404 NO_FORECAST` si la corrida no tiene pronóstico.
+

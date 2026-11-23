@@ -96,6 +96,10 @@ INSERT INTO unit_explanation VALUES
 INSERT INTO corridor VALUES ('demo-run', '150101:ABANCAY', '150101', 'Abancay', 1.0, 3, 3, 1, 1.0, 2, 0, 70,
   '{{"cenacom": 3}}', '{{"2016": 3}}', '[0,0,0,3,0,0,0,0]', '{{"street": 3}}',
   ST_Multi(ST_GeomFromText('LINESTRING(-77.035 -12.045, -77.03 -12.05)', 4326)));
+INSERT INTO forecast VALUES
+ ('demo-run', 'district-43', '150101', 2025, 'weekday', 3, 80, 'high', 72, 88, 75, 3.2),
+ ('demo-run', 'district-43', '150131', 2025, 'weekday', 3, 30, 'low', 25, 36, 20, 0.8),
+ ('demo-run', 'grid-1km', 'F1-C1', 2025, 'weekday', 3, 55, 'medium', 50, 61, 60, NULL);
 """
 
 

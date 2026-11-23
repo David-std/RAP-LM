@@ -15,6 +15,8 @@ import type {
   Series,
   UnitCollection,
   UnitType,
+  ForecastDto,
+  DayType,
 } from "./types";
 
 const BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
@@ -125,6 +127,8 @@ export const api = {
     get<Explanation>("/explanations", { unit_type: unitType, unit_id: unitId }, signal),
 
   model: (signal?: AbortSignal) => get<ModelCardDto>("/model", {}, signal),
+  forecast: (unitType: UnitType, dayType: DayType, band: number, signal?: AbortSignal) =>
+    get<ForecastDto>("/forecast", { unit_type: unitType, day_type: dayType, band }, signal),
 
   provenance: (
     args: { unitType?: UnitType; unitId?: string; periodId?: string },

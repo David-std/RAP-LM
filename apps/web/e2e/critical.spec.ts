@@ -123,3 +123,15 @@ test("E2E-08 analyst ranking exports CSV with run and scope", async ({ page }) =
   expect(text).toContain("# RAP-LM export; run ");
   expect(text).toContain("risk_index");
 });
+
+test("E2E-12 D-11: forecast view with ranking, ensemble range and 2024 validation", async ({ page }) => {
+  await ready(page);
+  await page.getByRole("button", { name: "Pronóstico" }).click();
+  await expect(page.getByRole("heading", { name: /Riesgo esperado en \d{4}/ })).toBeVisible();
+  await expect(page.getByText("¿Es confiable?")).toBeVisible();
+  const first = page.getByLabel("Detalle del pronóstico").locator("tbody tr").first();
+  await expect(first).toBeVisible();
+  await first.click();
+  await expect(page.getByLabel("Detalle del pronóstico").locator("tbody tr.on")).toHaveCount(1);
+});
+
