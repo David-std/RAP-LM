@@ -152,7 +152,7 @@ branch created from `develop` and returns to it through a reviewed pull request:
 | `fix/` | Defect found in `develop` | `fix/period-order` |
 | `docs/` | Documentation only | `docs/architecture-c4` |
 | `refactor/` | Internal change without new behaviour | `refactor/api-repository` |
-| `release/` | Stabilisation before merging into `main` | `release/mvp-1.0` |
+| `release/` | Stabilisation before merging into `main`; named by version only, tagged on `main` | `release/v1.0.0` (tag `v1.0.0`) |
 | `hotfix/` | Urgent fix on `main` | `hotfix/ci-import-order` |
 
 Names are lowercase kebab-case. Commits follow Conventional Commits and cite the requirement codes they address
