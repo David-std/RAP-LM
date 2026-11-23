@@ -1,0 +1,39 @@
+{
+  "periods": 88,
+  "events": 14158,
+  "rows": [
+    {
+      "representation": "Distrito (43)",
+      "units": 43,
+      "events_assigned_pct": 100.0,
+      "unit_periods": 3784,
+      "zero_share_pct": 37.1,
+      "mean_events_nonzero": 5.95
+    },
+    {
+      "representation": "Malla 2 km",
+      "units": 782,
+      "events_assigned_pct": 63.8,
+      "unit_periods": 68816,
+      "zero_share_pct": 86.1,
+      "mean_events_nonzero": 0.94
+    },
+    {
+      "representation": "Malla 1 km",
+      "units": 2899,
+      "events_assigned_pct": 63.8,
+      "unit_periods": 255112,
+      "zero_share_pct": 91.97,
+      "mean_events_nonzero": 0.44
+    },
+    {
+      "representation": "Corredor vial (calle × distrito)",
+      "units": 2365,
+      "events_assigned_pct": 63.6,
+      "unit_periods": null,
+      "zero_share_pct": null,
+      "mean_events_nonzero": null,
+      "note": "Concentración: 10 % de la longitud reúne 41.8 % de los eventos ubicados"
+    }
+  ]
+}

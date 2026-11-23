@@ -23,3 +23,6 @@ data/raw/
 data/processed/
 data/interim/
 models/artifacts/
+
+# Pipeline outputs (datasets, runs, weights): reproducible, kept out of Git.
+artifacts/

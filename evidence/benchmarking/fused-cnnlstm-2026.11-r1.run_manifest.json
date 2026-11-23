@@ -1,0 +1,105 @@
+{
+  "run_id": "fused-cnnlstm-2026.11-r1",
+  "config": {
+    "run_id": "fused-cnnlstm-2026.11-r1",
+    "description": "Main run: all pedestrian collisions, fused CENACOM 2011-2017 + ONSV 2021-2024, 1 km grid. Test = 2024 (after every training year).",
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "split": {
+      "train": {
+        "cenacom": [
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017
+        ],
+        "onsv": [
+          2021,
+          2022
+        ]
+      },
+      "validation": {
+        "onsv": [
+          2023
+        ]
+      },
+      "test": {
+        "onsv": [
+          2024
+        ]
+      }
+    },
+    "seed": 20261122,
+    "hidden": 32,
+    "dropout": 0.2,
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 40,
+    "area_floor_km2": 0.1,
+    "thresholds": {
+      "version": "levels-v1",
+      "low_max": 40,
+      "medium_max": 70,
+      "method": "Index = percentile rank (0-100) of the annualised indicator within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70. Fixed before the test evaluation."
+    },
+    "threads": 8
+  },
+  "dataset_manifest_sha256": "0f1e37cf93895fc23d57b40f8340921143cf2528cee66ff790dba50dc713eb3e",
+  "model_family": "pytorch:convlstm",
+  "code_commit_sha": "unknown",
+  "python": "3.12.10",
+  "torch": "2.15.0+cpu",
+  "threads": 8,
+  "weights_sha256": "e600e47b242bb596f1ae005821c8f37dc76d130452a75c440d176cbaa193a6cb",
+  "estimates_sha256": "12ede8a5b23200577a0e88cf287ece690b9c6d9494719cf2004876d4635f1da1",
+  "tensor_shapes": {
+    "X": [
+      14,
+      14,
+      105,
+      64
+    ],
+    "y_cell": [
+      2,
+      14,
+      8,
+      105,
+      64
+    ]
+  },
+  "channels": [
+    "population",
+    "transit_stops",
+    "transit_route_km",
+    "street_km",
+    "traffic_lights",
+    "pedestrian_crossings",
+    "special_road_km",
+    "valid_cell",
+    "cenacom_prev_cell_rate",
+    "cenacom_prev_district_density",
+    "cenacom_prev_observed",
+    "onsv_prev_cell_rate",
+    "onsv_prev_district_density",
+    "onsv_prev_observed"
+  ],
+  "elapsed_seconds": 349.8
+}

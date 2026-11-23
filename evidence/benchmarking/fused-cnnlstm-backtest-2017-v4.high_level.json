@@ -1,0 +1,127 @@
+[
+  {
+    "family": "cenacom",
+    "year": 2017,
+    "units": 23192,
+    "reference_high": 2240,
+    "model": {
+      "tp": 2012,
+      "fp": 4561,
+      "fn": 228,
+      "tn": 16391,
+      "precision": 0.30610071504640196,
+      "recall": 0.8982142857142857,
+      "f1": 0.45659820719391814
+    },
+    "base_rate": 0.09658502932045533,
+    "model_ranking": {
+      "k": 2240,
+      "precision_at_k": 0.5580357142857143,
+      "average_precision": 0.5612099821805475,
+      "at_validation_threshold": {
+        "tp": 1491,
+        "fp": 1605,
+        "fn": 749,
+        "tn": 19347,
+        "precision": 0.48158914728682173,
+        "recall": 0.665625,
+        "f1": 0.5588455772113944
+      }
+    },
+    "annual_cell": {
+      "cells": 2899,
+      "positives": 398,
+      "model": {
+        "k": 398,
+        "precision_at_k": 0.7964824120603015,
+        "average_precision": 0.875107976104615,
+        "capture_top10": 0.6507537688442211
+      },
+      "baseline": {
+        "k": 398,
+        "precision_at_k": 0.7889447236180904,
+        "average_precision": 0.8870731534684287,
+        "capture_top10": 0.6507537688442211
+      }
+    },
+    "baseline": {
+      "tp": 1365,
+      "fp": 1274,
+      "fn": 875,
+      "tn": 19678,
+      "precision": 0.5172413793103449,
+      "recall": 0.609375,
+      "f1": 0.5595408895265424
+    },
+    "baseline_ranking": {
+      "k": 2240,
+      "precision_at_k": 0.5397321428571429,
+      "average_precision": 0.4891020307093945,
+      "at_validation_threshold": {
+        "tp": 1706,
+        "fp": 1847,
+        "fn": 534,
+        "tn": 19105,
+        "precision": 0.48015761328454826,
+        "recall": 0.7616071428571428,
+        "f1": 0.5889867080959779
+      }
+    },
+    "validation_thresholds": {
+      "model": 85.6,
+      "baseline": 47.3
+    }
+  },
+  {
+    "family": "cenacom",
+    "year": 2016,
+    "units": 23192,
+    "reference_high": 2490,
+    "model": {
+      "tp": 2330,
+      "fp": 4262,
+      "fn": 160,
+      "tn": 16440,
+      "precision": 0.35345873786407767,
+      "recall": 0.9357429718875502,
+      "f1": 0.5131028407839682
+    },
+    "base_rate": 0.10736460848568471,
+    "model_ranking": {
+      "k": 2490,
+      "precision_at_k": 0.6008032128514056,
+      "average_precision": 0.6266200582464347
+    },
+    "annual_cell": {
+      "cells": 2899,
+      "positives": 443,
+      "model": {
+        "k": 443,
+        "precision_at_k": 0.7968397291196389,
+        "average_precision": 0.8895908606637022,
+        "capture_top10": 0.6027088036117382
+      },
+      "baseline": {
+        "k": 443,
+        "precision_at_k": 0.781038374717833,
+        "average_precision": 0.8599691979863412,
+        "capture_top10": 0.5846501128668171
+      }
+    },
+    "baseline": {
+      "tp": 1137,
+      "fp": 685,
+      "fn": 1353,
+      "tn": 20017,
+      "precision": 0.6240395170142701,
+      "recall": 0.4566265060240964,
+      "f1": 0.5273654916512059
+    },
+    "baseline_ranking": {
+      "k": 2490,
+      "precision_at_k": 0.5771084337349398,
+      "average_precision": 0.4437695362429382
+    },
+    "partition": "validation"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "configuration": "ml/configs/v3-gpu-replica.json",
+  "device": "cuda",
+  "files": {
+    "model.pt": {
+      "first": "f0090ee6f88fce860ea4991c83e6a08b3ce6e9d35b7c39193491dbd9b5135d2d",
+      "repeat": "f0090ee6f88fce860ea4991c83e6a08b3ce6e9d35b7c39193491dbd9b5135d2d"
+    },
+    "estimates.npz": {
+      "first": "b47d4d32d40db9ea7ecdeb6cc031375a8cb5a2821349b363ad12cf1c963bc295",
+      "repeat": "b47d4d32d40db9ea7ecdeb6cc031375a8cb5a2821349b363ad12cf1c963bc295"
+    }
+  },
+  "identical": true
+}

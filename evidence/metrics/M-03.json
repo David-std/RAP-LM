@@ -1,0 +1,15 @@
+{
+  "metric": "M-03",
+  "target": ">= 95 %",
+  "run_id": "fused-cnnlstm-2026.11-v4",
+  "measured_at": "2026-11-23T22:51:31.874612+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "machine": "AMD64",
+    "os": "Windows"
+  },
+  "numerator": 200,
+  "denominator": 200,
+  "value": 100.0,
+  "sampling": "200 random (unit, period) pairs, seed 20261122"
+}

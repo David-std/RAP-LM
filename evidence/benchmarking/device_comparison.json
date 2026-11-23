@@ -1,0 +1,35 @@
+{
+  "runs": [
+    {
+      "run_id": "fused-cnnlstm-2026.11-v3",
+      "device": "cpu",
+      "torch": "2.15.0+cpu",
+      "minutes": 32.57,
+      "validation_E": 0.5806287527084351,
+      "selected": {
+        "variant": "convlstm",
+        "hidden": 32,
+        "dropout": 0.1,
+        "lr": 0.003
+      }
+    },
+    {
+      "run_id": "fused-cnnlstm-2026.11-v3-gpu",
+      "device": "cuda",
+      "torch": "2.14.1+cu130",
+      "minutes": 3.93,
+      "validation_E": 0.5944591164588928,
+      "selected": {
+        "variant": "convlstm",
+        "hidden": 32,
+        "dropout": 0.1,
+        "lr": 0.01
+      }
+    }
+  ],
+  "units_periods": 258896,
+  "level_match_pct": 89.59,
+  "index_mean_abs_diff": 5.13,
+  "index_p95_abs_diff": 16.47,
+  "index_spearman": 0.9617
+}

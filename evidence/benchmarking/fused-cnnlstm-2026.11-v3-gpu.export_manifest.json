@@ -1,0 +1,8 @@
+{
+  "results_rows": 258896,
+  "periods": 88,
+  "results_sha256": "0041e0d6bb2bca1822dfbe285c2a70083e86f62dc6742c2467a50e4cfb154db6",
+  "periods_sha256": "a18b0bf80087f0df4613b6945944a9c9108eecb9e98b87fda6e3c52d6e9f3ef0",
+  "dataset_version": "fused-v1.3.0",
+  "input_tensor_sha256": "f61ac0d7feee19669aa1a1a5056d1156951823f656a3bb89717143054162d6bc"
+}

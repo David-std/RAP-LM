@@ -1,0 +1,128 @@
+{
+  "run_id": "fused-cnnlstm-backtest-2017-v3",
+  "config": {
+    "run_id": "fused-cnnlstm-backtest-2017-v3",
+    "description": "All-severity backtest: CENACOM only, train 2011-2015, validation 2016, test January-June 2017. Not published; evidence for RM-05 on the all-severity population. Protocol v2 with amendment A2 (dataset v1.2): validation search + 5-seed ensemble.",
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017
+    ],
+    "split": {
+      "train": {
+        "cenacom": [
+          2011,
+          2012,
+          2013,
+          2014,
+          2015
+        ]
+      },
+      "validation": {
+        "cenacom": [
+          2016
+        ]
+      },
+      "test": {
+        "cenacom": [
+          2017
+        ]
+      }
+    },
+    "seed": 20261122,
+    "hidden": 32,
+    "dropout": 0.1,
+    "lr": 0.003,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 40,
+    "area_floor_km2": 0.1,
+    "thresholds": {
+      "version": "levels-v1",
+      "low_max": 40,
+      "medium_max": 70,
+      "method": "Same rule as the main run."
+    },
+    "threads": 8,
+    "search": {
+      "variants": [
+        "cnn_lstm",
+        "convlstm"
+      ],
+      "hidden": [
+        16,
+        32
+      ],
+      "dropout": [
+        0.1,
+        0.3
+      ],
+      "lr": [
+        0.003,
+        0.01
+      ],
+      "ensemble_seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "device": "cuda"
+  },
+  "dataset_manifest_sha256": "77795eec966d0337fad52c3c4fbd9ca4c1fcf78807505561bc6d90495a984325",
+  "model_family": "pytorch:cnn_lstm:ensemble5",
+  "code_commit_sha": "ec7905b6d71344e6f4b29f21d2b42f6edc951c5c",
+  "code_tree_clean": true,
+  "python": "3.12.10",
+  "torch": "2.14.1+cu130",
+  "threads": 8,
+  "device": "cuda",
+  "weights_sha256": "ea453c18018e71c7539721ffefb3a81fedcdd3f48b791aa5011157b4661402b3",
+  "estimates_sha256": "f702fc17fd5471e7f3cf18aa05a9fffb1a42661f123c92d8a766b856a797ed92",
+  "tensor_shapes": {
+    "X": [
+      7,
+      22,
+      105,
+      64
+    ],
+    "y_cell": [
+      2,
+      7,
+      8,
+      105,
+      64
+    ]
+  },
+  "channels": [
+    "population",
+    "transit_stops",
+    "transit_route_km",
+    "street_km",
+    "traffic_lights",
+    "pedestrian_crossings",
+    "special_road_km",
+    "poi_commerce",
+    "poi_education",
+    "poi_health",
+    "osm_crossings",
+    "osm_signals",
+    "footway_km",
+    "arterial_km",
+    "collector_km",
+    "valid_cell",
+    "cenacom_prev_cell_rate",
+    "cenacom_prev_district_density",
+    "cenacom_prev_observed",
+    "onsv_prev_cell_rate",
+    "onsv_prev_district_density",
+    "onsv_prev_observed"
+  ],
+  "elapsed_seconds": 240.3
+}

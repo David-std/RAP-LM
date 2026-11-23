@@ -9,16 +9,40 @@ on:
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: raplm
+          POSTGRES_USER: raplm_owner
+          POSTGRES_PASSWORD: raplm_owner_dev
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U raplm_owner -d raplm" --health-interval 3s --health-retries 30
+    env:
+      RAPLM_TEST_ADMIN_URL: postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/raplm
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Create database roles (same script as Docker Compose)
+        env:
+          PGPASSWORD: raplm_owner_dev
+        run: |
+          psql -h 127.0.0.1 -p 5433 -U raplm_owner -d raplm -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE ROLE raplm_reader LOGIN PASSWORD 'raplm_reader_dev';
+          CREATE ROLE raplm_publisher LOGIN PASSWORD 'raplm_publisher_dev';
+          ALTER ROLE raplm_reader SET default_transaction_read_only = on;
+          SQL
       - name: Install
-        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" "numpy>=2,<3"
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
       - name: Lint
         run: ruff check .
-      - name: Tests
+      - name: Tests (unit + PostGIS contract)
         run: pytest
 
   web:
@@ -35,5 +59,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Typecheck
         run: npm run typecheck
+      - name: Unit tests
+        run: npm test
       - name: Build
         run: npm run build

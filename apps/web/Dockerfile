@@ -1,0 +1,12 @@
+# Build the SPA and serve it with Nginx; /api and /health are proxied to the API container.
+FROM node:22.11-alpine AS build
+WORKDIR /web
+COPY package.json package-lock.json* ./
+RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+COPY . .
+RUN npm run build
+
+FROM nginx:1.27.3-alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /web/dist /usr/share/nginx/html
+EXPOSE 80

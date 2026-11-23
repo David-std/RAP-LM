@@ -1,0 +1,32 @@
+@startuml 5C_componentes_web
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+title RAP-LM: componentes de la aplicación web (nivel 3)
+
+Container_Boundary(web, "Aplicación web") {
+  Component(estado, "Estado de consulta", "React Context", "Periodo, vista, filtros y selección; sincronizado con la URL")
+  Component(cliente, "Cliente de API", "TypeScript", "Solicitudes tipadas con cancelación, estados de carga y error")
+  Component(mapa, "Mapa de riesgo y leyenda", "Leaflet", "Malla y distritos, capa de densidad del registro, ámbito atenuado (RF-01, RF-07)")
+  Component(panel, "Panel de zona", "React", "Riesgo con tres componentes, red año a año, perfil horario, desglose, influencia, simulación, calles y procedencia (RF-02, RF-08)")
+  Component(corr, "Corredores", "React, Leaflet", "Ranking de calles y curva de concentración")
+  Component(comp, "Comparadores", "React", "Zonas en un periodo y una zona entre periodos (RF-05, RF-06)")
+  Component(anal, "Análisis", "React", "Ranking, cambio, persistencia, perfil distrital y exportación")
+  Component(modelo, "Modelo", "React, SVG", "Arquitectura, curvas, benchmark, errores del nivel alto y ficha (RM-01 a RM-05)")
+  Component(metod, "Metodología y fuentes", "React", "Componentes, fuentes, variables y limitaciones (RF-08)")
+}
+Container_Ext(api, "API de consulta", "FastAPI")
+System_Ext(tiles, "Servicio de teselas")
+
+Rel(mapa, estado, "Lee y actualiza")
+Rel(panel, estado, "Lee y actualiza")
+Rel(comp, estado, "Lee y actualiza")
+Rel(anal, estado, "Lee")
+Rel(mapa, cliente, "Usa")
+Rel(panel, cliente, "Usa")
+Rel(corr, cliente, "Usa")
+Rel(comp, cliente, "Usa")
+Rel(anal, cliente, "Usa")
+Rel(modelo, cliente, "Usa")
+Rel(metod, cliente, "Usa")
+Rel(cliente, api, "GET /api/v1/*", "JSON y GeoJSON")
+Rel(mapa, tiles, "Teselas", "HTTPS")
+@enduml

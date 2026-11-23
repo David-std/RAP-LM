@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.0084951">
+    <testsuite name="src/__tests__/client.test.ts" timestamp="2026-11-23T22:53:44.491Z" tests="3" failures="0" errors="0" skipped="0" time="0.0065683">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; serialises filters as comma-separated lists and skips empty ones" time="0.0045576">
+        </testcase>
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; raises the contract error code" time="0.0011521">
+        </testcase>
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; forwards the abort signal so stale period requests are cancelled" time="0.0003326">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/__tests__/levels.test.ts" timestamp="2026-11-23T22:53:44.494Z" tests="4" failures="0" errors="0" skipped="0" time="0.0019268">
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; splits the three API levels into six ordered classes" time="0.000917">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; colours by the level cut points of the API, not hard-coded ones" time="0.0002298">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; never colours a missing result as low risk" time="0.0000996">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="inkOn &gt; uses white text on the dark half of the ramp for contrast" time="0.0000885">
+        </testcase>
+    </testsuite>
+</testsuites>
