@@ -1,19 +1,19 @@
 {
   "metric": "M-09",
   "target": "p95 <= 2 s",
-  "run_id": "fused-cnnlstm-2026.11-v2",
-  "measured_at": "2026-11-23T18:52:02.188882+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v3",
+  "measured_at": "2026-11-23T21:14:16.590459+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",
     "os": "Windows"
   },
-  "value": 0.2903,
+  "value": 0.4132,
   "unit": "seconds",
   "requests": 200,
   "errors": 0,
-  "median": 0.1751,
-  "max": 0.3517,
+  "median": 0.1686,
+  "max": 0.4567,
   "load": "sequential; alternating full-map /risk (2,899 cells) and 4-unit /comparisons",
   "status": "met"
 }

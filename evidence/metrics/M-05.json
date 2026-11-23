@@ -1,8 +1,8 @@
 {
   "metric": "M-05",
   "target": "> 0 %",
-  "run_id": "fused-cnnlstm-2026.11-v2",
-  "measured_at": "2026-11-23T18:51:19.385180+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v3",
+  "measured_at": "2026-11-23T21:13:19.010019+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",
@@ -10,15 +10,15 @@
   },
   "evaluations": [
     {
-      "run": "fused-cnnlstm-2026.11-v2",
+      "run": "fused-cnnlstm-2026.11-v3",
       "variant": "convlstm",
       "family": "onsv",
       "year": 2024,
       "E_baseline": 0.606589138507843,
-      "E_model": 0.5799821615219116,
-      "improvement_pct": 4.3863
+      "E_model": 0.5629953742027283,
+      "improvement_pct": 7.1867
     }
   ],
-  "value": 4.3863,
+  "value": 7.1867,
   "formula": "(E_baseline - E_model) / E_baseline * 100, E = district x subperiod MAE"
 }

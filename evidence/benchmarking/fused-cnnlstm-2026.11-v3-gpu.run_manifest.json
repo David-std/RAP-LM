@@ -1,0 +1,141 @@
+{
+  "run_id": "fused-cnnlstm-2026.11-v3-gpu",
+  "config": {
+    "run_id": "fused-cnnlstm-2026.11-v3-gpu",
+    "description": "GPU replica of the published v3 configuration (same data, seeds and protocol) to measure training time and cross-device agreement. Not published.",
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "split": {
+      "train": {
+        "cenacom": [
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017
+        ],
+        "onsv": [
+          2021,
+          2022
+        ]
+      },
+      "validation": {
+        "onsv": [
+          2023
+        ]
+      },
+      "test": {
+        "onsv": [
+          2024
+        ]
+      }
+    },
+    "seed": 20261122,
+    "hidden": 32,
+    "dropout": 0.1,
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 40,
+    "area_floor_km2": 0.1,
+    "thresholds": {
+      "version": "levels-v1",
+      "low_max": 40,
+      "medium_max": 70,
+      "method": "Index = percentile rank (0-100) of the annualised indicator within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70. Fixed before the test evaluation."
+    },
+    "threads": 8,
+    "search": {
+      "variants": [
+        "cnn_lstm",
+        "convlstm"
+      ],
+      "hidden": [
+        16,
+        32
+      ],
+      "dropout": [
+        0.1,
+        0.3
+      ],
+      "lr": [
+        0.003,
+        0.01
+      ],
+      "ensemble_seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "device": "cuda"
+  },
+  "dataset_manifest_sha256": "77795eec966d0337fad52c3c4fbd9ca4c1fcf78807505561bc6d90495a984325",
+  "model_family": "pytorch:convlstm:ensemble5",
+  "code_commit_sha": "ec7905b6d71344e6f4b29f21d2b42f6edc951c5c",
+  "code_tree_clean": true,
+  "python": "3.12.10",
+  "torch": "2.14.1+cu130",
+  "threads": 8,
+  "device": "cuda",
+  "weights_sha256": "f0090ee6f88fce860ea4991c83e6a08b3ce6e9d35b7c39193491dbd9b5135d2d",
+  "estimates_sha256": "b47d4d32d40db9ea7ecdeb6cc031375a8cb5a2821349b363ad12cf1c963bc295",
+  "tensor_shapes": {
+    "X": [
+      14,
+      22,
+      105,
+      64
+    ],
+    "y_cell": [
+      2,
+      14,
+      8,
+      105,
+      64
+    ]
+  },
+  "channels": [
+    "population",
+    "transit_stops",
+    "transit_route_km",
+    "street_km",
+    "traffic_lights",
+    "pedestrian_crossings",
+    "special_road_km",
+    "poi_commerce",
+    "poi_education",
+    "poi_health",
+    "osm_crossings",
+    "osm_signals",
+    "footway_km",
+    "arterial_km",
+    "collector_km",
+    "valid_cell",
+    "cenacom_prev_cell_rate",
+    "cenacom_prev_district_density",
+    "cenacom_prev_observed",
+    "onsv_prev_cell_rate",
+    "onsv_prev_district_density",
+    "onsv_prev_observed"
+  ],
+  "elapsed_seconds": 235.9
+}

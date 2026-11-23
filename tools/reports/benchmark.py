@@ -129,8 +129,9 @@ def device_section(devices: dict | None) -> list[str]:
         f"unidad-periodo; diferencia media del índice {_es(devices['index_mean_abs_diff'])} puntos (percentil 95: "
         f"{_es(devices['index_p95_abs_diff'])}); correlación de rangos {_es(devices['index_spearman'], 3)}. "
         "La aritmética de punto flotante difiere entre dispositivos, y cuando dos configuraciones empatan casi en "
-        "validación la búsqueda puede elegir una distinta en cada uno. ",
-        "Cada dispositivo es reproducible por sí mismo. La corrida publicada y su reproducibilidad (M-04) son las de CPU.",
+        "validación la búsqueda puede elegir una distinta en cada uno.",
+        "La reproducibilidad (M-04) se midió en CPU, el dispositivo de la corrida publicada; en GPU la ejecución "
+        "está configurada como determinista, pero su repetición no se midió.",
         "",
     ]
 

@@ -21,6 +21,7 @@ Seleccionar con evidencia medida: (1) el modelo espaciotemporal que estima el ri
 | GLM de Poisson | Regresión log-lineal de conteos sobre las mismas variables; modelo clásico en seguridad vial. | Práctica estándar de modelos de frecuencia de siniestros |
 | ConvLSTM | Celda recurrente con compuertas convolucionales; base de Hetero-ConvLSTM para riesgo de accidentes en malla. | Shi et al. (2015); Yuan, Zhou y Yang (2018) |
 | CNN-LSTM | CNN por año (vecindario 5 × 5 km) y LSTM por celda sobre la secuencia de años. Arquitectura de referencia del plan. | Plan v1.6; Guo et al. (2024) |
+| Familia CNN-RNN | Las dos variantes anteriores combinan una parte convolucional (CNN, vecindario espacial) y una recurrente (RNN). La recurrente es una LSTM, la RNN con compuertas de memoria que retiene la historia de varios años. | Plan v1.6 |
 | Ablaciones | Solo CNN (sin recurrencia) y solo LSTM (sin contexto espacial) para medir el aporte de cada parte. | Diseño experimental propio |
 
 ### 3.2. Criterios y parámetros de medición
@@ -44,8 +45,8 @@ Protocolo: partición cronológica; la selección usa solo el conjunto de valida
 | Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
 |---|---|---|---|---|
 | Promedio histórico (B0) | 0.607 | (referencia) | 0.1156 | 62.1 % |
-| CNN-LSTM | 0.597 | +1.65 % | 0.0671 | 58.9 % |
-| ConvLSTM (seleccionada) | 0.583 | +3.85 % | 0.0655 | 60.3 % |
+| CNN-RNN: CNN-LSTM | 0.597 | +1.65 % | 0.0671 | 58.9 % |
+| CNN-RNN: ConvLSTM (seleccionada) | 0.583 | +3.85 % | 0.0655 | 60.3 % |
 | Solo CNN (ablación) | 0.619 | -2.09 % | 0.0655 | 61.2 % |
 | Solo LSTM (ablación) | 0.601 | +0.92 % | 0.0651 | 62.1 % |
 | GLM de Poisson | 0.562 | +7.35 % | 0.0666 | 60.7 % |
@@ -62,8 +63,8 @@ Nivel alto (23192 celdas × franjas, 216 altas observadas):
 | Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
 |---|---|---|---|---|
 | Promedio histórico (B0) | 2.380 | (referencia) | 0.0981 | 79.9 % |
-| CNN-LSTM (seleccionada) | 2.530 | -6.29 % | 0.0892 | 79.1 % |
-| ConvLSTM | 2.449 | -2.90 % | 0.0900 | 78.8 % |
+| CNN-RNN: CNN-LSTM (seleccionada) | 2.530 | -6.29 % | 0.0892 | 79.1 % |
+| CNN-RNN: ConvLSTM | 2.449 | -2.90 % | 0.0900 | 78.8 % |
 | Solo CNN (ablación) | 3.178 | -33.53 % | 0.1129 | 76.2 % |
 | Solo LSTM (ablación) | 2.567 | -7.87 % | 0.0882 | 79.7 % |
 | GLM de Poisson | 2.615 | -9.89 % | 0.0933 | 76.7 % |
@@ -80,7 +81,7 @@ Nivel alto (23192 celdas × franjas, 2306 altas observadas):
 | Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
 |---|---|---|---|---|
 | Promedio histórico (B0) | 0.607 | (referencia) | 0.1156 | 62.1 % |
-| ConvLSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.01) | 0.580 | +4.39 % | 0.0659 | 66.1 % |
+| CNN-RNN: ConvLSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.01) | 0.580 | +4.39 % | 0.0659 | 66.1 % |
 
 Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
@@ -94,7 +95,7 @@ Nivel alto (23192 celdas × franjas, 216 altas observadas):
 | Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
 |---|---|---|---|---|
 | Promedio histórico (B0) | 2.380 | (referencia) | 0.0981 | 79.9 % |
-| CNN-LSTM, ensamble de 5 (h=16, dropout=0.3, lr=0.01) | 2.466 | -3.63 % | 0.0882 | 79.4 % |
+| CNN-RNN: CNN-LSTM, ensamble de 5 (h=16, dropout=0.3, lr=0.01) | 2.466 | -3.63 % | 0.0882 | 79.4 % |
 
 Nivel alto (23192 celdas × franjas, 2299 altas observadas):
 
@@ -103,7 +104,52 @@ Nivel alto (23192 celdas × franjas, 2299 altas observadas):
 | Modelo | 2210 | 89 | 4557 | 96.1 % | 32.7 % |
 | Promedio histórico | 2051 | 248 | 3056 | 89.2 % | 40.2 % |
 
-Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v2 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
+**Iteración v3 (dataset v1.2, población anual; publicada), corrida principal** (prueba ONSV 2024, 233 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 0.607 | (referencia) | 0.1156 | 62.1 % |
+| CNN-RNN: ConvLSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.003) | 0.563 | +7.19 % | 0.0648 | 67.0 % |
+
+Nivel alto (23192 celdas × franjas, 216 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
+|---|---|---|---|---|---|
+| Modelo | 184 | 32 | 3777 | 85.2 % | 4.6 % |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % |
+
+**Iteración v3, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 2.380 | (referencia) | 0.0981 | 79.9 % |
+| CNN-RNN: CNN-LSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.003) | 2.427 | -1.97 % | 0.0875 | 79.2 % |
+
+Nivel alto (23192 celdas × franjas, 2302 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
+|---|---|---|---|---|---|
+| Modelo | 2220 | 82 | 4583 | 96.4 % | 32.6 % |
+| Promedio histórico | 2071 | 231 | 3106 | 90.0 % | 40.0 % |
+
+**Ablación de contexto (v3).** Mismo protocolo, datos y semillas, con todas las variables de exposición, entorno y tránsito fijadas en su media; la red solo ve el historial de atropellos. Responde si esas variables (Guo et al., 2024; Hu et al., 2024) mejoran la precisión.
+
+| Partición | E con contexto | E sin contexto | Captura con contexto | Captura sin contexto | Devianza con contexto | Devianza sin contexto |
+|---|---|---|---|---|---|---|
+| Validación ONSV 2023 | 0.581 | 0.591 | 70.4 % | 63.3 % | 0.0637 | 0.0642 |
+| Prueba ONSV 2024 | 0.563 | 0.580 | 67.0 % | 62.5 % | 0.0648 | 0.0638 |
+
+Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v3 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
+
+**Entrenamiento en CPU y en GPU.** Mismo protocolo, datos y semillas en ambos dispositivos (búsqueda de 16 configuraciones y ensamble de 5).
+
+| Dispositivo | Tiempo de búsqueda y ensamble | Configuración elegida en validación | Error E de validación del ensamble |
+|---|---|---|---|
+| CPU | 32,6 min | convlstm, h=32, lr=0.003 | 0.5806 |
+| CUDA | 3,9 min | convlstm, h=32, lr=0.01 | 0.5945 |
+
+Concordancia de los resultados: nivel de riesgo igual en 89,6 % de las unidad-periodo; diferencia media del índice 5,1 puntos (percentil 95: 16,5); correlación de rangos 0,962. La aritmética de punto flotante difiere entre dispositivos, y cuando dos configuraciones empatan casi en validación la búsqueda puede elegir una distinta en cada uno.
+La reproducibilidad (M-04) se midió en CPU, el dispositivo de la corrida publicada; en GPU la ejecución está configurada como determinista, pero su repetición no se midió.
 
 ### 3.4. Análisis de alternativas
 

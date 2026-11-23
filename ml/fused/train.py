@@ -37,8 +37,8 @@ def set_determinism(seed: int, threads: int, device: str = "cpu") -> None:
     """Seeded, deterministic execution (CPU threads or CUDA), recorded in the manifest.
 
     On CUDA, cuBLAS needs a fixed workspace and cuDNN its deterministic kernels so
-    that a rerun on the same GPU and driver reproduces the weights. CPU and GPU
-    runs are not bit-identical to each other; each is reproducible on its own device.
+    that a rerun on the same GPU and driver is meant to reproduce the weights. CPU
+    and GPU results are not bit-identical to each other.
     """
     if device.startswith("cuda"):
         os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")

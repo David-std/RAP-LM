@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.0070769">
-    <testsuite name="src/__tests__/client.test.ts" timestamp="2026-11-23T18:52:35.702Z" tests="3" failures="0" errors="0" skipped="0" time="0.0050645">
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; serialises filters as comma-separated lists and skips empty ones" time="0.0029583">
+<testsuites name="vitest tests" tests="7" failures="0" errors="0" time="0.008011">
+    <testsuite name="src/__tests__/client.test.ts" timestamp="2026-11-23T21:14:54.981Z" tests="3" failures="0" errors="0" skipped="0" time="0.0060575">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; serialises filters as comma-separated lists and skips empty ones" time="0.0040574">
         </testcase>
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; raises the contract error code" time="0.0011428">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; raises the contract error code" time="0.0011382">
         </testcase>
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; forwards the abort signal so stale period requests are cancelled" time="0.0004331">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; forwards the abort signal so stale period requests are cancelled" time="0.0003275">
         </testcase>
     </testsuite>
-    <testsuite name="src/__tests__/levels.test.ts" timestamp="2026-11-23T18:52:35.704Z" tests="4" failures="0" errors="0" skipped="0" time="0.0020124">
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; splits the three API levels into six ordered classes" time="0.0008957">
+    <testsuite name="src/__tests__/levels.test.ts" timestamp="2026-11-23T21:14:54.983Z" tests="4" failures="0" errors="0" skipped="0" time="0.0019535">
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; splits the three API levels into six ordered classes" time="0.0008861">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; colours by the level cut points of the API, not hard-coded ones" time="0.0003178">
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; colours by the level cut points of the API, not hard-coded ones" time="0.0001906">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; never colours a missing result as low risk" time="0.0000984">
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; never colours a missing result as low risk" time="0.0000805">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="inkOn &gt; uses white text on the dark half of the ramp for contrast" time="0.0000833">
+        <testcase classname="src/__tests__/levels.test.ts" name="inkOn &gt; uses white text on the dark half of the ramp for contrast" time="0.000109">
         </testcase>
     </testsuite>
 </testsuites>
