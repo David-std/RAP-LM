@@ -76,3 +76,13 @@ thresholds and partitions stay exactly as in v2.
 
 Configs `ml/configs/v3-main.json` and `ml/configs/v3-backtest-2017.json` differ from the v2 configs only
 in `run_id` and description.
+
+### Addendum to A2: context ablation arm (fixed before any v3 result was read)
+
+To test the plan's premise that exposure, environment and traffic variables carry information beyond the
+collision count (Guo et al., 2024; Hu et al., 2024), v3 adds one benchmark arm,
+`ml/configs/v3-ablation-no-context.json`: identical data, search space, seeds, selection rule and
+partitions, with every urban-context channel held at its standardised mean so that only the collision
+history informs the network. It is compared with v3 on validation E and, once, on the test partitions.
+It is never published and does not take part in the v3 publication rule.
+

@@ -53,6 +53,11 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     started = time.time()
     t = load_dataset(args.dataset, cfg["years"])
+    if cfg.get("ablation") == "no_context":
+        # Benchmark arm (amendment A2): every urban-context channel (exposure,
+        # environment, traffic proxies) is held at its standardised mean, so the
+        # network only sees the collision history. Same search, seeds and rule.
+        t.X[:, : len(t.context_order)] = 0.0
     split, grid = cfg["split"], cfg["search"]
 
     # 1. Search on validation only.
