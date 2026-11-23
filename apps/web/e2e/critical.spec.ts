@@ -91,10 +91,10 @@ test("E2E-09 RM-01 RM-05: model view shows architecture, benchmark and high-leve
   await expect(page.getByText("Mejora frente al promedio histórico (M-05)")).toBeVisible();
 });
 
-test("E2E-10 D-09: corridors view ranks streets and opens a street detail", async ({ page }) => {
+test("E2E-10 D-09: critical streets view ranks streets and opens a street detail", async ({ page }) => {
   await ready(page);
-  await page.getByRole("button", { name: "Corredores" }).click();
-  const first = page.getByLabel("Detalle de corredores").getByRole("button").first();
+  await page.getByRole("button", { name: "Vías críticas" }).click();
+  const first = page.getByLabel("Detalle de vías críticas").getByRole("button").first();
   await expect(first).toBeVisible();
   await first.click();
   await expect(page.getByText("Atropellos por año")).toBeVisible();

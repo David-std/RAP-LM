@@ -186,3 +186,35 @@ def test_gradcam_is_non_negative_and_localised():  # Grad-CAM, HiResCAM variant
     assert (cam >= 0).all() and cam.max() > 0
     # Four steps of 3x3 gates reach at most 3 cells away: the border stays at zero.
     assert cam[0, :].sum() == 0 and cam[:, 0].sum() == 0
+
+
+def test_cenacom_vehicle_codes_follow_each_edition():  # D-12: questionnaire changed by edition
+    from pipelines.fusion.vehicles import CENACOM_VEHICLE
+
+    assert sorted(CENACOM_VEHICLE) == [17, 18, 19]
+    for n, codes in CENACOM_VEHICLE.items():
+        assert sorted(codes) == list(range(1, n + 1))
+    # Moto lineal, motocar/mototaxi and bicicleta sit at different codes per edition.
+    assert (CENACOM_VEHICLE[17][12], CENACOM_VEHICLE[17][13], CENACOM_VEHICLE[17][15]) == (
+        "moto",
+        "mototaxi",
+        "bicicleta",
+    )
+    assert (CENACOM_VEHICLE[18][13], CENACOM_VEHICLE[18][14], CENACOM_VEHICLE[18][16]) == (
+        "moto",
+        "mototaxi",
+        "bicicleta",
+    )
+    assert (CENACOM_VEHICLE[19][14], CENACOM_VEHICLE[19][15], CENACOM_VEHICLE[19][17]) == (
+        "moto",
+        "mototaxi",
+        "bicicleta",
+    )
+
+
+def test_vehicle_shares_sum_to_one_event():  # several vehicles split one event
+    from pipelines.fusion.vehicles import _split
+
+    assert _split([]) == {"no_identificado": 1.0}
+    shares = _split(["auto", "mototaxi", "auto"])
+    assert abs(sum(shares.values()) - 1) < 1e-6 and shares["auto"] > shares["mototaxi"]

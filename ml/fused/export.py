@@ -105,17 +105,23 @@ def main() -> None:
     ref_ratio_cell = np.sort(ratio_cell[train_t][:, :, t.valid].ravel())
     ref_ratio_d = np.sort(ratio_d[train_t].ravel())
 
-    def breakdown(sev: np.ndarray | None, typ: np.ndarray | None) -> str:
-        """Counts by severity class and subtype for the historical record."""
+    def breakdown(
+        sev: np.ndarray | None,
+        typ: np.ndarray | None,
+        veh: np.ndarray | None = None,
+        svc: np.ndarray | None = None,
+    ) -> str:
+        """Historical record by severity, subtype, vehicle type and transport service."""
         if sev is None or typ is None:
             return ""
-        return json.dumps(
-            {
-                "severity": [round(float(v), 2) for v in sev],
-                "type": [round(float(v), 2) for v in typ],
-            },
-            separators=(",", ":"),
-        )
+        out = {
+            "severity": [round(float(v), 2) for v in sev],
+            "type": [round(float(v), 2) for v in typ],
+        }
+        if veh is not None and svc is not None:
+            out["vehicle"] = [round(float(v), 2) for v in veh]
+            out["service"] = [round(float(v), 2) for v in svc]
+        return json.dumps(out, separators=(",", ":"))
 
     def hist_cell(s: int, ti: int) -> np.ndarray | None:
         prior = [p for p in range(ti) if t.cover[s, p].max() > 0]
@@ -193,6 +199,8 @@ def main() -> None:
                         breakdown(
                             None if t.severity_cell is None else t.severity_cell[ti, k, :, r, c],
                             None if t.type_cell is None else t.type_cell[ti, k, :, r, c],
+                            None if t.vehicle_cell is None else t.vehicle_cell[ti, k, :, r, c],
+                            None if t.service_cell is None else t.service_cell[ti, k, :, r, c],
                         ),
                     ]
                 )
@@ -220,6 +228,8 @@ def main() -> None:
                         breakdown(
                             None if t.severity_dist is None else t.severity_dist[ti, k, :, di],
                             None if t.type_dist is None else t.type_dist[ti, k, :, di],
+                            None if t.vehicle_dist is None else t.vehicle_dist[ti, k, :, di],
+                            None if t.service_dist is None else t.service_dist[ti, k, :, di],
                         ),
                     ]
                 )

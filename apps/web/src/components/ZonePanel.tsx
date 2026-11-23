@@ -210,7 +210,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
           <header>
             <h3>Calles con más atropellos registrados</h3>
             <button type="button" className="link-btn" onClick={() => onOpenCorridors(districtId)}>
-              Ver corredores
+              Ver vías críticas
             </button>
           </header>
           {corridors.data && corridors.data.features.length === 0 && <p className="empty">Sin calles con eventos ubicados.</p>}
@@ -345,6 +345,19 @@ function YearCard({ e, year, onYear }: { e: Explanation; year: number; onYear: (
   );
 }
 
+const VEHICLE_LABEL = {
+  auto: "Auto",
+  camioneta: "Camioneta",
+  combi_minibus: "Combi o minibús",
+  bus: "Bus",
+  carga: "Carga",
+  moto: "Moto",
+  mototaxi: "Mototaxi",
+  bicicleta: "Bicicleta o triciclo",
+  no_identificado: "No identificado",
+};
+const SERVICE_LABEL = { publico: "Público", particular: "Particular", carga: "Carga", no_identificado: "No identificado" };
+
 function RecordCard({ result }: { result: RiskResult }) {
   const b = result.breakdown;
   const total = result.observed.events ?? 0;
@@ -361,6 +374,8 @@ function RecordCard({ result }: { result: RiskResult }) {
         <div className="grid cols-2" style={{ gap: 10 }}>
           <Breakdown title="Por subtipo" data={b.type} labels={TYPE_LABEL} color="var(--chart-2)" />
           <Breakdown title="Por severidad" data={b.severity} labels={SEVERITY_LABEL} color="#bf3a2e" />
+          {b.vehicle && <Breakdown title="Por vehículo involucrado" data={b.vehicle} labels={VEHICLE_LABEL} color="var(--chart-3)" />}
+          {b.service && <Breakdown title="Por servicio de transporte" data={b.service} labels={SERVICE_LABEL} color="var(--chart-1)" />}
         </div>
       ) : (
         <p className="muted small">Desglose no disponible para esta corrida.</p>

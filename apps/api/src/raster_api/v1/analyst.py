@@ -83,7 +83,7 @@ def get_corridors(
               'cumulative_event_share', c.cumulative_event_share, 'injured', c.injured,
               'deceased', c.deceased, 'mean_risk_index', c.mean_risk_index,
               'by_family', c.by_family, 'by_year', c.by_year, 'by_subperiod', c.by_subperiod,
-              'located_via', c.located_via),
+              'located_via', c.located_via, 'by_vehicle', c.by_vehicle),
             'geometry', ST_AsGeoJSON(c.geom, 6)::json) ORDER BY c.events DESC), '[]'::json))::text
         FROM (SELECT * FROM corridor c WHERE c.run_id = :r AND c.events >= :m {where}
               ORDER BY c.events DESC LIMIT :lim) c

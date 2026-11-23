@@ -91,9 +91,7 @@ def test_active_exposure_normalized_target_cannot_depend_on_blocked_feature() ->
 def test_outcome_history_contract_must_be_lagged() -> None:
     raw = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     feature = next(
-        item
-        for item in raw["features"]
-        if item["id"] == "lagged_pedestrian_linked_fatal_count_1m"
+        item for item in raw["features"] if item["id"] == "lagged_pedestrian_linked_fatal_count_1m"
     )
     feature["temporal_semantics"] = "same_period"
     feature.pop("minimum_lag_periods", None)

@@ -180,14 +180,10 @@ def test_representation_report_preserves_population_and_scope_distinctions(tmp_p
         and item["temporal_representation"] == "month"
     ]
     broad = next(
-        item
-        for item in district_results
-        if item["population"] == "pedestrian_linked_fatal"
+        item for item in district_results if item["population"] == "pedestrian_linked_fatal"
     )
     strict = next(
-        item
-        for item in district_results
-        if item["population"] == "strict_fatal_atropello"
+        item for item in district_results if item["population"] == "strict_fatal_atropello"
     )
 
     assert broad["spatial_units"] == 2

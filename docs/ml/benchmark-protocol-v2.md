@@ -56,3 +56,23 @@ memory) and is discarded. Before restarting, two changes are fixed:
 Selection (validation E), ensemble, single test evaluation and the publication rule stay as above.
 v1 runs were evaluated with the same classification code for comparison; that computation uses
 already frozen v1 models and does not change them.
+
+## Amendment A2 (2026-11-24, before any v3 training and before any v3 test evaluation)
+
+Iteration v3 changes only the data; method, search space, seeds, selection rule, ensemble, measures,
+thresholds and partitions stay exactly as in v2.
+
+1. **Dataset `fused-v1.2.0`** (decision D-12).
+   - Resident population of the period's own year instead of a fixed 2020 surface: WorldPop R2025A
+     2015–2025 (annual, constrained, 1 km), chained to 2011–2014 with each cell's relative change in the
+     WorldPop 2000–2020 annual series. Population is exposure known at estimation time, not an outcome.
+   - Vehicle type (9 classes) and transport service (4 classes) of every event, read back from the raw
+     CENACOM chapter 100 microdata (edition-specific code lists) and the ONSV vehicle register. They feed
+     the historical breakdown and the street corridors only, not the network input.
+2. **Publication rule.** v3 replaces v2 only if it improves **validation E** over v2 (0.5736). The test
+   partitions (ONSV 2024 and CENACOM January–June 2017) have now been evaluated by v1 and v2; any v3 test
+   figure is a third look and is reported as such, whether better or worse.
+3. **Reproducibility.** M-04 is measured again by retraining the published configuration from scratch.
+
+Configs `ml/configs/v3-main.json` and `ml/configs/v3-backtest-2017.json` differ from the v2 configs only
+in `run_id` and description.

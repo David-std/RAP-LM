@@ -58,6 +58,7 @@ def build(dataset: Path, harmonized: Path, boundary: Path, results: Path | None)
             "by_family": defaultdict(float),
             "by_year": defaultdict(float),
             "by_subperiod": [0.0] * len(SUBPERIODS),
+            "by_vehicle": defaultdict(float),
             "injured": 0.0,
             "deceased": 0.0,
             "via": defaultdict(float),
@@ -90,6 +91,8 @@ def build(dataset: Path, harmonized: Path, boundary: Path, results: Path | None)
                 a["by_family"][e["family"]] += w
                 a["by_year"][e["year"]] += w
                 a["by_subperiod"][k] += w
+                for vehicle, share in json.loads(e.get("vehicles") or "{}").items():
+                    a["by_vehicle"][vehicle] += w * share
                 a["injured"] += w * float(e["pedestrian_injured"] or 0)
                 a["deceased"] += w * float(e["pedestrian_deceased"] or 0)
                 a["via"][via] += w
@@ -120,6 +123,7 @@ def build(dataset: Path, harmonized: Path, boundary: Path, results: Path | None)
                     "by_family": {k: round(v, 2) for k, v in a["by_family"].items()},
                     "by_year": {k: round(v, 2) for k, v in sorted(a["by_year"].items())},
                     "by_subperiod": [round(v, 2) for v in a["by_subperiod"]],
+                    "by_vehicle": {k: round(v, 2) for k, v in sorted(a["by_vehicle"].items())},
                     "injured": round(a["injured"], 1),
                     "deceased": round(a["deceased"], 1),
                     "located_via": {k: round(v, 2) for k, v in a["via"].items()},

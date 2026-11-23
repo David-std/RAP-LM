@@ -83,7 +83,7 @@ INSERT INTO risk_result VALUES
  ('demo-run', 'district-43', '150131', '2024-wd-1824', 'estimated', 0.1, 20, 'low', 0.1, 1, 1, 0);
 -- F5-C1 has no row for any period: it must be served as no_result, never as zero.
 UPDATE risk_result SET severity_value = 0.1, severity_index = 60, exposure_ratio = 1.8, exposure_index = 85,
-  breakdown = '{{"severity": [1, 2, 0, 0], "type": [2, 1, 0, 0]}}'
+  breakdown = '{{"severity": [1, 2, 0, 0], "type": [2, 1, 0, 0], "vehicle": [1, 0, 0.5, 0, 0, 0, 1.5, 0, 0], "service": [2, 1, 0, 0]}}'
   WHERE unit_id = 'F1-C1' AND period_id = '2024-wd-1824';
 INSERT INTO publication_pointer VALUES ('active', 'demo-run', now());
 INSERT INTO model_card VALUES ('demo-run', '{{"run_id": "demo-run", "variant": "cnn_lstm"}}', '[2023, 2024]',

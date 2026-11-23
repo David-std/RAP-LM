@@ -54,7 +54,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
   const tabs: { id: View; label: string }[] = [
     { id: "map", label: "Mapa de riesgo" },
     { id: "forecast", label: "Pronóstico" },
-    { id: "corridors", label: "Corredores" },
+    { id: "corridors", label: "Vías críticas" },
     { id: "compare", label: "Comparar" },
     { id: "analysis", label: "Análisis" },
     { id: "model", label: "Modelo" },

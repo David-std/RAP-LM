@@ -99,9 +99,7 @@ def test_arcgis_snapshot_rejects_server_side_truncation(monkeypatch, tmp_path) -
         return _Response(
             {
                 "type": "FeatureCollection",
-                "features": [
-                    {"type": "Feature", "properties": {"OBJECTID": 1}, "geometry": None}
-                ],
+                "features": [{"type": "Feature", "properties": {"OBJECTID": 1}, "geometry": None}],
             }
         )
 

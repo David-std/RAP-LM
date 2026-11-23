@@ -96,7 +96,20 @@ export interface Component {
 export interface Breakdown {
   severity: Record<"fatal" | "nonfatal" | "material_only" | "unknown", number>;
   type: Record<"atropello" | "atropello_fuga" | "choque_y_atropello" | "otro", number>;
+  vehicle?: Record<VehicleClass, number> | null;
+  service?: Record<"publico" | "particular" | "carga" | "no_identificado", number> | null;
 }
+
+export type VehicleClass =
+  | "auto"
+  | "camioneta"
+  | "combi_minibus"
+  | "bus"
+  | "carga"
+  | "moto"
+  | "mototaxi"
+  | "bicicleta"
+  | "no_identificado";
 
 export interface LevelCounts {
   low: number;
@@ -268,6 +281,7 @@ export interface CorridorProps {
   by_year: Record<string, number>;
   by_subperiod: number[];
   located_via: Record<string, number>;
+  by_vehicle?: Record<string, number> | null;
 }
 
 export interface CorridorCollection {

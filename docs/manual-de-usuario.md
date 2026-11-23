@@ -14,7 +14,7 @@ intervenciones**.
 | Término | Significado |
 |---|---|
 | Ámbito | Provincia de Lima, 43 distritos (UBIGEO 1501xx). En el mapa, lo que queda fuera (Callao y las otras provincias del departamento de Lima) se ve atenuado. |
-| Unidad espacial | Una celda de la malla de 1 km (código `F{fila}-C{columna}`), un distrito o un corredor (una calle dentro de un distrito). |
+| Unidad espacial | Una celda de la malla de 1 km (código `F{fila}-C{columna}`), un distrito o un tramo de calle (una calle dentro de un distrito). |
 | Frecuencia | Indicador principal: atropellos esperados por km² y año en esa franja, estimados por la red CNN-RNN con los años anteriores y el contexto urbano. Es el índice que colorea el mapa. |
 | Severidad esperada | Frecuencia × probabilidad de desenlace fatal de la zona. Señala dónde las consecuencias suelen ser más graves. |
 | Riesgo por exposición | Razón entre la frecuencia estimada y la que explicaría solo la exposición (población, comercio, transporte, veredas, vías arteriales). 1× = lo esperado por la exposición; 2× = el doble. |
@@ -53,7 +53,7 @@ Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 | Registro histórico | Total del periodo con desglose por subtipo y por severidad, lesionados y fallecidos. |
 | Qué impulsa la estimación | Cuánto cambia la estimación si se retira cada grupo de variables (población, transporte, comercio, infraestructura peatonal, vías arteriales, atropellos del año previo). Rojo eleva, petróleo reduce. Es asociación del modelo, no causalidad. |
 | Simular contexto del distrito | Elija una variable y mueva el control (de 0 a 2 veces su valor actual): se muestra cómo cambia el riesgo estimado del distrito. Los escenarios se calcularon fuera de línea; no son recomendaciones. |
-| Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver corredores* abre la vista de calles. |
+| Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver vías críticas* abre la vista de calles. |
 | Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. |
 
 ## 3. Pronóstico
@@ -64,7 +64,7 @@ indica el desacuerdo entre los cinco modelos del ensamble (un rango amplio pide 
 por índice esperado y compara con el último año observado; la tarjeta *¿Es confiable?* muestra cómo le fue al mismo
 procedimiento al pronosticar 2024 sin haberlo visto. Es un insumo de planificación, no una alerta en tiempo real.
 
-## 4. Corredores
+## 4. Vías críticas
 
 Vista a nivel de calle, en la línea de las redes de alto riesgo de los programas Visión Cero:
 

@@ -77,9 +77,7 @@ def _iter_table(path: Path, sheet_name: str) -> Iterator[dict[str, Any]]:
     headers = [_key(value) for value in header_values]
     try:
         for row in worksheet.iter_rows(min_row=_HEADER_ROW + 1, values_only=True):
-            record = {
-                header: value for header, value in zip(headers, row, strict=False) if header
-            }
+            record = {header: value for header, value in zip(headers, row, strict=False) if header}
             if _text(record.get("CODIGO SINIESTRO")):
                 yield record
     finally:

@@ -14,6 +14,7 @@ infrastructure versions).
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -38,7 +39,12 @@ class ContextVariable:
 
 CONTEXT_VARIABLES = (
     ContextVariable(
-        "population", "Resident population", "exposure", "persons", "worldpop_2020", "2020"
+        "population",
+        "Resident population (year of the period)",
+        "exposure",
+        "persons",
+        "worldpop_r2025a_annual",
+        "2011-2025, annual",
     ),
     ContextVariable(
         "transit_stops",
@@ -211,3 +217,45 @@ def build_context(
     }
     context.update(build_osm_context(raw_root / "geography/roads/osm/Lima.osm.pbf", spec, cells))
     return context
+
+
+ANNUAL_DIR = "population/worldpop/annual"
+R2025A = "per_pop_{year}_CN_1km_R2025A.tif"  # WorldPop Global2 R2025A, constrained, 1 km
+LEGACY = "per_ppp_{year}_1km_unconstrained.tif"  # WorldPop Global1 2000-2020, 1 km
+R2025A_2025 = "population/worldpop/2025/peru_worldpop_population_2025_constrained_1km_R2025A.tif"
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def annual_population(
+    raw_root: Path, spec: GridSpec, cells: list[Cell]
+) -> tuple[list[int], np.ndarray, list[dict]]:
+    """Resident population per cell and year, 2011-2025 (dataset v1.2, D-12).
+
+    2015-2025 come from WorldPop R2025A, one consistent annual series. It does
+    not reach back before 2015, so 2011-2014 are chained to it with the cell's
+    relative change in the WorldPop 2000-2020 annual series:
+    pop_y = R2025A_2015 * legacy_y / legacy_2015 (the share of the province is
+    used for a cell with no legacy population in 2015). Returns the years, an
+    array [years, cells] and the source files with their SHA-256.
+    """
+    lookup = {(c.row, c.col): i for i, c in enumerate(cells)}
+    years = list(range(2011, 2026))
+    sources: list[dict] = []
+
+    def load(rel: str) -> np.ndarray:
+        path = raw_root / rel
+        sources.append({"path": rel, "sha256": _sha256(path)})
+        return _worldpop(path, spec, lookup)
+
+    current = {y: load(f"{ANNUAL_DIR}/{R2025A.format(year=y)}") for y in range(2015, 2025)}
+    current[2025] = load(R2025A_2025)
+    legacy_2015 = load(f"{ANNUAL_DIR}/{LEGACY.format(year=2015)}")
+    for y in range(2011, 2015):
+        legacy = load(f"{ANNUAL_DIR}/{LEGACY.format(year=y)}")
+        province = legacy.sum() / max(legacy_2015.sum(), 1e-9)
+        ratio = np.where(legacy_2015 > 0, legacy / np.maximum(legacy_2015, 1e-9), province)
+        current[y] = current[2015] * ratio
+    return years, np.stack([current[y] for y in years]), sources

@@ -30,6 +30,19 @@ SEVERITY_CLASSES = ("fatal", "nonfatal", "material_only", "unknown")
 TYPE_CLASSES = ("atropello", "atropello_fuga", "choque_y_atropello", "otro")
 SEVERITY_MAP = {"fatal": 0, "fatal_incident": 0, "nonfatal": 1, "material_only": 2}
 TYPE_MAP = {"atropello": 0, "atropello_fuga": 1, "choque_y_atropello": 2}
+# Dataset v1.2 (D-12): vehicle type and transport service shares per event.
+VEHICLE_CLASSES = (
+    "auto",
+    "camioneta",
+    "combi_minibus",
+    "bus",
+    "carga",
+    "moto",
+    "mototaxi",
+    "bicicleta",
+    "no_identificado",
+)
+SERVICE_CLASSES = ("publico", "particular", "carga", "no_identificado")
 
 # v1.0 order; datasets declare their own order in dataset_manifest.json.
 CONTEXT_ORDER = (
@@ -69,6 +82,10 @@ class Tensors:
     type_cell: np.ndarray | None = None  # [T, K, 4, H, W] located events by subtype
     severity_dist: np.ndarray | None = None  # [T, K, 4, D] all events by severity class
     type_dist: np.ndarray | None = None
+    vehicle_dist: np.ndarray | None = None  # [T, K, 9, D] all events by vehicle class (shares)
+    service_dist: np.ndarray | None = None  # [T, K, 4, D] all events by transport service
+    vehicle_cell: np.ndarray | None = None  # [T, K, 9, H, W] located events by vehicle class
+    service_cell: np.ndarray | None = None
 
 
 def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
@@ -112,6 +129,13 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
     type_cell = np.zeros((T, K, 4, H, W), dtype=np.float32)
     severity_dist = np.zeros((T, K, 4, D), dtype=np.float32)
     type_dist = np.zeros((T, K, 4, D), dtype=np.float32)
+    NV, NS = len(VEHICLE_CLASSES), len(SERVICE_CLASSES)
+    vehicle_dist = np.zeros((T, K, NV, D), dtype=np.float32)
+    service_dist = np.zeros((T, K, NS, D), dtype=np.float32)
+    vehicle_cell = np.zeros((T, K, NV, H, W), dtype=np.float32)
+    service_cell = np.zeros((T, K, NS, H, W), dtype=np.float32)
+    v_index = {v: i for i, v in enumerate(VEHICLE_CLASSES)}
+    sv_index = {v: i for i, v in enumerate(SERVICE_CLASSES)}
     n_total = np.zeros((S, T), dtype=np.float64)
     n_located = np.zeros((S, T), dtype=np.float64)
 
@@ -133,6 +157,12 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
             typ = TYPE_MAP.get(e.get("collision_type", ""), 3)
             severity_dist[t, k, sev, di] += 1
             type_dist[t, k, typ, di] += 1
+            veh = json.loads(e.get("vehicles") or "{}") or {"no_identificado": 1.0}
+            svc = json.loads(e.get("service") or "{}") or {"no_identificado": 1.0}
+            for name, share in veh.items():
+                vehicle_dist[t, k, v_index[name], di] += share
+            for name, share in svc.items():
+                service_dist[t, k, sv_index[name], di] += share
             allocation = json.loads(e["allocation"])
             if allocation:
                 n_located[s, t] += 1
@@ -141,6 +171,10 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
                     y_cell[s, t, k, r, c] += w
                     severity_cell[t, k, sev, r, c] += w
                     type_cell[t, k, typ, r, c] += w
+                    for name, share in veh.items():
+                        vehicle_cell[t, k, v_index[name], r, c] += w * share
+                    for name, share in svc.items():
+                        service_cell[t, k, sv_index[name], r, c] += w * share
                     injured[t, k, r, c] += w * inj
                     deceased[t, k, r, c] += w * dec
             else:
@@ -177,6 +211,19 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
     channels += dyn_names
     X = np.zeros((T, len(channels), H, W), dtype=np.float32)
     X[:, : len(context_order)] = static[None]
+    # Dataset v1.2 (D-12): population of the period's own year (exposure, not an
+    # outcome), standardised over all valid cells and years. Years beyond the
+    # series keep the last available year.
+    if "population_by_year" in context.files and "population" in context_order:
+        pop_years = [int(y) for y in context["population_years"]]
+        pop = context["population_by_year"]
+        logs = np.zeros((T, H, W), dtype=np.float32)
+        for ti, year in enumerate(years):
+            yi = pop_years.index(min(max(year, pop_years[0]), pop_years[-1]))
+            logs[ti, rows, cols] = np.log1p(pop[yi])
+        vals = logs[:, valid]
+        logs[:, valid] = (vals - vals.mean()) / (vals.std() + 1e-6)
+        X[:, context_order.index("population")] = logs
     X[:, len(context_order)] = valid
     base = len(context_order) + 1
     district_area = (frac * area[None]).sum(axis=(1, 2))  # km2 per district
@@ -218,4 +265,8 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
         type_cell=type_cell,
         severity_dist=severity_dist,
         type_dist=type_dist,
+        vehicle_dist=vehicle_dist,
+        service_dist=service_dist,
+        vehicle_cell=vehicle_cell,
+        service_cell=service_cell,
     )

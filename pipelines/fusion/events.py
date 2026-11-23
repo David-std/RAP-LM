@@ -130,6 +130,8 @@ class FusedEvent:
     collision_type: str = ""
     severity: str = ""
     allocation: dict[str, float] = field(default_factory=dict)  # unit_id -> weight
+    vehicles: dict[str, float] = field(default_factory=dict)  # vehicle class -> share (D-12)
+    service: dict[str, float] = field(default_factory=dict)  # transport service -> share
 
 
 @dataclass

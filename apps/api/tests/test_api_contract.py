@@ -224,11 +224,22 @@ def test_temporal_comparison_accepts_all_published_years(client):  # RF-06, defe
 
 
 def test_risk_components_and_breakdown(client):  # D-10: frequency, severity, exposure
-    item = client.get("/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F1-C1"}).json()["data"][0]
+    item = client.get(
+        "/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F1-C1"}
+    ).json()["data"][0]
     assert item["severity"] == {"value": 0.1, "index": 60.0}
     assert item["exposure"] == {"value": 1.8, "index": 85.0}
     assert item["breakdown"]["type"]["atropello"] == 2
-    missing = client.get("/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F5-C1"}).json()["data"][0]
+    assert item["breakdown"]["vehicle"]["mototaxi"] == 1.5  # D-12: vehicle type and service
+    assert item["breakdown"]["service"] == {
+        "publico": 2,
+        "particular": 1,
+        "carga": 0,
+        "no_identificado": 0,
+    }
+    missing = client.get(
+        "/api/v1/risk", params={"period_id": "2024-wd-1824", "unit_id": "F5-C1"}
+    ).json()["data"][0]
     assert missing["severity"] == {"value": None, "index": None}  # no result: never zero
 
 
@@ -244,7 +255,9 @@ def test_explanation_cell_and_district(client):  # D-09, RM-02/RM-03 transparenc
     assert cell["years"] == [2023, 2024] and cell["expected_events"] == [1.5, 1.0]
     assert cell["whatif"] is None
     assert cell["saliency"] == [["F1-C1", 1.0], ["F1-C2", 0.4]]
-    dist = client.get("/api/v1/explanations", params={"unit_type": "district", "unit_id": "150101"}).json()
+    dist = client.get(
+        "/api/v1/explanations", params={"unit_type": "district", "unit_id": "150101"}
+    ).json()
     assert dist["whatif"]["population"] == [-20.0, 0.0, 15.0]
     assert client.get("/api/v1/explanations", params={"unit_id": "F9-C9"}).status_code == 404
 

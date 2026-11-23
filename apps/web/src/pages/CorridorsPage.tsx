@@ -17,6 +17,17 @@ import { BANDS, fmtCount } from "../lib/format";
 import { colorFor, type ClassBand } from "../lib/levels";
 
 const DENSITY_RAMP = ["#F8CBB8", "#F09A80", "#E0664D", "#BF3A2E", "#7E1F22"];
+const VEHICLE_NAME: Record<string, string> = {
+  auto: "auto",
+  camioneta: "camioneta",
+  combi_minibus: "combi o minibús",
+  bus: "bus",
+  carga: "carga",
+  moto: "moto",
+  mototaxi: "mototaxi",
+  bicicleta: "bicicleta o triciclo",
+  no_identificado: "no identificado",
+};
 const SUBPERIOD_LABEL = ["Lab 0-6", "Lab 6-12", "Lab 12-18", "Lab 18-24", "FdS 0-6", "FdS 6-12", "FdS 12-18", "FdS 18-24"];
 
 interface Props {
@@ -57,10 +68,10 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
 
   return (
     <div className="workspace">
-      <aside className="rail" aria-label="Filtros de corredores">
+      <aside className="rail" aria-label="Filtros de vías críticas">
         <div>
           <p className="eyebrow">Calles</p>
-          <h2 className="rail-title">Corredores con atropellos</h2>
+          <h2 className="rail-title">Vías críticas: calles con más atropellos registrados</h2>
           <p className="muted small" style={{ marginTop: 6 }}>
             Calles con nombre dentro de cada distrito, con los atropellos registrados ubicados sobre ellas (2011-2017 y
             2021-2024). Útil para priorizar dónde mirar con más detalle.
@@ -70,7 +81,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
           <div className="card" style={{ boxShadow: "none" }}>
             <p className="kpi-label">Concentración en Lima</p>
             <p className="kpi-value">{Math.round((summary.concentration["10%_length"] ?? 0) * 100)} %</p>
-            <p className="kpi-foot">de los atropellos ubicados ocurre en el 10 % de la longitud de corredores con mayor densidad</p>
+            <p className="kpi-foot">de los atropellos ubicados ocurre en el 10 % de la longitud de calles con mayor densidad</p>
           </div>
         )}
         <div className="rail-section">
@@ -81,9 +92,9 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
               <option key={o.id} value={o.id}>{o.name}</option>
             ))}
           </select>
-          <label className="field-label" htmlFor="corr-limit">Corredores mostrados: {limit}</label>
+          <label className="field-label" htmlFor="corr-limit">Tramos de calle mostrados: {limit}</label>
           <input id="corr-limit" type="range" min={50} max={1000} step={50} value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
-          <button type="button" className="btn" disabled={!features.length} onClick={() => exportCsv(`rap-lm-corredores${district ? `-${district}` : ""}`, sorted.map((f) => f.properties), columns, meta, `corridors ${district || "all"}`)}>
+          <button type="button" className="btn" disabled={!features.length} onClick={() => exportCsv(`rap-lm-vias-criticas${district ? `-${district}` : ""}`, sorted.map((f) => f.properties), columns, meta, `corridors ${district || "all"}`)}>
             Exportar CSV
           </button>
         </div>
@@ -113,14 +124,14 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
         <div className="map-scope">Provincia de Lima, 43 distritos</div>
       </main>
 
-      <aside className="zone-panel" aria-label="Detalle de corredores">
+      <aside className="zone-panel" aria-label="Detalle de vías críticas">
         {current ? (
           <CorridorDetail c={current} bands={bands} onBack={() => setSelected(null)} />
         ) : (
           <section className="card">
             <header>
               <h3>Ranking por atropellos por km</h3>
-              <span className="card-sub">{features.length} corredores</span>
+              <span className="card-sub">{features.length} tramos de calle</span>
             </header>
             <ol className="ranked-list">
               {sorted.slice(0, 40).map((f, i) => (
@@ -142,7 +153,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
             <header>
               <h3>Curva de concentración</h3>
             </header>
-            <p className="muted small">Qué parte de los atropellos ubicados se acumula al recorrer los corredores de mayor a menor densidad.</p>
+            <p className="muted small">Qué parte de los atropellos ubicados se acumula al recorrer las calles de mayor a menor densidad.</p>
             <LineChart
               height={140}
               series={[
@@ -153,7 +164,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
                 },
                 { name: "Distribución uniforme", color: "#b9b6ae", dashed: true, points: [[0, 0], [100, 100]] },
               ]}
-              xLabel="% de la longitud de corredores"
+              xLabel="% de la longitud de calles"
               xFormat={(v) => `${v.toFixed(0)} %`}
               yFormat={(v) => `${v.toFixed(0)} %`}
             />
@@ -215,6 +226,18 @@ function CorridorDetail({ c, bands, onBack }: { c: CorridorProps; bands: ClassBa
           <dt>Fallecidos</dt><dd>{fmtCount(c.deceased)}</dd>
           <dt>Fuentes</dt><dd>{Object.entries(c.by_family).map(([k, v]) => `${k === "cenacom" ? "CENACOM" : "ONSV"} ${fmtCount(v)}`).join(", ")}</dd>
           <dt>Ubicación</dt><dd>{Object.entries(c.located_via).map(([k, v]) => `${k === "street" ? "tramo" : k === "intersection" ? "cruce" : "punto"} ${fmtCount(v)}`).join(", ")}</dd>
+          {c.by_vehicle && (
+            <>
+              <dt>Vehículos</dt>
+              <dd>
+                {Object.entries(c.by_vehicle)
+                  .filter(([, v]) => v > 0)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([k, v]) => `${VEHICLE_NAME[k] ?? k} ${fmtCount(v)}`)
+                  .join(", ")}
+              </dd>
+            </>
+          )}
         </dl>
       </section>
     </>
@@ -269,5 +292,5 @@ function CorridorMap({ data, scope, selected, onSelect }: { data: CorridorCollec
     }
   }, [data, selected]);
 
-  return <div ref={host} className="map" role="application" aria-label="Mapa de corredores" />;
+  return <div ref={host} className="map" role="application" aria-label="Mapa de vías críticas" />;
 }

@@ -25,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-from pipelines.fusion.context import CONTEXT_VARIABLES, build_context
+from pipelines.fusion.context import CONTEXT_VARIABLES, annual_population, build_context
 from pipelines.fusion.events import (
     COVERAGE,
     SOURCE_FAMILIES,
@@ -34,10 +34,11 @@ from pipelines.fusion.events import (
 )
 from pipelines.fusion.geocode import DistrictStreetIndex
 from pipelines.fusion.streets import extract_streets, read_streets, write_streets
+from pipelines.fusion.vehicles import vehicle_profiles
 from pipelines.lineage import git_sha, tree_is_clean
 from pipelines.spatial.grid import build_grid, load_districts, write_districts, write_grid
 
-DATASET_VERSION = "fused-v1.1.0"  # v1.1: OSM context (D-10), subtype and severity
+DATASET_VERSION = "fused-v1.2.0"  # v1.2: annual population, vehicle type and service (D-12)
 
 
 def sha256(path: Path) -> str:
@@ -80,7 +81,11 @@ def main() -> None:
     indexes = {d.ubigeo: DistrictStreetIndex(d, streets) for d in districts}
     events, report = read_events(args.harmonized, districts, indexes)
     allocate(events, spec, cells)
-    print(f"fused events: {len(events)}")
+    profiles, vehicle_report = vehicle_profiles(args.raw, args.harmonized)
+    unknown = {"no_identificado": 1.0}
+    for e in events:
+        e.vehicles, e.service = profiles.get(e.event_id, (unknown, unknown))
+    print(f"fused events: {len(events)}; vehicle linkage {vehicle_report}")
 
     with (out / "events.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -100,6 +105,8 @@ def main() -> None:
                 "pedestrian_deceased",
                 "collision_type",
                 "severity",
+                "vehicles",
+                "service",
                 "allocation",
             ]
         )
@@ -120,6 +127,8 @@ def main() -> None:
                     "" if e.deceased is None else e.deceased,
                     e.collision_type,
                     e.severity,
+                    json.dumps(e.vehicles, separators=(",", ":"), sort_keys=True),
+                    json.dumps(e.service, separators=(",", ":"), sort_keys=True),
                     json.dumps(
                         {k: round(v, 6) for k, v in e.allocation.items()}, separators=(",", ":")
                     ),
@@ -127,9 +136,12 @@ def main() -> None:
             )
 
     context = build_context(args.raw, spec, cells, streets)
+    pop_years, pop_by_year, pop_sources = annual_population(args.raw, spec, cells)
     np.savez_compressed(
         out / "context.npz",
         unit_ids=np.array([c.unit_id for c in cells]),
+        population_years=np.array(pop_years),
+        population_by_year=pop_by_year.astype(np.float32),
         **{k: v.astype(np.float32) for k, v in context.items()},
     )
 
@@ -146,6 +158,7 @@ def main() -> None:
             for fam in SOURCE_FAMILIES
         },
         **report.to_dict(),
+        "vehicle_linkage": vehicle_report,
     }
     (out / "fusion_report.json").write_text(json.dumps(geocoding, indent=2), encoding="utf-8")
 
@@ -171,6 +184,7 @@ def main() -> None:
             "boundary": {"path": boundary.name, "sha256": sha256(boundary)},
             "osm_extract": {"path": pbf.name, "sha256": sha256(pbf)},
             "harmonized_events": {"path": args.harmonized.name, "sha256": sha256(args.harmonized)},
+            "population_annual": pop_sources,
         },
         "outputs": {
             p.name: sha256(p)

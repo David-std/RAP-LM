@@ -75,8 +75,11 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
         for f in corridors["features"]:
             p = f["properties"]
             cur.execute(
-                """INSERT INTO corridor VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                   %s, %s, %s, %s,
+                """INSERT INTO corridor (run_id, corridor_id, district_id, street, length_km,
+                   events, events_per_km, rank, cumulative_event_share, injured, deceased,
+                   mean_risk_index, by_family, by_year, by_subperiod, located_via, by_vehicle,
+                   geom)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                    ST_Multi(ST_CollectionExtract(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326), 2)))""",
                 (
                     run_id,
@@ -95,6 +98,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                     Jsonb(p["by_year"]),
                     Jsonb(p["by_subperiod"]),
                     Jsonb(p["located_via"]),
+                    Jsonb(p["by_vehicle"]) if p.get("by_vehicle") else None,
                     json.dumps(f["geometry"]),
                 ),
             )

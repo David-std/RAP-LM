@@ -123,8 +123,7 @@ def _is_accepted_real(record: SourceRecord) -> bool:
 def _is_partial_problem_scope(record: SourceRecord) -> bool:
     coverage = record.payload.get("coverage")
     return (
-        isinstance(coverage, dict)
-        and coverage.get("analytical_scope") == "partial_problem_scope"
+        isinstance(coverage, dict) and coverage.get("analytical_scope") == "partial_problem_scope"
     )
 
 
@@ -184,9 +183,7 @@ def build_readiness_summary(records: list[SourceRecord]) -> dict[str, Any]:
         role_sources[group] = {"state": state, "sources": matches}
 
     unresolved = [
-        group
-        for group, result in role_sources.items()
-        if result["state"] not in _RESOLVED_STATES
+        group for group, result in role_sources.items() if result["state"] not in _RESOLVED_STATES
     ]
     return {
         "source_count": len(records),

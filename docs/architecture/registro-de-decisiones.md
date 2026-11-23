@@ -18,6 +18,7 @@ registra la aprobación del equipo.
 | D-09 | 2026-11-22 | Solicitud de cambio (contrato API: corredores, explicaciones y ficha del modelo) | Pendiente de aprobación del equipo |
 | D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Pendiente de aprobación del equipo |
 | D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Pendiente de aprobación del equipo |
+| D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Pendiente de aprobación del equipo |
 
 ---
 
@@ -174,4 +175,23 @@ referencia. Se publica en la tabla `forecast` (migración 0005), se sirve en `GE
 vista Pronóstico con la validación del mismo procedimiento en 2024.
 **Alcance:** pronóstico anual para planificación y priorización; no es alerta en tiempo real ni se ejecuta a demanda
 (RG-02). **Impacto:** una tabla, un recurso de lectura y una vista; sin cambios en los requisitos existentes.
+
+## D-12. Dataset v1.2: población anual, tipo de vehículo y servicio de transporte
+
+**Requisitos:** RD-05, RM-05, RF-02 (detalle de zona); limitaciones declaradas de la v2. **Contexto:** la población
+era una superficie fija de 2020 aplicada a todos los años, y el registro histórico no indicaba qué vehículo
+participó en cada atropello ni si era transporte público o particular, aunque ambas fuentes lo registran.
+**Decisión:**
+
+1. Población residente del año de cada periodo: WorldPop R2025A 2015–2025 (serie anual), encadenada hacia
+   2011–2014 con la variación relativa de cada celda en la serie anual 2000–2020.
+2. Tipo de vehículo (auto, camioneta, combi o minibús, bus, carga, moto, mototaxi, bicicleta o triciclo, no
+   identificado) y servicio (público, particular, carga, no identificado) de cada evento. Se leen de los
+   microdatos del capítulo 100 de CENACOM, cuya lista de códigos cambia entre ediciones (17, 18 y 19 tipos), y del
+   registro de vehículos del ONSV. Un evento con varios vehículos reparte su peso por igual.
+3. El vehículo y el servicio alimentan el desglose del registro histórico y las vías críticas, no la entrada de
+   la red. La población anual sí entra a la red (iteración v3, enmienda A2 del protocolo).
+
+**Alcance:** la v3 reemplaza a la v2 solo si mejora el error de validación. **Impacto:** dataset nuevo, migración
+0006 (vehículos por calle) y campos opcionales en el desglose de la API.
 

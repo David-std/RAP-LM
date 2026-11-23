@@ -102,10 +102,16 @@ class Component(BaseModel):
 
 
 class Breakdown(BaseModel):
-    """Historical record by severity class and collision subtype (counts)."""
+    """Historical record by severity, subtype, vehicle type and transport service (counts).
+
+    ``vehicle`` and ``service`` exist from dataset v1.2 (D-12); an event with several
+    vehicles splits its count equally among them.
+    """
 
     severity: dict[str, float]
     type: dict[str, float]
+    vehicle: dict[str, float] | None = None
+    service: dict[str, float] | None = None
 
 
 class RiskResult(BaseModel):
