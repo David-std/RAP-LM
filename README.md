@@ -47,15 +47,20 @@ D=../RAP-LM-DATA-LOCAL
 python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA \
   --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv \
   --out artifacts/datasets/fused-v1.1.0
-# 2. Benchmark + training + frozen test evaluation
-python -m ml.fused.train --dataset artifacts/datasets/fused-v1.1.0 \
-  --config ml/configs/run-main.json --out artifacts/runs/fused-cnnlstm-2026.11-r1
-# 3. Export publishable results (results.csv + SHA-256)
-python -m ml.fused.export --dataset artifacts/datasets/fused-v1.1.0 --run artifacts/runs/fused-cnnlstm-2026.11-r1
-# 4. Publish into PostGIS with the publisher role (atomic)
-RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm \
-python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.1.0 \
-  --run artifacts/runs/fused-cnnlstm-2026.11-r1
+# 2. v1 benchmark of all architectures (CNN-LSTM, ConvLSTM, Poisson GLM, ablations) on dataset v1.0
+python -m ml.fused.train --dataset artifacts/datasets/fused-v1.0.0   --config ml/configs/run-main.json --out artifacts/runs/fused-cnnlstm-2026.11-r1
+# 3. v2 (published): validation search, 5-seed ensemble, single test evaluation, high-level errors
+R=artifacts/runs/fused-cnnlstm-2026.11-v2
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.1.0 --config ml/configs/v2-main.json --out $R
+python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.1.0 --run $R
+# 4. Export results (frequency, severity, exposure, breakdown) and explanations
+python -m ml.fused.export --dataset artifacts/datasets/fused-v1.1.0 --run $R
+python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.1.0 --run $R
+python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.1.0   --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv   --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
+# 5. Publish into PostGIS with the publisher role (atomic), then the analyst layers
+export RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm
+python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.1.0 --run $R
+python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.1.0 --run $R
 ```
 
 The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
@@ -68,7 +73,7 @@ RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/rap
 ruff check .
 cd apps/web && npm test && npm run typecheck && npm run build
 python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
-  --run artifacts/runs/fused-cnnlstm-2026.11-r1 --out evidence/metrics                    # M-01..M-05, M-08, M-09
+  --run artifacts/runs/fused-cnnlstm-2026.11-v2 --out evidence/metrics                    # M-01..M-05, M-08, M-09
 ```
 
 ## Repository map
