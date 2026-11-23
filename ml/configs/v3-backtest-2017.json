@@ -45,7 +45,7 @@
     "medium_max": 70,
     "method": "Same rule as the main run."
   },
-  "threads": 16,
+  "threads": 8,
   "search": {
     "variants": [
       "cnn_lstm",
@@ -70,5 +70,6 @@
       4,
       5
     ]
-  }
+  },
+  "device": "cuda"
 }
