@@ -38,7 +38,16 @@ from pipelines.fusion.vehicles import vehicle_profiles
 from pipelines.lineage import git_sha, tree_is_clean
 from pipelines.spatial.grid import build_grid, load_districts, write_districts, write_grid
 
-DATASET_VERSION = "fused-v1.3.0"  # v1.3: v1.2 + recorded contributing factors (D-12)
+# Dataset versions by population mode (D-12). Both carry vehicle type, transport
+# service and recorded factors; they differ only in the population input:
+# v1.1.1 keeps the fixed 2020 surface (network inputs identical to v1.1, so the
+# published v2 weights can be exported with it); v1.3.0 uses annual population.
+DATASET_VERSIONS = {"static": "fused-v1.1.1", "annual": "fused-v1.3.0"}
+STATIC_POPULATION = {
+    "label": "Resident population",
+    "source_id": "worldpop_2020",
+    "reference_year": "2020",
+}
 
 
 def sha256(path: Path) -> str:
@@ -55,6 +64,7 @@ def main() -> None:
     parser.add_argument("--harmonized", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--cell-size", type=int, default=1000)
+    parser.add_argument("--population", choices=("annual", "static"), default="annual")
     args = parser.parse_args()
     # Lineage is captured before any work so later commits cannot change it.
     code_sha, code_clean = git_sha(), tree_is_clean()
@@ -140,12 +150,18 @@ def main() -> None:
             )
 
     context = build_context(args.raw, spec, cells, streets)
-    pop_years, pop_by_year, pop_sources = annual_population(args.raw, spec, cells)
+    annual: dict[str, np.ndarray] = {}
+    pop_sources: list[dict] = []
+    if args.population == "annual":
+        pop_years, pop_by_year, pop_sources = annual_population(args.raw, spec, cells)
+        annual = {
+            "population_years": np.array(pop_years),
+            "population_by_year": pop_by_year.astype(np.float32),
+        }
     np.savez_compressed(
         out / "context.npz",
         unit_ids=np.array([c.unit_id for c in cells]),
-        population_years=np.array(pop_years),
-        population_by_year=pop_by_year.astype(np.float32),
+        **annual,
         **{k: v.astype(np.float32) for k, v in context.items()},
     )
 
@@ -167,7 +183,7 @@ def main() -> None:
     (out / "fusion_report.json").write_text(json.dumps(geocoding, indent=2), encoding="utf-8")
 
     manifest = {
-        "dataset_version": DATASET_VERSION,
+        "dataset_version": DATASET_VERSIONS[args.population],
         "target_population": "all_pedestrian_collisions",
         "target_definition": (
             "Every recorded collision with a pedestrian involved (run over, hit-and-run, "
@@ -183,7 +199,12 @@ def main() -> None:
             fam: {str(y): [s.isoformat(), e.isoformat()] for y, (s, e) in win.items()}
             for fam, win in COVERAGE.items()
         },
-        "context_variables": [v.__dict__ for v in CONTEXT_VARIABLES],
+        "context_variables": [
+            v.__dict__ | STATIC_POPULATION
+            if v.variable_id == "population" and args.population == "static"
+            else v.__dict__
+            for v in CONTEXT_VARIABLES
+        ],
         "inputs": {
             "boundary": {"path": boundary.name, "sha256": sha256(boundary)},
             "osm_extract": {"path": pbf.name, "sha256": sha256(pbf)},

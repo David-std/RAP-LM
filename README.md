@@ -65,6 +65,13 @@ python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.1.0
 
 The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
 
+### Training on the GPU
+
+The published runs train on CPU (8 threads, about 30 minutes per iteration). The same code trains on an NVIDIA GPU
+when the run config sets `"device": "cuda"`; prediction, export and explanations stay on CPU. Install the CUDA
+environment from `requirements-gpu.txt` (outside the repository) and run the same commands with its interpreter.
+Each run manifest records the device type (`cpu` or `cuda`), the PyTorch version and the training time.
+
 ## Tests and quality metrics
 
 ```bash

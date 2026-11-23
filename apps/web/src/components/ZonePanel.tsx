@@ -444,7 +444,7 @@ const ENV_LABEL: Record<string, [string, string]> = {
   schools_per_km2: ["Centros educativos", "por km²"],
   health_per_km2: ["Centros de salud", "por km²"],
   transit_stops_per_km2: ["Paraderos", "por km²"],
-  population_per_km2: ["Población 2024", "hab. por km²"],
+  population_per_km2: ["Población", "hab. por km²"],
 };
 
 /** Pre-existing urban conditions of the zone against the rest of Lima (D-12). */

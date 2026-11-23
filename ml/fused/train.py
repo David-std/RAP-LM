@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import time
 from pathlib import Path
@@ -32,24 +33,35 @@ EPS = 1e-3
 CNN_RNN_VARIANTS = ("cnn_lstm", "convlstm")
 
 
-def set_determinism(seed: int, threads: int) -> None:
-    """Seeded, deterministic CPU execution with a fixed thread count (recorded in the manifest)."""
+def set_determinism(seed: int, threads: int, device: str = "cpu") -> None:
+    """Seeded, deterministic execution (CPU threads or CUDA), recorded in the manifest.
+
+    On CUDA, cuBLAS needs a fixed workspace and cuDNN its deterministic kernels so
+    that a rerun on the same GPU and driver reproduces the weights. CPU and GPU
+    runs are not bit-identical to each other; each is reproducible on its own device.
+    """
+    if device.startswith("cuda"):
+        os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
     torch.use_deterministic_algorithms(True)
     torch.set_num_threads(threads)
 
 
-def to_torch(t: Tensors) -> dict[str, torch.Tensor]:
-    return {
-        "X": torch.from_numpy(t.X),
-        "valid": torch.from_numpy(t.valid.astype(np.float32)),
-        "y_cell": torch.from_numpy(t.y_cell),
-        "y_dist": torch.from_numpy(t.y_dist),
-        "cover": torch.from_numpy(t.cover),
-        "located": torch.from_numpy(t.located),
-        "frac": torch.from_numpy(t.frac),
+def to_torch(t: Tensors, device: str = "cpu") -> dict[str, torch.Tensor]:
+    arrays = {
+        "X": t.X,
+        "valid": t.valid.astype(np.float32),
+        "y_cell": t.y_cell,
+        "y_dist": t.y_dist,
+        "cover": t.cover,
+        "located": t.located,
+        "frac": t.frac,
     }
+    return {k: torch.from_numpy(v).to(device) for k, v in arrays.items()}
 
 
 def year_mask(t: Tensors, years_by_family: dict[str, list[int]]) -> torch.Tensor:
@@ -78,8 +90,9 @@ def poisson_nll(model: SpatioTemporalModel, d: dict, mask: torch.Tensor) -> torc
 
 
 def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]:
-    set_determinism(cfg["seed"], cfg["threads"])
-    d = to_torch(t)
+    device = cfg.get("device", "cpu")
+    set_determinism(cfg["seed"], cfg["threads"], device)
+    d = to_torch(t, device)
     model = SpatioTemporalModel(
         in_channels=t.X.shape[1],
         subperiods=len(SUBPERIODS),
@@ -87,10 +100,10 @@ def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]
         hidden=cfg["hidden"],
         dropout=cfg["dropout"],
         variant=variant,
-    )
+    ).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
-    train_mask = year_mask(t, cfg["split"]["train"])
-    val_mask = year_mask(t, cfg["split"]["validation"])
+    train_mask = year_mask(t, cfg["split"]["train"]).to(device)
+    val_mask = year_mask(t, cfg["split"]["validation"]).to(device)
     best = (float("inf"), None, 0)
     history = []
     for epoch in range(cfg["max_epochs"]):
@@ -110,6 +123,7 @@ def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]
         elif epoch - best[2] >= cfg["patience"]:
             break
     model.load_state_dict(best[1])
+    model = model.cpu()  # prediction, export and explanations run on CPU
     model.eval()
     return model, {
         "variant": variant,

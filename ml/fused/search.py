@@ -139,6 +139,7 @@ def main() -> None:
         "python": platform.python_version(),
         "torch": torch.__version__,
         "threads": cfg["threads"],
+        "device": cfg.get("device", "cpu"),
         "weights_sha256": hashlib.sha256((out / "model.pt").read_bytes()).hexdigest(),
         "estimates_sha256": hashlib.sha256((out / "estimates.npz").read_bytes()).hexdigest(),
         "tensor_shapes": {"X": list(t.X.shape), "y_cell": list(t.y_cell.shape)},

@@ -1,0 +1,10 @@
+# Optional GPU training environment (plan resource: NVIDIA GPU with CUDA).
+# Same pinned pipeline stack as requirements-pipeline.txt, with the CUDA 13.0 build
+# of PyTorch instead of the CPU wheel. Requires an NVIDIA GPU with a CUDA 13 capable driver.
+#   python -m venv ../RAP-LM-VENV-CUDA
+#   ../RAP-LM-VENV-CUDA/Scripts/pip install -r requirements-gpu.txt
+# A run uses the GPU when its config sets "device": "cuda". CPU and GPU runs are each
+# reproducible on their own device but are not bit-identical to each other.
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.14.1
+-r requirements-pipeline.txt
