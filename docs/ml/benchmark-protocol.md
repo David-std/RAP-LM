@@ -19,8 +19,8 @@ Each source family is a partial observation of the same `λ`:
 
 | Family | Years | Observes | Link |
 |---|---|---|---|
-| CENACOM (MININTER/INEI police census) | 2011–2016, Jan–Jun 2017 | all severities | `E[y] = λ · 1 · coverage · located_share` |
-| ONSV georeferenced crashes | 2021–2024 | crashes with ≥1 fatal victim | `E[y] = λ · ρ_onsv · coverage · located_share` |
+| CENACOM (MININTER/INEI police census) | 2011–2016, Jan–Jun 2017 | all severities | `E[y] = λ × 1 × coverage × located_share` |
+| ONSV georeferenced crashes | 2021–2024 | crashes with ≥1 fatal victim | `E[y] = λ × ρ_onsv × coverage × located_share` |
 
 `coverage` = observed share of the year's days of that day type (2017 = first semester).
 Located events (point, street intersection, street segment spread by length) are compared per

@@ -84,7 +84,7 @@ export function DetailPanel({ result, bands, onClose, onCompareZones, onCompareP
             <dt>Unidad espacial</dt>
             <dd>{result.unit.unit_type === "cell" ? "Celda de 1 km" : "Distrito"}</dd>
             <dt>Indicador estimado</dt>
-            <dd title={result.value_unit}>{fmtValue(result.indicator_value)} atropellos/km²·año</dd>
+            <dd title={result.value_unit}>{fmtValue(result.indicator_value)} atropellos por km² al año</dd>
             <dt>Promedio histórico</dt>
             <dd title="Enfoque base: promedio de años previos de la misma fuente, unidad y franja">
               {fmtValue(result.historical_average)}
