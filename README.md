@@ -11,6 +11,26 @@ explanation of how the network reached it and its provenance, plus a one-year-ah
 type with long-term memory; the published model is a ConvLSTM (LSTM with convolutional gates). It is an
 analytical reference: no real-time prediction and no intervention recommendations.
 
+![Mapa de riesgo de RAP-LM](evidence/screenshots/01-mapa.png)
+
+## What it offers
+
+- **Risk map** of the 43 districts by 1 km cell, district or continuous heat surface, with filters by level,
+  district, year, day type and 6-hour band.
+- **Zone panel**: risk index with its value, expected severity, ratio to the urban context, year-by-year network
+  estimate, historical record (subtype, severity, vehicle, transport service, recorded factors) and environment
+  profile against the rest of Lima.
+- **Forecast** of the year after the last observed one, with the ensemble range and its out-of-sample check.
+- **Critical streets** ranked by a smoothed collision rate, with vehicles and recorded factors per street.
+- **Explainability**: Grad-CAM map, variable-group attribution and context what-if.
+- **Model view** with architecture, training curves, benchmark and the full high-level confusion.
+
+| Zone detail | Forecast | Critical streets |
+|---|---|---|
+| ![Detalle de zona](evidence/screenshots/02-detalle-zona.png) | ![Pronóstico](evidence/screenshots/04-pronostico.png) | ![Vías críticas](evidence/screenshots/05-vias-criticas.png) |
+
+## Architecture at a glance
+
 ```text
 Public sources (CENACOM 2011-2017, ONSV 2021-2024, INEI, WorldPop, MINAM, OSM)
    │  pipelines/fusion      grid 1 km (EPSG:32718), rule-based street geocoding, context
