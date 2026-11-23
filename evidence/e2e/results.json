@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "C:\\Users\\david\\Downloads\\RAP-LM\\apps\\web\\playwright.config.ts",
-    "rootDir": "C:/Users/david/Downloads/RAP-LM/apps/web/e2e",
+    "configFile": "apps\\web\\playwright.config.ts",
+    "rootDir": "apps/web/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
     "globalSetup": null,
@@ -33,13 +33,13 @@
     "quiet": false,
     "projects": [
       {
-        "outputDir": "C:/Users/david/Downloads/RAP-LM/apps/web/test-results",
+        "outputDir": "apps/web/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "",
         "name": "",
-        "testDir": "C:/Users/david/Downloads/RAP-LM/apps/web/e2e",
+        "testDir": "apps/web/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"

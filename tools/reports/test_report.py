@@ -50,7 +50,12 @@ def e2e() -> tuple[int, int, list[str]] | None:
     path = EV / "e2e" / "results.json"
     if not path.exists():
         return None
-    data = json.loads(path.read_text(encoding="utf-8"))
+    raw = path.read_text(encoding="utf-8")
+    # Versioned evidence keeps repository-relative paths only (no local user folders).
+    for prefix in (str(ROOT).replace("\\", "/") + "/", json.dumps(str(ROOT) + "\\")[1:-1]):
+        raw = raw.replace(prefix, "")
+    path.write_text(raw, encoding="utf-8")
+    data = json.loads(raw)
     titles, passed, total = [], 0, 0
 
     def walk(suite):
