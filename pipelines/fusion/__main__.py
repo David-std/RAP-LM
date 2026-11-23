@@ -55,6 +55,8 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--cell-size", type=int, default=1000)
     args = parser.parse_args()
+    # Lineage is captured before any work so later commits cannot change it.
+    code_sha, code_clean = git_sha(), tree_is_clean()
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
     started = time.time()
@@ -156,8 +158,8 @@ def main() -> None:
             "regardless of severity."
         ),
         "created_unix": int(started),
-        "code_commit_sha": git_sha(),
-        "code_tree_clean": tree_is_clean(),
+        "code_commit_sha": code_sha,
+        "code_tree_clean": code_clean,
         "python": platform.python_version(),
         "grid": spec.to_dict() | {"cells": len(cells), "districts": len(districts)},
         "coverage": {

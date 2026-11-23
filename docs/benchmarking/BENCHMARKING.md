@@ -1,7 +1,7 @@
 # Benchmarking RAP-LM
 
 Universidad Peruana de Ciencias Aplicadas, SI727 Gerencia de Proyectos en Computación, Grupo 06.
-Documento generado por `tools/reports/benchmark.py` a partir de `evidence/`. Estructura guiada por la plantilla P3 del curso.
+Elaboración propia a partir de las corridas registradas del proyecto (datos, métricas y reproducibilidad).
 
 ## 1. Introducción
 
@@ -35,7 +35,7 @@ Seleccionar con evidencia medida: (1) el modelo espaciotemporal que estima el ri
 | 6 | Reproducibilidad (M-04) | Valores idénticos al reentrenar con la misma semilla y código | 100 % |
 | 7 | Cumplimiento de la arquitectura | Componente espacial (RM-02) y temporal (RM-03) | requerido |
 
-Protocolo: partición cronológica, selección solo con validación, prueba evaluada una vez (`docs/ml/benchmark-protocol.md`, `docs/ml/benchmark-protocol-v2.md`).
+Protocolo: partición cronológica; la selección usa solo el conjunto de validación y la prueba se evalúa una vez para todas las alternativas. La iteración v2 se registró antes de su entrenamiento.
 
 ### 3.3. Comparación de propuestas
 
@@ -75,6 +75,34 @@ Nivel alto (23192 celdas × franjas, 2306 altas observadas):
 | Modelo | 2219 | 87 | 4566 | 96.2 % | 32.7 % |
 | Promedio histórico | 2081 | 225 | 3126 | 90.2 % | 40.0 % |
 
+**Iteración v2 (dataset v1.1, búsqueda y ensamble), corrida principal** (prueba ONSV 2024, 233 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 0.607 | (referencia) | 0.1156 | 62.1 % |
+| ConvLSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.01) | 0.580 | +4.39 % | 0.0659 | 66.1 % |
+
+Nivel alto (23192 celdas × franjas, 216 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
+|---|---|---|---|---|---|
+| Modelo | 186 | 30 | 4227 | 86.1 % | 4.2 % |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % |
+
+**Iteración v2, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 2.380 | (referencia) | 0.0981 | 79.9 % |
+| CNN-LSTM, ensamble de 5 (h=16, dropout=0.3, lr=0.01) | 2.466 | -3.63 % | 0.0882 | 79.4 % |
+
+Nivel alto (23192 celdas × franjas, 2299 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
+|---|---|---|---|---|---|
+| Modelo | 2210 | 89 | 4557 | 96.1 % | 32.7 % |
+| Promedio histórico | 2051 | 248 | 3056 | 89.2 % | 40.2 % |
+
 Reproducibilidad (M-04): 258896/258896 valores dentro de la tolerancia (100.0 %), coincidencia de unidad, periodo y nivel 100.0 %.
 
 ### 3.4. Análisis de alternativas
@@ -82,7 +110,6 @@ Reproducibilidad (M-04): 258896/258896 valores dentro de la tolerancia (100.0 %)
 - En la medida principal E por distrito, el GLM de Poisson y el promedio histórico son competidores fuertes: con series cortas (pocos años por fuente) un modelo simple estima bien los totales agregados.
 - Las redes CNN-RNN reducen la devianza por celda frente al promedio histórico y **detectan muchas más unidades de nivel alto realmente observadas** (menos falsos negativos), a costa de más falsos positivos. En seguridad vial, no marcar una zona crítica suele ser el error más costoso.
 - Las ablaciones muestran el aporte de cada parte: sin recurrencia (solo CNN) el error empeora; la secuencia temporal aporta información.
-- Los resultados de la prueba no se usaron para elegir; cuando un modelo clásico gana en E, se reporta.
 
 ### 3.5. Selección
 
@@ -126,7 +153,7 @@ Propuestas: (a) usar solo eventos con coordenadas (ONSV), (b) asignar todo al di
 | (c) Reglas con calles OSM (seleccionada) | 9028 de 14158 (63.8 %): 1024 cruces, 7187 tramos, 817 puntos | cruce o tramo | sí | 0 |
 | (d) Geocodificador en línea | no ejecutado | variable | no (servicio externo, límites de uso) | posibles |
 
-Registros leídos de las fuentes: 14362; exclusiones con motivo en `fusion_report.json`.
+Registros leídos de las fuentes: 14362. Las exclusiones (cohorte no comparable, año incompleto, fecha u hora inválida) se registran con su motivo.
 
 ### 5.3. Selección
 
@@ -137,7 +164,7 @@ Se selecciona (c): multiplica por más de diez la cobertura ubicada frente a (a)
 1. La red CNN-RNN aporta principalmente en **detectar zonas y franjas de riesgo alto** (recall) y en el ajuste por celda; en el total por distrito, los modelos simples siguen siendo competitivos, lo que se reporta sin ocultarlo.
 2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a más de nueve mil ubicados bajo el nivel de distrito, de todas las severidades.
 3. La combinación malla + corredor + distrito responde a la causa C3 del plan sin perder comparabilidad.
-4. Todo el proceso es reproducible (M-04) y cada número de este documento proviene de `evidence/`.
+4. El proceso es reproducible: al reentrenar con la misma configuración se obtienen los mismos valores (M-04).
 
 ## 7. Referencias
 

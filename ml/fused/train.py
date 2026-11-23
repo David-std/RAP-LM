@@ -243,6 +243,8 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--variants", default=",".join(VARIANTS))
     args = parser.parse_args()
+    # Lineage is captured before any work so later commits cannot change it.
+    code_sha, code_clean = git_sha(), tree_is_clean()
     cfg = json.loads(args.config.read_text(encoding="utf-8"))
     out: Path = args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -304,8 +306,8 @@ def main() -> None:
             (args.dataset / "dataset_manifest.json").read_bytes()
         ),
         "model_family": f"pytorch:{selected}",
-        "code_commit_sha": git_sha(),
-        "code_tree_clean": tree_is_clean(),
+        "code_commit_sha": code_sha,
+        "code_tree_clean": code_clean,
         "python": platform.python_version(),
         "torch": torch.__version__,
         "threads": cfg["threads"],

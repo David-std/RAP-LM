@@ -159,3 +159,4 @@ Las métricas se midieron contra la API publicada (`evidence/metrics/*.json`, `t
 - Ejecutar la validación con al menos cinco especialistas con los instrumentos de `docs/validacion/` (M-10
   a M-12).
 - Registrar horas y avance en Microsoft Project (DoD 5).
+| I-14 2026-11-22 | RNF-02, 3.2.3 | El manifiesto de la corrida v2 registra el commit `4edbe0a`, posterior a su inicio | El SHA se leía al escribir el manifiesto (al final), y durante el entrenamiento se hicieron commits de documentación (comprobado en el código) | El SHA y el estado del árbol se capturan al iniciar `train`, `search` y `fusion`. Atestación: `git diff 40dce7e 4edbe0a -- ml pipelines` solo muestra `ml/README.md` y `pipelines/README.md`; la corrida usó el código de `40dce7e` | Revisión del código de los tres puntos de entrada | Registrar el linaje al inicio de cualquier proceso largo |

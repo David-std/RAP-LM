@@ -1,0 +1,126 @@
+{
+  "run_id": "fused-cnnlstm-backtest-2017-v2",
+  "config": {
+    "run_id": "fused-cnnlstm-backtest-2017-v2",
+    "description": "All-severity backtest: CENACOM only, train 2011-2015, validation 2016, test January-June 2017. Not published; evidence for RM-05 on the all-severity population. Protocol v2 (preregistered): validation search + 5-seed ensemble.",
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017
+    ],
+    "split": {
+      "train": {
+        "cenacom": [
+          2011,
+          2012,
+          2013,
+          2014,
+          2015
+        ]
+      },
+      "validation": {
+        "cenacom": [
+          2016
+        ]
+      },
+      "test": {
+        "cenacom": [
+          2017
+        ]
+      }
+    },
+    "seed": 20261122,
+    "hidden": 16,
+    "dropout": 0.3,
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 40,
+    "area_floor_km2": 0.1,
+    "thresholds": {
+      "version": "levels-v1",
+      "low_max": 40,
+      "medium_max": 70,
+      "method": "Same rule as the main run."
+    },
+    "threads": 8,
+    "search": {
+      "variants": [
+        "cnn_lstm",
+        "convlstm"
+      ],
+      "hidden": [
+        16,
+        32
+      ],
+      "dropout": [
+        0.1,
+        0.3
+      ],
+      "lr": [
+        0.003,
+        0.01
+      ],
+      "ensemble_seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  "dataset_manifest_sha256": "f6896ddebeb4252186ce82823d36dc60b167a5c3625038fa72b700df846455d5",
+  "model_family": "pytorch:cnn_lstm:ensemble5",
+  "code_commit_sha": "4edbe0a4c5d6f65c0fd56b4f3aa5004149b4c19c",
+  "code_tree_clean": true,
+  "python": "3.12.10",
+  "torch": "2.15.0+cpu",
+  "threads": 8,
+  "weights_sha256": "cec13918ecf6ade85746721d7b51ae2a3d373d26964d0a87f4f4833ad27aa9e5",
+  "estimates_sha256": "1754378f0dc254453b9181b5e802b38db13663ab8906247d621f0c99bf705b76",
+  "tensor_shapes": {
+    "X": [
+      7,
+      22,
+      105,
+      64
+    ],
+    "y_cell": [
+      2,
+      7,
+      8,
+      105,
+      64
+    ]
+  },
+  "channels": [
+    "population",
+    "transit_stops",
+    "transit_route_km",
+    "street_km",
+    "traffic_lights",
+    "pedestrian_crossings",
+    "special_road_km",
+    "poi_commerce",
+    "poi_education",
+    "poi_health",
+    "osm_crossings",
+    "osm_signals",
+    "footway_km",
+    "arterial_km",
+    "collector_km",
+    "valid_cell",
+    "cenacom_prev_cell_rate",
+    "cenacom_prev_district_density",
+    "cenacom_prev_observed",
+    "onsv_prev_cell_rate",
+    "onsv_prev_district_density",
+    "onsv_prev_observed"
+  ],
+  "elapsed_seconds": 935.4
+}
