@@ -1,81 +1,44 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+"""RAP-LM read-only API (Figure 5D). No training, inference or write route."""
 
-from raster_api.catalog import has_period, periods, spatial_units
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError
+
 from raster_api.config import get_settings
-from raster_api.domain.models import (
-    ModelMetadata,
-    PeriodMetadata,
-    RiskMapItem,
-    RiskQuery,
-    RiskResult,
-    SpatialUnitMetadata,
-)
-from raster_api.providers import RiskProvider
+from raster_api.db import get_engine
+from raster_api.v1 import analyst, errors
+from raster_api.v1.router import router
 
 app = FastAPI(
-    title="Raster Analytics API",
-    description="API for spatiotemporal pedestrian collision risk analysis in Metropolitan Lima.",
+    title="RAP-LM API",
+    version="1.0.0",
+    description=(
+        "Read-only API of published pedestrian-collision risk results for the 43 districts "
+        "of the province of Lima. Results are produced offline by the batch pipeline."
+    ),
 )
 
 settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
+errors.install(app)
+app.include_router(router)
+app.include_router(analyst.router)
 
-risk_provider = RiskProvider()
 
-
-@app.get("/health")
+@app.get("/health", tags=["operations"])
 def health() -> dict[str, str]:
-    return {"status": "ok", "environment": settings.app_env}
-
-
-@app.get("/model/metadata", response_model=ModelMetadata)
-def model_metadata() -> ModelMetadata:
-    return risk_provider.metadata()
-
-
-@app.get("/metadata/spatial-units", response_model=list[SpatialUnitMetadata])
-def spatial_unit_metadata() -> list[SpatialUnitMetadata]:
-    return spatial_units()
-
-
-@app.get("/metadata/periods", response_model=list[PeriodMetadata])
-def period_metadata() -> list[PeriodMetadata]:
-    return periods()
-
-
-@app.get("/risk", response_model=RiskResult)
-def risk(spatial_unit: str, period: str) -> RiskResult:
-    return risk_provider.predict(RiskQuery(spatial_unit_id=spatial_unit, period_id=period))
-
-
-@app.get("/risk/map", response_model=list[RiskMapItem])
-def risk_map(period: str) -> list[RiskMapItem]:
-    if not has_period(period):
-        raise HTTPException(status_code=404, detail="Unknown period")
-
-    items: list[RiskMapItem] = []
-    for unit in spatial_units():
-        result = risk_provider.predict(
-            RiskQuery(spatial_unit_id=unit.spatial_unit_id, period_id=period)
-        )
-        items.append(
-            RiskMapItem(
-                **result.model_dump(),
-                name=unit.name,
-                latitude=unit.latitude,
-                longitude=unit.longitude,
-            )
-        )
-    return items
-
-
-@app.post("/risk/compare", response_model=list[RiskResult])
-def compare(queries: list[RiskQuery]) -> list[RiskResult]:
-    return risk_provider.compare(queries)
+    """Operational probe; not a product resource."""
+    try:
+        with get_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        database = "ok"
+    except OperationalError:
+        database = "unavailable"
+    return {"status": "ok", "database": database, "environment": settings.app_env}

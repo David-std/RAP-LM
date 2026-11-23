@@ -1,0 +1,26 @@
+@startuml 5E_pipeline
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+title RAP-LM: pipeline analítico por lotes (nivel 3)
+
+Container_Boundary(p, "Pipeline analítico") {
+  Component(s1, "1. Registro de fuentes", "Python", "Instantáneas con URL, licencia, fecha y SHA-256")
+  Component(s2, "2. Malla y distritos", "Shapely, PyProj", "Malla de 1 km en EPSG:32718 recortada a los 43 distritos")
+  Component(s3, "3. Fusión y georreferenciación", "Python, OSM", "Todos los atropellos; ubicación por cruce, tramo de calle o distrito")
+  Component(s4, "4. Variables de contexto", "rasterio, osmium", "Exposición y entorno: población, comercio, transporte, veredas, cruces, jerarquía vial")
+  Component(s5, "5. Tensores", "NumPy", "Años x variables x malla; entradas causales")
+  Component(s6, "6. Entrenamiento y benchmark", "PyTorch", "ConvLSTM y CNN-LSTM frente a GLM, ablaciones y promedio histórico; ensamble de semillas")
+  Component(s7, "7. Evaluación", "Python", "Prueba posterior al entrenamiento, M-05 y errores del nivel alto")
+  Component(s8, "8. Exportación y explicaciones", "Python", "Frecuencia, severidad, exposición; serie, influencia, atribución, simulación y corredores")
+  Component(s9, "9. Publicación atómica", "psycopg", "Carga, conciliación y cambio del puntero activo")
+}
+ContainerDb(db, "PostgreSQL + PostGIS", "Rol publicador")
+Rel(s1, s2, "")
+Rel(s2, s3, "")
+Rel(s3, s4, "")
+Rel(s4, s5, "")
+Rel(s5, s6, "")
+Rel(s6, s7, "")
+Rel(s7, s8, "")
+Rel(s8, s9, "")
+Rel(s9, db, "Corrida publicada")
+@enduml

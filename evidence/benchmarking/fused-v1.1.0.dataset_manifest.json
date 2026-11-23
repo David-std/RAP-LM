@@ -1,0 +1,262 @@
+{
+  "dataset_version": "fused-v1.1.0",
+  "target_population": "all_pedestrian_collisions",
+  "target_definition": "Every recorded collision with a pedestrian involved (run over, hit-and-run, collision followed by run over, or any crash with a pedestrian victim), regardless of severity.",
+  "created_unix": 1795401863,
+  "code_commit_sha": "d26ee01a037d8fd3e64b2c718f2d29b0c99dcf90",
+  "code_tree_clean": false,
+  "python": "3.12.10",
+  "grid": {
+    "cell_size_m": 1000,
+    "origin_x": 260000,
+    "origin_y": 8720000,
+    "rows": 105,
+    "cols": 64,
+    "crs": "EPSG:32718",
+    "cells": 2899,
+    "districts": 43
+  },
+  "coverage": {
+    "cenacom": {
+      "2011": [
+        "2011-01-01",
+        "2011-12-31"
+      ],
+      "2012": [
+        "2012-01-01",
+        "2012-12-31"
+      ],
+      "2013": [
+        "2013-01-01",
+        "2013-12-31"
+      ],
+      "2014": [
+        "2014-01-01",
+        "2014-12-31"
+      ],
+      "2015": [
+        "2015-01-01",
+        "2015-12-31"
+      ],
+      "2016": [
+        "2016-01-01",
+        "2016-12-31"
+      ],
+      "2017": [
+        "2017-01-01",
+        "2017-06-30"
+      ]
+    },
+    "onsv": {
+      "2021": [
+        "2021-01-01",
+        "2021-12-31"
+      ],
+      "2022": [
+        "2022-01-01",
+        "2022-12-31"
+      ],
+      "2023": [
+        "2023-01-01",
+        "2023-12-31"
+      ],
+      "2024": [
+        "2024-01-01",
+        "2024-12-31"
+      ]
+    }
+  },
+  "context_variables": [
+    {
+      "variable_id": "population",
+      "label": "Resident population",
+      "group": "exposure",
+      "unit": "persons",
+      "source_id": "worldpop_2020",
+      "reference_year": "2020"
+    },
+    {
+      "variable_id": "transit_stops",
+      "label": "Public transport stops",
+      "group": "exposure",
+      "unit": "count",
+      "source_id": "minam_transit_stops",
+      "reference_year": "2021"
+    },
+    {
+      "variable_id": "transit_route_km",
+      "label": "Public transport route length",
+      "group": "exposure",
+      "unit": "km",
+      "source_id": "minam_public_transport_routes",
+      "reference_year": "2021"
+    },
+    {
+      "variable_id": "street_km",
+      "label": "Named street length",
+      "group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "traffic_lights",
+      "label": "Signalised intersections",
+      "group": "context",
+      "unit": "count",
+      "source_id": "minam_traffic_lights",
+      "reference_year": "2021"
+    },
+    {
+      "variable_id": "pedestrian_crossings",
+      "label": "Pedestrian crossings and bridges",
+      "group": "context",
+      "unit": "count",
+      "source_id": "minam_pedestrian_crossings",
+      "reference_year": "2021"
+    },
+    {
+      "variable_id": "special_road_km",
+      "label": "Special road types (freight, express)",
+      "group": "context",
+      "unit": "km",
+      "source_id": "minam_road_types",
+      "reference_year": "2021"
+    },
+    {
+      "variable_id": "poi_commerce",
+      "label": "Commerce and services POIs",
+      "group": "exposure",
+      "unit": "count",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "poi_education",
+      "label": "Education POIs",
+      "group": "exposure",
+      "unit": "count",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "poi_health",
+      "label": "Health POIs",
+      "group": "exposure",
+      "unit": "count",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "osm_crossings",
+      "label": "Mapped pedestrian crossings",
+      "group": "context",
+      "unit": "count",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "osm_signals",
+      "label": "Mapped traffic signals",
+      "group": "context",
+      "unit": "count",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "footway_km",
+      "label": "Footway and pedestrian street length",
+      "group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "arterial_km",
+      "label": "Arterial road length (traffic volume proxy)",
+      "group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    },
+    {
+      "variable_id": "collector_km",
+      "label": "Collector road length",
+      "group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_year": "2026"
+    }
+  ],
+  "inputs": {
+    "boundary": {
+      "path": "lima_43_districts_inei.geojson",
+      "sha256": "18173adc7c8a4c528e99b0b012c91372f58f2a426e1f84e28c6dfae3bffe5cb5"
+    },
+    "osm_extract": {
+      "path": "Lima.osm.pbf",
+      "sha256": "def1533f454e119ac41d9b312e3dce377536ff1028819867ef1df3656f3f81f8"
+    },
+    "harmonized_events": {
+      "path": "harmonized_crash_events.csv",
+      "sha256": "a47d0e2452e95afadb88ef1b28a442400c16f1c6b760302734a30858d21c2304"
+    }
+  },
+  "outputs": {
+    "context.npz": "7eb8ae6d6de27cf64a483899dfb16653831276f295d80a0512190bdfc435b9e2",
+    "districts.geojson": "e4defe19ef67963d27258fb410dd8d1121f1de4d4b87f48f5b09c66adfbd065a",
+    "events.csv": "37e10011830659bc9ec667e4882fb1bcd05e681974adaa1bf90f614ca185537e",
+    "fusion_report.json": "f27be96223491d9dff7756e43e8ca0d0f75f5b90c3b056a1d6fb71a85f6cb3e8",
+    "grid.geojson": "4ce6ed2c2daebeb5c6687ed2f4513182eb24d0376a036b06e6afa197d30aa22a",
+    "streets.json": "5b340c9120f2f630804df415f6b8a91646be3b432c042b44a2be535dd31488f7"
+  },
+  "fusion_report": {
+    "rules": "pipelines/fusion/geocode.py module docstring",
+    "precision_by_family": {
+      "cenacom:district": 5105,
+      "cenacom:intersection": 1024,
+      "cenacom:street": 7187,
+      "onsv:district": 25,
+      "onsv:point": 817
+    },
+    "located_share_by_family": {
+      "cenacom": 0.6166,
+      "onsv": 0.9703
+    },
+    "rows_read_by_source": {
+      "cenacom_2012": 2209,
+      "cenacom_2013": 1965,
+      "cenacom_2014": 1786,
+      "cenacom_2015": 2049,
+      "cenacom_2016": 1867,
+      "cenacom_2017": 3511,
+      "onsv_fatal_2021_2025": 897,
+      "san_isidro_2026": 78
+    },
+    "excluded_by_reason": {
+      "cenacom_2012:missing_time": 1,
+      "cenacom_2013:invalid_date": 2,
+      "cenacom_2013:missing_time": 1,
+      "cenacom_2016:invalid_date": 7,
+      "cenacom_2016:missing_time": 53,
+      "cenacom_2017:invalid_date": 6,
+      "cenacom_2017:missing_time": 1,
+      "onsv_fatal_2021_2025:year_outside_closed_coverage": 55,
+      "san_isidro_2026:cohort_not_fused": 78
+    },
+    "precision_by_source": {
+      "cenacom:occurrence_district:district": 2241,
+      "cenacom:occurrence_district:intersection": 370,
+      "cenacom:occurrence_district:street": 2700,
+      "cenacom:station_proxy:district": 2864,
+      "cenacom:station_proxy:intersection": 654,
+      "cenacom:station_proxy:street": 4487,
+      "onsv:occurrence_district:district": 25,
+      "onsv:occurrence_district:point": 817
+    },
+    "excluded_cohorts": {
+      "san_isidro_2026": "Single municipality, January-April 2026, no event time: cannot be assigned to a time band nor compared across the 43 districts."
+    }
+  },
+  "elapsed_seconds": 132.4
+}

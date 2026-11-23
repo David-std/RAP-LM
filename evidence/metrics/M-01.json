@@ -1,0 +1,16 @@
+{
+  "metric": "M-01",
+  "target": ">= 95 %",
+  "run_id": "fused-cnnlstm-2026.11-v4",
+  "measured_at": "2026-11-23T22:50:50.543231+00:00",
+  "environment": {
+    "python": "3.12.10",
+    "machine": "AMD64",
+    "os": "Windows"
+  },
+  "numerator": 817,
+  "denominator": 817,
+  "value": 100.0,
+  "reference": "ONSV coordinates validated inside the declared district",
+  "failures_sample": []
+}

@@ -1,6 +1,21 @@
 # Data
 
-Raw and generated datasets are not stored in Git. Source metadata, schemas, deterministic references, and small reproducible fixtures can be versioned here.
+Raw and generated datasets are not stored in Git. Source metadata, schemas, deterministic references and small
+reproducible fixtures are versioned here.
+
+## Provenance catalog (current)
+
+`data/catalog/provenance.json` is loaded by the publisher and served by `/api/v1/provenance`: sources (URL,
+licence, capture date, coverage, inclusion or exclusion reason), variables by conceptual group (occurrence,
+severity, exposure, context) and limitations. Its texts are user-facing and written in Spanish.
+
+The source snapshots (`RAP-LM-DATA-2026-11-17-v2.zip`) and the harmonized staging
+(`RAP-LM-HARMONIZED-2026-11-17-v0.2.0.zip`) are kept outside the repository; set `RAPLM_DATA_DIR` to the
+directory where they are extracted.
+
+## Research registries (P1 to P3)
+
+The files below document the source-qualification and feature-coverage stages.
 
 ## Source qualification
 

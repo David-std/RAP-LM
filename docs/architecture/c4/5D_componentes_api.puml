@@ -1,0 +1,25 @@
+@startuml 5D_componentes_api
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+title RAP-LM: componentes de la API de consulta (nivel 3)
+
+Container_Boundary(api, "API de consulta (FastAPI, solo lectura)") {
+  Component(r1, "Router de consulta", "FastAPI", "GET /periods, /units, /risk, /comparisons, /provenance, /series")
+  Component(r2, "Router de análisis", "FastAPI", "GET /corridors, /explanations, /model")
+  Component(esq, "Esquemas", "Pydantic", "Validación de parámetros, respuestas y errores de contrato")
+  Component(serv, "Servicios de aplicación", "Python", "Fijan la corrida activa por petición, reglas de sin resultado y de comparabilidad")
+  Component(repo, "Repositorios", "SQLAlchemy Core", "Consultas espaciales y temporales parametrizadas con funciones PostGIS")
+  Component(err, "Manejo de errores", "FastAPI", "Esquema único de error; 404, 409, 422 y 503 sin datos simulados")
+}
+ContainerDb(db, "PostgreSQL + PostGIS", "Rol de solo lectura")
+Container_Ext(web, "Aplicación web")
+
+Rel(web, r1, "HTTPS")
+Rel(web, r2, "HTTPS")
+Rel(r1, esq, "Valida con")
+Rel(r2, esq, "Valida con")
+Rel(r1, serv, "Invoca")
+Rel(r2, serv, "Invoca")
+Rel(serv, repo, "Consulta")
+Rel(repo, db, "SQL")
+Rel(r1, err, "Errores")
+@enduml

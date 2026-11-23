@@ -1,0 +1,139 @@
+{
+  "run_id": "fused-cnnlstm-2026.11-v2",
+  "config": {
+    "run_id": "fused-cnnlstm-2026.11-v2",
+    "description": "Main run: all pedestrian collisions, fused CENACOM 2011-2017 + ONSV 2021-2024, 1 km grid. Test = 2024 (after every training year). Protocol v2 (preregistered): validation search + 5-seed ensemble.",
+    "years": [
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "split": {
+      "train": {
+        "cenacom": [
+          2011,
+          2012,
+          2013,
+          2014,
+          2015,
+          2016,
+          2017
+        ],
+        "onsv": [
+          2021,
+          2022
+        ]
+      },
+      "validation": {
+        "onsv": [
+          2023
+        ]
+      },
+      "test": {
+        "onsv": [
+          2024
+        ]
+      }
+    },
+    "seed": 20261122,
+    "hidden": 32,
+    "dropout": 0.1,
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "max_epochs": 300,
+    "patience": 40,
+    "area_floor_km2": 0.1,
+    "thresholds": {
+      "version": "levels-v1",
+      "low_max": 40,
+      "medium_max": 70,
+      "method": "Index = percentile rank (0-100) of the annualised indicator within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70. Fixed before the test evaluation."
+    },
+    "threads": 8,
+    "search": {
+      "variants": [
+        "cnn_lstm",
+        "convlstm"
+      ],
+      "hidden": [
+        16,
+        32
+      ],
+      "dropout": [
+        0.1,
+        0.3
+      ],
+      "lr": [
+        0.003,
+        0.01
+      ],
+      "ensemble_seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  "dataset_manifest_sha256": "f6896ddebeb4252186ce82823d36dc60b167a5c3625038fa72b700df846455d5",
+  "model_family": "pytorch:convlstm:ensemble5",
+  "code_commit_sha": "4edbe0a4c5d6f65c0fd56b4f3aa5004149b4c19c",
+  "code_tree_clean": true,
+  "python": "3.12.10",
+  "torch": "2.15.0+cpu",
+  "threads": 8,
+  "weights_sha256": "0acb38822d0e354cddba872ef1ce957c13f07fe4a591084a2398c6b0bbf4fd3d",
+  "estimates_sha256": "8f6341ec514e543714caf63c6271fa6d52181e56e8987f908a193c340a047e0f",
+  "tensor_shapes": {
+    "X": [
+      14,
+      22,
+      105,
+      64
+    ],
+    "y_cell": [
+      2,
+      14,
+      8,
+      105,
+      64
+    ]
+  },
+  "channels": [
+    "population",
+    "transit_stops",
+    "transit_route_km",
+    "street_km",
+    "traffic_lights",
+    "pedestrian_crossings",
+    "special_road_km",
+    "poi_commerce",
+    "poi_education",
+    "poi_health",
+    "osm_crossings",
+    "osm_signals",
+    "footway_km",
+    "arterial_km",
+    "collector_km",
+    "valid_cell",
+    "cenacom_prev_cell_rate",
+    "cenacom_prev_district_density",
+    "cenacom_prev_observed",
+    "onsv_prev_cell_rate",
+    "onsv_prev_district_density",
+    "onsv_prev_observed"
+  ],
+  "elapsed_seconds": 1864.9
+}

@@ -334,9 +334,7 @@ def _result_for(
         ),
         "spatial_units_with_event": len(spatial_with_event),
         "spatial_unit_activity_ratio": (
-            round(len(spatial_with_event) / spatial.unit_count, 6)
-            if spatial.unit_count
-            else None
+            round(len(spatial_with_event) / spatial.unit_count, 6) if spatial.unit_count else None
         ),
         "periods_with_event": len(periods_with_event),
         "period_activity_ratio": (
@@ -390,8 +388,7 @@ def _boundary_sensitivity(results: list[dict[str, Any]]) -> list[dict[str, Any]]
                 ),
                 "assigned_event_delta": shifted["assigned_events"] - base["assigned_events"],
                 "occupied_cell_delta": (
-                    shifted["occupied_unit_period_cells"]
-                    - base["occupied_unit_period_cells"]
+                    shifted["occupied_unit_period_cells"] - base["occupied_unit_period_cells"]
                 ),
                 "max_events_per_cell_delta": (
                     shifted["events_per_cell_max"] - base["events_per_cell_max"]

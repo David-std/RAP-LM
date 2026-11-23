@@ -1,0 +1,421 @@
+{
+  "_comment": "Catálogo de procedencia que carga el publicador (RF-08, RD-01, RD-05). Valores tomados de source_manifest.json (captura 2026-11-17) y del reporte de fusión. Los textos son los que ve el usuario, por eso están en español; 'por verificar' marca términos de licencia no declarados en el archivo capturado.",
+  "target_definition": {
+    "target_definition_id": "all-pedestrian-collisions-v1",
+    "population": "Todos los atropellos de peatones (cualquier severidad y subtipo)",
+    "definition": "Todo siniestro registrado con un peatón involucrado: atropello, atropello y fuga, choque y atropello o cualquier siniestro con víctima peatón, sin importar la gravedad de las lesiones. Intensidad latente estimada en la escala de registro del censo policial.",
+    "value_unit": "atropellos registrados esperados por km² y año (anualizado para el tipo de día y la franja de 6 horas)",
+    "index_method": "Índice = rango percentil (0 a 100) del indicador dentro de la distribución de referencia congelada de las estimaciones de los años de entrenamiento, en la misma vista espacial (celdas o distritos)."
+  },
+  "sources": [
+    {
+      "source_id": "mininter_cenacom",
+      "publisher": "MININTER / INEI",
+      "name": "Censo Nacional de Comisarías (CENACOM) 2012-2017, módulos de accidentes de tránsito y personas (microdatos DBF)",
+      "url": "https://www.gob.pe/institucion/mininter/informes-publicaciones/3840203-censos-nacionales-de-comisarias",
+      "licence": "Microdatos estadísticos públicos (INEI); con atribución. Términos de reutilización por verificar.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2011-01-01",
+      "coverage_end": "2017-06-30",
+      "spatial_coverage": "43 distritos; 2011-2014 por distrito de la comisaría, 2015-2017 por distrito del hecho; puntos derivados solo por coincidencia de calles",
+      "population": "Todas las severidades registradas en comisarías",
+      "incorporated": true
+    },
+    {
+      "source_id": "onsv_georeferenced_crashes",
+      "publisher": "Observatorio Nacional de Seguridad Vial (ONSV-MTC)",
+      "name": "BBDD ONSV siniestros fatales 2021-2025 (preliminar) con tabla de personas",
+      "url": "https://www.onsv.gob.pe/estaticos/excel/BBDD%20ONSV%20-%20SINIESTROS%20FATALES%202021-2025%20(preliminar).xlsx",
+      "licence": "Descarga pública del ONSV; con atribución. Términos de reutilización por verificar.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2021-01-01",
+      "coverage_end": "2024-12-31",
+      "spatial_coverage": "43 distritos, puntos georreferenciados validados dentro del distrito declarado",
+      "population": "Siniestros con al menos un fallecido y un peatón involucrado (observación truncada por severidad del mismo fenómeno)",
+      "incorporated": true
+    },
+    {
+      "source_id": "inei_district_boundaries",
+      "publisher": "INEI",
+      "name": "Límites distritales de la provincia de Lima (43 distritos, UBIGEO 1501xx)",
+      "url": "https://geoespacial.inei.gob.pe/geoserver/Interoperabilidad/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Interoperabilidad%3Aig_distrito&outputFormat=application%2Fjson&cql_filter=ubigeo+LIKE+%271501%25%27",
+      "licence": "Geoservicio público del INEI; con atribución.",
+      "captured_at": "2026-11-17",
+      "coverage_start": null,
+      "coverage_end": null,
+      "spatial_coverage": "43 distritos de la provincia de Lima; Callao excluido",
+      "population": "Límites territoriales",
+      "incorporated": true
+    },
+    {
+      "source_id": "worldpop_2020",
+      "publisher": "WorldPop (University of Southampton)",
+      "name": "Población de Perú, serie anual 2011-2025, 1 km",
+      "url": "https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/",
+      "licence": "CC BY 4.0",
+      "captured_at": "2026-11-23",
+      "coverage_start": "2011-01-01",
+      "coverage_end": "2025-12-31",
+      "spatial_coverage": "Perú; celdas de 1 km",
+      "population": "Residentes estimados por año (proxy de exposición, no peatones). R2025A 2015-2025 encadenada hacia 2011-2014 con la serie anual 2000-2020.",
+      "incorporated": true
+    },
+    {
+      "source_id": "osm_lima_extract",
+      "publisher": "OpenStreetMap contributors (BBBike extract)",
+      "name": "Extracto Lima.osm.pbf",
+      "url": "https://download.bbbike.org/osm/bbbike/Lima/Lima.osm.pbf",
+      "licence": "ODbL 1.0",
+      "captured_at": "2026-11-17",
+      "coverage_start": null,
+      "coverage_end": null,
+      "spatial_coverage": "Extracto de Lima recortado a los 43 distritos",
+      "population": "Red vial (calles con nombre, jerarquía vial, veredas), puntos de interés, cruces y semáforos; instantánea 2026",
+      "incorporated": true
+    },
+    {
+      "source_id": "minam_transport_layers",
+      "publisher": "MINAM GeoServidor (Desarrollo Orientado al Transporte)",
+      "name": "Paraderos, rutas de transporte público, semáforos, cruces peatonales y tipos de vía (capas 303, 304, 309, 314, 315)",
+      "url": "https://geoservidorperu.minam.gob.pe/arcgis/rest/services/CS/Desarrollo_Orientado_a_Transporte/MapServer",
+      "licence": "Servicio ArcGIS REST público; con atribución. Términos de reutilización por verificar.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2021-01-01",
+      "coverage_end": "2021-12-31",
+      "spatial_coverage": "Lima; cobertura parcial en algunos distritos (la ausencia de un elemento no prueba que no exista)",
+      "population": "Contexto urbano, instantánea 2021",
+      "incorporated": true
+    },
+    {
+      "source_id": "san_isidro_assistance_2026",
+      "publisher": "Municipalidad de San Isidro (Plataforma Nacional de Datos Abiertos)",
+      "name": "Apoyo en accidentes de tránsito 2026",
+      "url": "https://www.datosabiertos.gob.pe/sites/default/files/SC-Apoyo%20en%20accidentes%20de%20tr%C3%A1nsito.xlsx",
+      "licence": "Datos abiertos (datosabiertos.gob.pe); con atribución.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2026-01-01",
+      "coverage_end": "2026-04-30",
+      "spatial_coverage": "Solo San Isidro",
+      "population": "Registros municipales de asistencia, severidad desconocida",
+      "incorporated": false,
+      "exclusion_reason": "Un solo distrito, año 2026 parcial y sin hora del evento: no se puede asignar a una franja ni comparar entre los 43 distritos."
+    },
+    {
+      "source_id": "mtc_inei_aggregates",
+      "publisher": "MTC / INEI",
+      "name": "Accidentes por departamento 2015-2025 y por tipo 2020-2025; estadísticas de seguridad ciudadana INEI 2025",
+      "url": "https://cdn.www.gob.pe/uploads/document/file/8373947/6966856-accidentes-de-transito-registrado-segun-departamento-2015-2025.xlsx",
+      "licence": "Descarga pública (gob.pe); con atribución.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2015-01-01",
+      "coverage_end": "2025-12-31",
+      "spatial_coverage": "Solo nivel departamento",
+      "population": "Accidentes registrados agregados",
+      "incorporated": false,
+      "exclusion_reason": "Agregados por departamento o tipo, sin distrito, fecha ni ubicación: solo sirven como control de magnitud, no como eventos."
+    },
+    {
+      "source_id": "sutran_ositran_roads",
+      "publisher": "SUTRAN / OSITRAN",
+      "name": "Accidentes en carreteras nacionales y concesionadas",
+      "url": "https://www.datosabiertos.gob.pe/sites/default/files/Accidentes%20de%20tr%C3%A1nsito%20en%20carreteras-2020-2021-Sutran.csv",
+      "licence": "Datos abiertos (datosabiertos.gob.pe); con atribución.",
+      "captured_at": "2026-11-17",
+      "coverage_start": "2020-01-01",
+      "coverage_end": "2026-08-31",
+      "spatial_coverage": "Red nacional y concesiones, no la red urbana",
+      "population": "Accidentes en carreteras",
+      "incorporated": false,
+      "exclusion_reason": "Red de carreteras fuera de la población urbana de los 43 distritos; la mayoría sin georreferencia individual."
+    }
+  ],
+  "variables": [
+    {
+      "variable_id": "collisions_located",
+      "label": "Atropellos ubicados en celda (punto, cruce o tramo de calle)",
+      "concept_group": "occurrence",
+      "unit": "eventos",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017, 2021-2024",
+      "description": "Eventos del año anterior por celda; CENACOM y ONSV como canales separados.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "collisions_district",
+      "label": "Atropellos por distrito",
+      "concept_group": "occurrence",
+      "unit": "eventos por km²",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017, 2021-2024",
+      "description": "Densidad distrital del año anterior, incluidos los eventos no ubicados en celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "fatal_observation",
+      "label": "Siniestros fatales con peatón (ONSV)",
+      "concept_group": "severity",
+      "unit": "eventos",
+      "source_id": "onsv_georeferenced_crashes",
+      "reference_period": "2021-2024",
+      "description": "Observación truncada por severidad, vinculada a la intensidad latente mediante un factor de registro aprendido.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "injury_severity_grade",
+      "label": "Grado de severidad de las lesiones",
+      "concept_group": "severity",
+      "unit": "categoría",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017",
+      "description": "No se usa como entrada: los grados son incompletos y cambian entre ediciones. Solo se muestra como registro histórico (lesionados, fallecidos).",
+      "incorporated": false
+    },
+    {
+      "variable_id": "population",
+      "label": "Población residente",
+      "concept_group": "exposure",
+      "unit": "personas",
+      "source_id": "worldpop_2020",
+      "reference_period": "2011-2025, año del periodo",
+      "description": "Población residente del año de cada periodo, sumada por celda de 1 km (logaritmo, estandarizada).",
+      "incorporated": true
+    },
+    {
+      "variable_id": "transit_stops",
+      "label": "Paraderos de transporte público",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "minam_transport_layers",
+      "reference_period": "2021",
+      "description": "Paraderos por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "transit_route_km",
+      "label": "Longitud de rutas de transporte público",
+      "concept_group": "exposure",
+      "unit": "km",
+      "source_id": "minam_transport_layers",
+      "reference_period": "2021",
+      "description": "Longitud de rutas por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "pedestrian_volume",
+      "label": "Volumen peatonal medido",
+      "concept_group": "exposure",
+      "unit": "peatones × tiempo",
+      "source_id": null,
+      "reference_period": "no disponible",
+      "description": "No se encontró un conteo peatonal público que cubra los 43 distritos; la exposición se representa solo con proxies.",
+      "incorporated": false
+    },
+    {
+      "variable_id": "street_km",
+      "label": "Longitud de calles con nombre",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Vías con nombre de OSM por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "traffic_lights",
+      "label": "Intersecciones semaforizadas",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "minam_transport_layers",
+      "reference_period": "2021",
+      "description": "Semáforos por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "pedestrian_crossings",
+      "label": "Cruces y puentes peatonales",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "minam_transport_layers",
+      "reference_period": "2021",
+      "description": "Cruces por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "special_road_km",
+      "label": "Vías especiales (carga, expresas)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "minam_transport_layers",
+      "reference_period": "2021",
+      "description": "Longitud de vías especiales por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "traffic_volume",
+      "label": "Volumen vehicular",
+      "concept_group": "context",
+      "unit": "vehículos",
+      "source_id": null,
+      "reference_period": "no disponible",
+      "description": "No hay conteos de volumen vehicular urbano para los 43 distritos; se usa la longitud de vías arteriales como proxy.",
+      "incorporated": false
+    },
+    {
+      "variable_id": "poi_commerce",
+      "label": "Comercio y servicios (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Comercios, restaurantes, bancos, farmacias y mercados por celda: proxy de actividad y atracción peatonal (Guo et al., 2024).",
+      "incorporated": true
+    },
+    {
+      "variable_id": "poi_education",
+      "label": "Centros educativos (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Colegios, iniciales, institutos y universidades por celda: proxy de flujos peatonales de estudiantes.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "poi_health",
+      "label": "Centros de salud (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Hospitales, clínicas y consultorios por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "osm_crossings",
+      "label": "Cruces peatonales mapeados (OSM)",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Nodos de cruce peatonal por celda: infraestructura y caminabilidad (Hu et al., 2024).",
+      "incorporated": true
+    },
+    {
+      "variable_id": "osm_signals",
+      "label": "Semáforos mapeados (OSM)",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Nodos de semáforo por celda: control del tránsito.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "footway_km",
+      "label": "Veredas y vías peatonales (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de veredas, pasajes peatonales y escaleras por celda: proxy de caminabilidad.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "arterial_km",
+      "label": "Vías arteriales (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de vías expresas, troncales y primarias por celda: proxy del volumen de tránsito vehicular.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "collector_km",
+      "label": "Vías colectoras (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de vías secundarias y terciarias por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "vehicle_type",
+      "label": "Tipo de vehículo involucrado",
+      "concept_group": "occurrence",
+      "unit": "eventos",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017, 2021-2024",
+      "description": "Auto, camioneta, combi o minibús, bus, carga, moto, mototaxi, bicicleta o triciclo. CENACOM capítulo 100 (lista por edición) y registro de vehículos del ONSV. Desglose del registro histórico; no entra a la red.",
+      "incorporated": false
+    },
+    {
+      "variable_id": "transport_service",
+      "label": "Servicio de transporte",
+      "concept_group": "occurrence",
+      "unit": "eventos",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017, 2021-2024",
+      "description": "Público, particular o carga. Desglose del registro histórico; no entra a la red.",
+      "incorporated": false
+    },
+    {
+      "variable_id": "contributing_factors",
+      "label": "Factores registrados por la policía",
+      "concept_group": "occurrence",
+      "unit": "eventos",
+      "source_id": "mininter_cenacom",
+      "reference_period": "2011-2017, 2021-2024",
+      "description": "Exceso de velocidad, ebriedad, conducta del conductor o del peatón, señalización defectuosa, iluminación, estado de la vía, vehículo, clima. Se anotan después del atropello: describen el registro y no entran a la red, porque usarlos como predictor filtraría el resultado.",
+      "incorporated": false
+    }
+  ],
+  "limitations": [
+    {
+      "limitation_id": "L01-temporal-gap",
+      "dimension": "Cobertura temporal",
+      "description": "Ninguna fuente observa de julio de 2017 a diciembre de 2020; esos años no se publican. CENACOM 2017 cubre solo enero a junio (se trata como cobertura parcial)."
+    },
+    {
+      "limitation_id": "L02-severity-mix",
+      "dimension": "Población",
+      "description": "2021-2024 se observa solo a través de siniestros fatales (ONSV). El modelo los vincula a la intensidad de todas las severidades con un único factor de registro para la ciudad; no identifica diferencias locales en la proporción de fallecidos."
+    },
+    {
+      "limitation_id": "L03-geocoding",
+      "dimension": "Precisión espacial",
+      "description": "CENACOM no tiene coordenadas. Los eventos se ubican comparando la referencia vial policial con calles de OSM del distrito declarado: cruces como puntos, una sola calle repartida a lo largo de su tramo, sin coincidencia solo a nivel distrito. Los números de cuadra no se convierten."
+    },
+    {
+      "limitation_id": "L04-station-district",
+      "dimension": "Precisión espacial",
+      "description": "Los registros CENACOM 2011-2014 indican el distrito de la comisaría, no el del hecho (6-7 % de discrepancia medida donde existen ambos)."
+    },
+    {
+      "limitation_id": "L05-static-context",
+      "dimension": "Variables de contexto",
+      "description": "Las capas de contexto son instantáneas 2020-2026 usadas para todos los años; no representan cambios históricos de infraestructura."
+    },
+    {
+      "limitation_id": "L06-exposure",
+      "dimension": "Exposición",
+      "description": "No hay exposición peatonal medida. Población, paraderos y rutas son proxies; el indicador no es una probabilidad ni una tasa por peatón."
+    },
+    {
+      "limitation_id": "L07-underreporting",
+      "dimension": "Completitud",
+      "description": "Los registros policiales subestiman los atropellos sin denuncia; el indicador está en la escala registrada y es relativo."
+    },
+    {
+      "limitation_id": "L08-no-recommendation",
+      "dimension": "Uso",
+      "description": "Referencia analítica para especialistas. No prescribe intervenciones ni es una predicción en tiempo real (RG-02, RG-03)."
+    },
+    {
+      "limitation_id": "L11-station-district",
+      "dimension": "Ubicación",
+      "description": "Unos 8.000 registros de CENACOM solo indican el distrito de la comisaría. En 2016 y 2017, donde también consta el distrito de ocurrencia, ambos coinciden en el 93,2 % de 5.378 eventos. Esos registros cuentan a nivel distrito y no se ubican en calles ni celdas, por lo que el mapa por celda y las vías críticas de 2011 a 2017 reflejan solo los eventos con ubicación sustentada."
+    }
+  ]
+}
