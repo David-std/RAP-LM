@@ -57,7 +57,7 @@ Selection (validation E), ensemble, single test evaluation and the publication r
 v1 runs were evaluated with the same classification code for comparison; that computation uses
 already frozen v1 models and does not change them.
 
-## Amendment A2 (2026-11-24, before any v3 training and before any v3 test evaluation)
+## Amendment A2 (2026-11-23, before any v3 training and before any v3 test evaluation)
 
 Iteration v3 changes only the data; method, search space, seeds, selection rule, ensemble, measures,
 thresholds and partitions stay exactly as in v2.
