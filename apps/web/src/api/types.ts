@@ -81,6 +81,21 @@ export interface RiskResult {
   risk_level: RiskLevel | null;
   historical_average: number | null;
   observed: Observed;
+  severity: Component;
+  exposure: Component;
+  breakdown: Breakdown | null;
+}
+
+/** Secondary risk component on its own frozen percentile scale (D-10). */
+export interface Component {
+  value: number | null;
+  index: number | null;
+}
+
+/** Historical record counts by severity class and collision subtype. */
+export interface Breakdown {
+  severity: Record<"fatal" | "nonfatal" | "material_only" | "unknown", number>;
+  type: Record<"atropello" | "atropello_fuga" | "choque_y_atropello" | "otro", number>;
 }
 
 export interface LevelCounts {
@@ -312,6 +327,9 @@ export interface ModelCardDto {
     training_curves: Record<string, [number, number, number][] | null>;
     search: SearchRow[] | null;
     reporting_factor: Record<string, number>;
+    selection_rule?: string;
+    high_level: HighLevelRow[] | null;
+    reproducibility: Record<string, unknown> | null;
   };
   benchmark: BenchmarkMetrics & { search?: SearchRow[]; selected_config?: SearchRow };
   corridor_summary: {
@@ -321,4 +339,23 @@ export interface ModelCardDto {
     total_length_km: number;
     concentration: Record<string, number>;
   } | null;
+}
+
+export interface Confusion {
+  tp: number;
+  fp: number;
+  fn: number;
+  tn: number;
+  precision: number | null;
+  recall: number | null;
+  f1: number | null;
+}
+
+export interface HighLevelRow {
+  family: string;
+  year: number;
+  units: number;
+  reference_high: number;
+  model: Confusion;
+  baseline?: Confusion;
 }

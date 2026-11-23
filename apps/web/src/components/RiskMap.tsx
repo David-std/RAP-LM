@@ -6,14 +6,15 @@ import L from "leaflet";
 import { useEffect, useRef } from "react";
 
 import type { RiskResult, UnitCollection } from "../api/types";
+import { addScopeMask, createBaseMap, LIMA_BOUNDS } from "../lib/basemap";
 import { colorFor, type ClassBand } from "../lib/levels";
 
-const LIMA_BOUNDS = L.latLngBounds([-12.52, -77.2], [-11.57, -76.62]);
 const HATCH_ID = "no-result-hatch";
 
 export interface RiskMapProps {
   units: UnitCollection;
   outline?: UnitCollection; // district borders drawn over cells
+  scope?: UnitCollection; // the 43 districts: everything outside is dimmed
   results: Map<string, RiskResult>;
   bands: ClassBand[];
   visible?: Set<string> | null; // units passing the filters (null = all)
@@ -50,34 +51,7 @@ export function RiskMap(props: RiskMapProps) {
   useEffect(() => {
     if (!host.current) return;
     const renderer = L.svg({ padding: 0.3 });
-    const m = L.map(host.current, {
-      renderer,
-      zoomSnap: 0.25,
-      minZoom: 9,
-      maxZoom: 16,
-      maxBounds: LIMA_BOUNDS.pad(0.4),
-      keyboard: true,
-      attributionControl: true,
-    });
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-      { attribution: "Fondo © Esri", maxZoom: 16 },
-    ).addTo(m);
-    L.control.scale({ imperial: false, position: "bottomleft" }).addTo(m);
-    const Home = L.Control.extend({
-      onAdd: () => {
-        const button = L.DomUtil.create("button", "map-home");
-        button.type = "button";
-        button.title = "Volver a la vista completa de Lima";
-        button.setAttribute("aria-label", "Volver a la vista completa de Lima");
-        button.innerHTML = "⤢";
-        L.DomEvent.disableClickPropagation(button);
-        button.onclick = () => m.fitBounds(LIMA_BOUNDS);
-        return button;
-      },
-    });
-    new Home({ position: "topright" }).addTo(m);
-    m.fitBounds(LIMA_BOUNDS);
+    const m = createBaseMap(host.current, renderer);
     m.on("layeradd", () => ensureHatch(renderer));
     map.current = m;
     labelLayer.current = L.layerGroup().addTo(m);
@@ -104,6 +78,16 @@ export function RiskMap(props: RiskMapProps) {
     outlineLayer.current?.bringToFront();
   }, [props.units]);
 
+  // Dim everything outside the province of Lima (43 districts) so the scope is unambiguous.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !props.scope) return;
+    const mask = addScopeMask(m, props.scope);
+    return () => {
+      mask.remove();
+    };
+  }, [props.scope]);
+
   useEffect(() => {
     const m = map.current;
     if (!m) return;
@@ -128,9 +112,9 @@ export function RiskMap(props: RiskMapProps) {
       const isSelected = selected.has(id);
       path.setStyle({
         fillColor: color ?? `url(#${HATCH_ID})`,
-        fillOpacity: inFilter ? (color ? 0.88 : 1) : 0.12,
-        color: isSelected ? "#18191B" : "#FFFFFF",
-        weight: isSelected ? 2.2 : 0.5,
+        fillOpacity: inFilter ? (color ? 0.82 : 0.9) : 0.1,
+        color: isSelected ? "#16181D" : "#FFFFFF",
+        weight: isSelected ? 2.4 : 0.4,
         opacity: inFilter || isSelected ? 1 : 0.3,
       });
       if (isSelected) path.bringToFront();

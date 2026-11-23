@@ -133,6 +133,7 @@ function SpatialView({ units, districts, bands }: { units: UnitCollection; distr
         <RiskMap
           units={q.unitType === "cell" ? units : districts}
           outline={q.unitType === "cell" ? districts : undefined}
+          scope={districts}
           results={results}
           bands={bands}
           selected={q.compareUnitIds}
@@ -280,6 +281,7 @@ function TemporalView({ units, districts, bands }: { units: UnitCollection; dist
             <RiskMap
               units={geo}
               outline={q.unitType === "cell" ? districts : undefined}
+          scope={districts}
               results={m.res}
               bands={bands}
               selected={selected}

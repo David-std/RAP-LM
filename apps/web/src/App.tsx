@@ -1,20 +1,23 @@
 // Application shell: top bar, views and status bar. Loads the reference data
 // (periods, cell and district geometry) once and shares it with every view.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { api } from "./api/client";
 import type { Meta, UnitCollection } from "./api/types";
 import { useApi } from "./api/useApi";
 import { Notice } from "./components/Controls";
 import { BANDS, DAY_LABEL } from "./lib/format";
+import { classBands } from "./lib/levels";
 import { AnalysisPage } from "./pages/AnalysisPage";
 import { ComparePage } from "./pages/ComparePage";
+import { CorridorsPage } from "./pages/CorridorsPage";
 import { MapPage } from "./pages/MapPage";
 import { MethodologyPage } from "./pages/MethodologyPage";
+import { ModelPage } from "./pages/ModelPage";
 import { QueryProvider, useQuery } from "./state/QueryContext";
 
-type View = "map" | "compare" | "analysis" | "method";
+type View = "map" | "corridors" | "compare" | "analysis" | "model" | "method";
 
 export default function App() {
   const periods = useApi((s) => api.periods(s), []);
@@ -44,11 +47,15 @@ export default function App() {
 
 function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; districts: UnitCollection }) {
   const [view, setView] = useState<View>("map");
+  const [corridorDistrict, setCorridorDistrict] = useState<string | null>(null);
   const q = useQuery();
+  const bands = useMemo(() => classBands(meta.legend), [meta.legend]);
   const tabs: { id: View; label: string }[] = [
-    { id: "map", label: "Mapa" },
+    { id: "map", label: "Mapa de riesgo" },
+    { id: "corridors", label: "Corredores" },
     { id: "compare", label: "Comparar" },
     { id: "analysis", label: "Análisis" },
+    { id: "model", label: "Modelo" },
     { id: "method", label: "Metodología y fuentes" },
   ];
   return (
@@ -56,7 +63,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
       <header className="topbar">
         <span className="brand" aria-label="RAP-LM">
           <span className="brand-mark" aria-hidden="true" />
-          RAP-LM
+          RAP-LM <small>Riesgo de atropello peatonal, Lima</small>
         </span>
         <nav aria-label="Vistas">
           {tabs.map((t) => (
@@ -71,7 +78,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             </button>
           ))}
         </nav>
-        <span className="topbar-title">Riesgo de atropello peatonal en Lima Metropolitana</span>
+        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `corrida ${meta.run.run_id}`}</span>
       </header>
 
       {meta.run.is_demo && <div className="demo-banner">{meta.scope_notice}</div>}
@@ -85,6 +92,10 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             goCompare={(mode) => {
               q.setCompareMode(mode);
               setView("compare");
+            }}
+            goCorridors={(d) => {
+              setCorridorDistrict(d);
+              setView("corridors");
             }}
           />
         )}
@@ -101,6 +112,8 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             }}
           />
         )}
+        {view === "corridors" && <CorridorsPage districts={districts} meta={meta} bands={bands} initialDistrict={corridorDistrict} />}
+        {view === "model" && <ModelPage />}
         {view === "method" && <MethodologyPage />}
       </div>
 

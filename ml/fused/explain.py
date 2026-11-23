@@ -37,21 +37,36 @@ from ml.fused.tensors import Tensors, load_dataset
 from pipelines.fusion.events import SOURCE_FAMILIES, SUBPERIODS
 
 WHATIF_FACTORS = (0.0, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
+# Variables an analyst would vary; v1.0 datasets fall back to the ones they have.
+WHATIF_VARIABLES = (
+    "population",
+    "poi_commerce",
+    "transit_stops",
+    "footway_km",
+    "arterial_km",
+    "osm_crossings",
+    "transit_route_km",
+    "pedestrian_crossings",
+)
 GROUPS = {
     "population": ["population"],
     "transit": ["transit_stops", "transit_route_km"],
-    "street_network": ["street_km", "special_road_km"],
-    "crossings_signals": ["traffic_lights", "pedestrian_crossings"],
+    "street_network": ["street_km", "special_road_km", "collector_km"],
+    "crossings_signals": ["traffic_lights", "pedestrian_crossings", "osm_signals"],
+    "activity": ["poi_commerce", "poi_education", "poi_health"],
+    "walkability": ["footway_km", "osm_crossings"],
+    "traffic": ["arterial_km"],
     "prior_collisions": [
-        c
-        for c in (
-            "cenacom_prev_cell_rate",
-            "cenacom_prev_district_density",
-            "onsv_prev_cell_rate",
-            "onsv_prev_district_density",
-        )
+        "cenacom_prev_cell_rate",
+        "cenacom_prev_district_density",
+        "onsv_prev_cell_rate",
+        "onsv_prev_district_density",
     ],
 }
+
+
+def _optional_json(path: Path):
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
 def load_members(run: Path, t: Tensors) -> list[SpatioTemporalModel]:
@@ -100,6 +115,8 @@ def main() -> None:
     x = torch.from_numpy(t.X)
     valid = torch.from_numpy(t.valid.astype(np.float32))
     ti = t.years.index(args.year)
+    groups = {g: [c for c in chs if c in t.channels] for g, chs in GROUPS.items()}
+    groups = {g: chs for g, chs in groups.items() if chs}
     rows, cols = t.rows, t.cols
     lam = ensemble_lambda(members, x, valid)  # [T, K, H, W]
     rho = np.mean([torch.exp(m.reporting_factors()).detach().numpy() for m in members], axis=0)
@@ -138,9 +155,9 @@ def main() -> None:
     # ---------------------------------------------------------------- attribution (occlusion)
     base_cell = lam[ti].sum(axis=0)  # [H, W]
     base_dist = lam_d[ti].sum(axis=0)
-    attribution = {"year": args.year, "groups": list(GROUPS), "cell": {}, "district": {}}
+    attribution = {"year": args.year, "groups": list(groups), "cell": {}, "district": {}}
     effects_cell, effects_dist = {}, {}
-    for group, channels in GROUPS.items():
+    for group, channels in groups.items():
         xo = x.clone()
         for ch in channels:
             xo[:, t.channels.index(ch)] = 0.0  # standardised mean (context) / no prior events
@@ -151,9 +168,9 @@ def main() -> None:
         lo_d = np.einsum("khw,dhw->d", lam_o[ti], frac)
         effects_dist[group] = (base_dist - lo_d) / np.maximum(base_dist, 1e-9) * 100
     for unit_id, r, c in zip(t.unit_ids, rows, cols, strict=True):
-        attribution["cell"][unit_id] = [round(float(effects_cell[g][r, c]), 2) for g in GROUPS]
+        attribution["cell"][unit_id] = [round(float(effects_cell[g][r, c]), 2) for g in groups]
     for di, d in enumerate(t.district_ids):
-        attribution["district"][d] = [round(float(effects_dist[g][di]), 2) for g in GROUPS]
+        attribution["district"][d] = [round(float(effects_dist[g][di]), 2) for g in groups]
     (out / "attribution.json").write_text(json.dumps(attribution), encoding="utf-8")
 
     # ---------------------------------------------------------------- what-if (district PDP)
@@ -162,10 +179,11 @@ def main() -> None:
     for name in t.context_order:
         vals = np.log1p(raw[name])
         stats[name] = (vals.mean(), vals.std() + 1e-6)
+    whatif_vars = [v for v in WHATIF_VARIABLES if v in t.context_order][:6]
     whatif = {
         "year": args.year,
         "factors": list(WHATIF_FACTORS),
-        "variables": list(t.context_order),
+        "variables": whatif_vars,
         "district": {},
     }
     raw_grid = {}
@@ -176,7 +194,7 @@ def main() -> None:
     for di, d in enumerate(t.district_ids):
         mask = frac[di] > 0.5  # cells owned mostly by the district
         curves = {}
-        for name in t.context_order:
+        for name in whatif_vars:
             ch = t.channels.index(name)
             mean, std = stats[name]
             curve = []
@@ -230,6 +248,9 @@ def main() -> None:
         | {f"ensemble_seed_{h['seed']}": h["history"] for h in metrics.get("ensemble_members", [])},
         "search": metrics.get("search"),
         "reporting_factor": metrics["reporting_factor"],
+        "selection_rule": metrics.get("selection_rule"),
+        "high_level": _optional_json(args.run / "high_level.json"),
+        "reproducibility": _optional_json(args.run / "reproducibility.json"),
     }
     (out / "card.json").write_text(json.dumps(card), encoding="utf-8")
     print("explanations written to", out)

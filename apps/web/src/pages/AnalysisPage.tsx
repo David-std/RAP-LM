@@ -328,6 +328,7 @@ function Change({ meta, units, districts, openUnit }: Props & { bands: ClassBand
         <RiskMap
           units={geo}
           outline={q.unitType === "cell" ? districts : undefined}
+          scope={districts}
           results={EMPTY}
           bands={[]}
           colorize={colorize}
@@ -426,6 +427,7 @@ function Persistence({ meta, units, districts, openUnit }: Props & { bands: Clas
         <RiskMap
           units={geo}
           outline={q.unitType === "cell" ? districts : undefined}
+          scope={districts}
           results={EMPTY}
           bands={[]}
           colorize={colorOf}

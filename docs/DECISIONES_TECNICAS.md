@@ -15,6 +15,8 @@ C-05 del plan, métrica M-15). Una IA no aprueba cambios en nombre del equipo: e
 | D-06 | 2026-11-22 | Solicitud de cambio (contrato API: recurso `/series`) | Pendiente de aprobación del equipo |
 | D-07 | 2026-11-22 | Decisión de implementación (retiro del prototipo sintético) | Aplicada |
 | D-08 | 2026-11-22 | Decisión de implementación (definición de periodos) | Aplicada |
+| D-09 | 2026-11-22 | Solicitud de cambio (contrato API: corredores, explicaciones y ficha del modelo) | Pendiente de aprobación del equipo |
+| D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Pendiente de aprobación del equipo |
 
 ---
 
@@ -116,3 +118,43 @@ contrato.
 semana × 0–6, 6–12, 12–18 y 18–24 h, por año. Los años publicados son 2011–2017 y 2021–2024, es decir, los años
 con alguna fuente. El indicador se anualiza por número de días del tipo para que laborable y fin de semana sean
 comparables. Los eventos sin hora se excluyen de las franjas y quedan contados en el reporte de fusión.
+
+## D-09. Capas de analista: corredores, explicaciones y ficha del modelo
+
+**Requisitos:** RF-02, RF-08, RNF-01, RM-02, RM-03; pedido del Product Owner tras revisar la interfaz: un analista
+necesita precisión de calle, entender cómo estima la red y poder explorar escenarios.
+**Decisión:** tres recursos de solo lectura más, calculados por lotes (RG-02 se mantiene):
+
+- `/api/v1/corridors`: calles con atropellos registrados por distrito, en la línea de las redes de alto riesgo de
+  los programas Visión Cero;
+- `/api/v1/explanations`: estimado frente a observado por año, atribución por oclusión y dependencia parcial por
+  distrito (simulación con controles deslizantes, precalculada);
+- `/api/v1/model`: arquitectura, curvas de entrenamiento, benchmark, errores del nivel alto y SHA de los pesos.
+
+Nada de esto recomienda intervenciones (RG-03). **Impacto:** amplía el contrato de la Figura 5D (C-05) y agrega
+la migración `0002` y la vista *Corredores* y *Modelo* de la interfaz.
+
+## D-10. Dataset v1.1 y tres componentes del riesgo (frecuencia, severidad, exposición)
+
+**Requisitos:** RD-05, RM-05; plan v1.6 §1.2 (Guo et al., 2024; Hu et al., 2024): el riesgo se relaciona con la
+frecuencia, la severidad, la exposición peatonal, el volumen de tránsito y el entorno vial, y la evaluación
+técnica separa "conteos" de "riesgo ajustado por exposición". **Brecha detectada:** el MVP solo modelaba la
+frecuencia y usaba siete proxies de contexto; no había índice ajustado por exposición ni componente de severidad, y
+no se reportaban los falsos positivos y negativos del nivel alto que define el plan.
+**Decisión:**
+
+1. Dataset `fused-v1.1.0` con ocho proxies de OSM (comercio y servicios, centros educativos y de salud, cruces,
+   semáforos, veredas y vías peatonales, vías arteriales como proxy del volumen de tránsito, vías colectoras) y con
+   subtipo y severidad por evento.
+2. Tres indicadores por zona y periodo:
+   - frecuencia (λ de la red, índice principal);
+   - severidad esperada (λ × probabilidad de desenlace fatal suavizada por Bayes empírico con los años de
+     entrenamiento);
+   - razón ajustada por exposición (λ / λ esperado por un modelo que solo ve exposición, lógica de razón
+     observados/esperados).
+3. Desglose del registro histórico por subtipo y severidad.
+4. Falsos positivos y negativos, precisión y recall del nivel alto para el modelo y el promedio histórico.
+
+La v2 del modelo se entrena sobre v1.1 con la enmienda A1, registrada antes de reiniciar la búsqueda.
+**Limitación que persiste:** no existe exposición peatonal medida (aforos) para los 43 distritos; los proxies se
+declaran como tales (L06). **Impacto:** migración `0003`, campos `severity`, `exposure` y `breakdown` en la API.

@@ -1,6 +1,7 @@
-// Map workspace: EP-01 (map, legend, view), EP-02 (detail), EP-03 (period,
+// Map workspace: EP-01 (map, legend, view), EP-02 (zone panel), EP-03 (period,
 // filters). Filters are applied by the API (RF-04); units outside the filtered
-// subset are drawn faded, units without result are hatched (HU-21).
+// subset are drawn faded, units without result are hatched (HU-21). The area
+// outside the 43 districts is dimmed so the scope is unambiguous (RG-01).
 
 import { useMemo, useState } from "react";
 
@@ -8,10 +9,9 @@ import { api } from "../api/client";
 import type { Legend as LegendDto, RiskLevel, RiskResult, UnitCollection } from "../api/types";
 import { useApi } from "../api/useApi";
 import { Notice, PeriodPicker, Segmented } from "../components/Controls";
-import { DetailPanel } from "../components/DetailPanel";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
-import { Timeline } from "../components/Timeline";
+import { ZonePanel } from "../components/ZonePanel";
 import { BANDS, DAY_LABEL, fmtIndex, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
 import { ALL_LEVELS, useQuery } from "../state/QueryContext";
@@ -21,9 +21,10 @@ interface Props {
   districts: UnitCollection;
   legend: LegendDto;
   goCompare: (mode: "spatial" | "temporal") => void;
+  goCorridors: (districtId: string) => void;
 }
 
-export function MapPage({ units, districts, legend, goCompare }: Props) {
+export function MapPage({ units, districts, legend, goCompare, goCorridors }: Props) {
   const q = useQuery();
   const bands = useMemo(() => classBands(legend), [legend]);
   const periodId = q.periodId(q.active);
@@ -35,34 +36,27 @@ export function MapPage({ units, districts, legend, goCompare }: Props) {
     [periodId, q.unitType, q.districtIds.join(), q.levels.join()],
     !!periodId,
   );
-  // Selected unit is fetched on its own so it stays visible even when filtered out (HU-08).
+  // The selected unit is fetched on its own so it stays visible even when filtered out (HU-08).
   const selected = useApi(
     (s) => api.risk({ periodId: periodId!, unitType: q.unitType, unitId: q.selectedUnitId! }, s),
     [periodId, q.unitType, q.selectedUnitId],
     !!periodId && !!q.selectedUnitId,
   );
 
-  const results = useMemo(() => {
-    const m = new Map<string, RiskResult>();
-    risk.data?.data.forEach((r) => m.set(r.unit.unit_id, r));
-    return m;
-  }, [risk.data]);
+  const results = useMemo(() => new Map((risk.data?.data ?? []).map((r) => [r.unit.unit_id, r] as [string, RiskResult])), [risk.data]);
   const visible = useMemo(() => new Set(results.keys()), [results]);
-  const mapUnits = q.unitType === "cell" ? units : districts;
-  const hovered = hover ? results.get(hover) : undefined;
   const filtersOn = q.levels.length > 0 || q.districtIds.length > 0;
   const counts = risk.data?.counts;
+  const hovered = hover ? results.get(hover) : undefined;
   const districtOptions = useMemo(
-    () =>
-      districts.features
-        .map((f) => ({ id: f.properties.unit_id, name: f.properties.display_name }))
-        .sort((a, b) => a.name.localeCompare(b.name, "es")),
+    () => districts.features.map((f) => ({ id: f.properties.unit_id, name: f.properties.display_name })).sort((a, b) => a.name.localeCompare(b.name, "es")),
     [districts],
   );
 
   function onSearch(e: React.FormEvent) {
     e.preventDefault();
     const term = search.trim().toUpperCase();
+    if (!term) return;
     const cell = units.features.find((f) => f.properties.unit_id.toUpperCase() === term);
     const district = districtOptions.find((d) => d.name.toUpperCase().includes(term));
     if (cell) {
@@ -77,63 +71,10 @@ export function MapPage({ units, districts, legend, goCompare }: Props) {
   return (
     <div className="workspace">
       <aside className="rail" aria-label="Consulta">
-        <h2 className="rail-title">Consulta</h2>
-        <PeriodPicker years={q.years} value={q.active} onChange={q.setActive} />
-        {!periodId && <Notice tone="warn">Este periodo no tiene resultados publicados.</Notice>}
-
-        <fieldset className="filter">
-          <legend className="field-label" title="Muestra solo las unidades del nivel elegido. Sin selección se muestran todas.">
-            Nivel de riesgo
-          </legend>
-          {ALL_LEVELS.map((level: RiskLevel) => {
-            const band = legend.bands.find((b) => b.level === level)!;
-            return (
-              <label key={level} className="check-row">
-                <input type="checkbox" checked={q.levels.includes(level)} onChange={() => q.toggleLevel(level)} />
-                <span className="swatch-pair" aria-hidden="true">
-                  <span style={{ background: colorFor(band.min_index, bands)! }} />
-                  <span style={{ background: colorFor(band.max_index - 1, bands)! }} />
-                </span>
-                {LEVEL_LABEL[level]} {band.min_index} a {level === "high" ? 100 : band.max_index - 1}
-                <span className="count">{counts ? counts[level].toLocaleString("es-PE") : "…"}</span>
-              </label>
-            );
-          })}
-          <p className="muted small">
-            {q.unitType === "cell" ? "Celdas" : "Distritos"} por nivel en el periodo activo
-            {counts && counts.no_result > 0 && `; ${counts.no_result} sin resultado`}
-          </p>
-        </fieldset>
-
-        <label className="field-label" htmlFor="district-filter" title="Filtra por jurisdicción (43 distritos de Lima, sin Callao)">
-          Distrito
-        </label>
-        <select
-          id="district-filter"
-          className="select"
-          value={q.districtIds[0] ?? ""}
-          onChange={(e) => q.setDistricts(e.target.value ? [e.target.value] : [])}
-        >
-          <option value="">Los 43 distritos</option>
-          {districtOptions.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-
-        {filtersOn && (
-          <div className="active-filters" aria-live="polite">
-            <span>
-              Filtros: {q.levels.map((l) => LEVEL_LABEL[l]).join(", ") || "todos los niveles"};{" "}
-              {q.districtIds.length ? districtOptions.find((d) => d.id === q.districtIds[0])?.name : "todos los distritos"}
-            </span>
-            <button type="button" className="btn small" onClick={q.clearFilters}>
-              Quitar filtros
-            </button>
-          </div>
-        )}
-
+        <div>
+          <p className="eyebrow">Explorar</p>
+          <h2 className="rail-title">Riesgo por zona y periodo</h2>
+        </div>
         <Segmented
           label="Unidad de análisis"
           value={q.unitType}
@@ -143,25 +84,58 @@ export function MapPage({ units, districts, legend, goCompare }: Props) {
           ]}
           onChange={q.setUnitType}
         />
+        <PeriodPicker years={q.years} value={q.active} onChange={q.setActive} />
+        {!periodId && <Notice tone="warn">Este periodo no tiene resultados publicados.</Notice>}
 
-        <form className="search" onSubmit={onSearch} role="search">
-          <label htmlFor="unit-search" className="sr-only">
-            Buscar distrito o celda
-          </label>
-          <input
-            id="unit-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar distrito o celda (F54-C35)"
-          />
-        </form>
+        <fieldset className="rail-section">
+          <legend className="field-label" title="Sin selección se muestran todas las unidades">Nivel de riesgo</legend>
+          {ALL_LEVELS.map((level: RiskLevel) => {
+            const band = legend.bands.find((b) => b.level === level)!;
+            return (
+              <label key={level} className="check-row">
+                <input type="checkbox" checked={q.levels.includes(level)} onChange={() => q.toggleLevel(level)} />
+                <span className="swatch-pair" aria-hidden="true">
+                  <span style={{ background: colorFor(band.min_index, bands)! }} />
+                  <span style={{ background: colorFor(band.max_index - 1, bands)! }} />
+                </span>
+                {LEVEL_LABEL[level]} ({band.min_index} a {level === "high" ? 100 : band.max_index - 1})
+                <span className="count">{counts ? counts[level].toLocaleString("es-PE") : "…"}</span>
+              </label>
+            );
+          })}
+          {counts && counts.no_result > 0 && <p className="muted small">{counts.no_result} sin resultado</p>}
+        </fieldset>
+
+        <div className="rail-section">
+          <label className="field-label" htmlFor="district-filter">Distrito (43 de la provincia de Lima)</label>
+          <select id="district-filter" className="select" value={q.districtIds[0] ?? ""} onChange={(e) => q.setDistricts(e.target.value ? [e.target.value] : [])}>
+            <option value="">Todos los distritos</option>
+            {districtOptions.map((d) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
+          {filtersOn && (
+            <div className="active-filters" aria-live="polite">
+              <span>
+                Filtrando: {q.levels.map((l) => LEVEL_LABEL[l]).join(", ") || "todos los niveles"},{" "}
+                {q.districtIds.length ? districtOptions.find((d) => d.id === q.districtIds[0])?.name : "todos los distritos"}
+              </span>
+              <button type="button" className="btn small" onClick={q.clearFilters}>Quitar filtros</button>
+            </div>
+          )}
+          <form className="search" onSubmit={onSearch} role="search">
+            <label htmlFor="unit-search" className="field-label">Buscar</label>
+            <input id="unit-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Distrito o celda, ej. F54-C35" />
+          </form>
+        </div>
       </aside>
 
       <main className="map-area">
         {risk.error && <Notice tone="error">No se pudo cargar el riesgo: {risk.error.message}</Notice>}
         <RiskMap
-          units={mapUnits}
+          units={q.unitType === "cell" ? units : districts}
           outline={q.unitType === "cell" ? districts : undefined}
+          scope={districts}
           results={results}
           bands={bands}
           visible={filtersOn ? visible : null}
@@ -196,10 +170,10 @@ export function MapPage({ units, districts, legend, goCompare }: Props) {
             subtitle={`${q.active.year}, ${DAY_LABEL[q.active.dayType].toLowerCase()}, ${BANDS[q.active.band]}. Escala común a todos los periodos.`}
           />
         </div>
-        <Timeline bands={bands} />
+        <div className="map-scope">Provincia de Lima, 43 distritos (Callao excluido)</div>
       </main>
 
-      <DetailPanel
+      <ZonePanel
         result={selected.data?.data[0] ?? null}
         bands={bands}
         onClose={() => q.select(null)}
@@ -211,6 +185,7 @@ export function MapPage({ units, districts, legend, goCompare }: Props) {
           q.setTemporalUnit(q.selectedUnitId);
           goCompare("temporal");
         }}
+        onOpenCorridors={goCorridors}
       />
     </div>
   );

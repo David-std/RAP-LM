@@ -70,7 +70,7 @@
       "coverage_start": null,
       "coverage_end": null,
       "spatial_coverage": "Extracto de Lima recortado a los 43 distritos",
-      "population": "Calles con nombre (red de 2026) usadas para longitud vial y georreferenciación de referencias policiales",
+      "population": "Red vial (calles con nombre, jerarquía vial, veredas), puntos de interés, cruces y semáforos; instantánea 2026",
       "incorporated": true
     },
     {
@@ -257,8 +257,88 @@
       "unit": "vehículos",
       "source_id": null,
       "reference_period": "no disponible",
-      "description": "Solo hay conteos de peaje en carreteras concesionadas; no hay volumen vehicular urbano para los 43 distritos.",
+      "description": "No hay conteos de volumen vehicular urbano para los 43 distritos; se usa la longitud de vías arteriales como proxy.",
       "incorporated": false
+    },
+    {
+      "variable_id": "poi_commerce",
+      "label": "Comercio y servicios (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Comercios, restaurantes, bancos, farmacias y mercados por celda: proxy de actividad y atracción peatonal (Guo et al., 2024).",
+      "incorporated": true
+    },
+    {
+      "variable_id": "poi_education",
+      "label": "Centros educativos (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Colegios, iniciales, institutos y universidades por celda: proxy de flujos peatonales de estudiantes.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "poi_health",
+      "label": "Centros de salud (OSM)",
+      "concept_group": "exposure",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Hospitales, clínicas y consultorios por celda.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "osm_crossings",
+      "label": "Cruces peatonales mapeados (OSM)",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Nodos de cruce peatonal por celda: infraestructura y caminabilidad (Hu et al., 2024).",
+      "incorporated": true
+    },
+    {
+      "variable_id": "osm_signals",
+      "label": "Semáforos mapeados (OSM)",
+      "concept_group": "context",
+      "unit": "cantidad",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Nodos de semáforo por celda: control del tránsito.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "footway_km",
+      "label": "Veredas y vías peatonales (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de veredas, pasajes peatonales y escaleras por celda: proxy de caminabilidad.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "arterial_km",
+      "label": "Vías arteriales (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de vías expresas, troncales y primarias por celda: proxy del volumen de tránsito vehicular.",
+      "incorporated": true
+    },
+    {
+      "variable_id": "collector_km",
+      "label": "Vías colectoras (OSM)",
+      "concept_group": "context",
+      "unit": "km",
+      "source_id": "osm_lima_extract",
+      "reference_period": "2026",
+      "description": "Longitud de vías secundarias y terciarias por celda.",
+      "incorporated": true
     }
   ],
   "limitations": [
