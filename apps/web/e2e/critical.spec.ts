@@ -22,7 +22,7 @@ test("E2E-01 RF-01 RF-07: map shows every unit of the scope with legend and acti
 test("E2E-02 RF-03 HU-11: changing the period updates map and status together", async ({ page }) => {
   await ready(page);
   const req = page.waitForRequest((r) => r.url().includes("/api/v1/risk") && r.url().includes("period_id=2021-"));
-  await page.getByLabel("Año").first().selectOption("2021");
+  await page.getByLabel("Año", { exact: true }).selectOption("2021");
   await req;
   await expect(page.locator(".statusbar")).toContainText("2021");
 });

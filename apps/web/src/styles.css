@@ -286,3 +286,5 @@ details[open] summary { margin-bottom: 8px; }
 .plain-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-variant-numeric: tabular-nums; }
 .data-table tr.on td { background: var(--accent-bg); }
 .data-table tbody tr { cursor: pointer; }
+.card header:has(> p.card-sub) { flex-direction: column; align-items: flex-start; gap: 2px; }
+.card header > p.card-sub { margin: 0; }

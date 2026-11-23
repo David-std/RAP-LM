@@ -21,7 +21,8 @@ type MapLayer = "risk" | "record" | "influence";
 type MapView = "cells" | "districts" | "heat";
 const DENSITY_RAMP = ["#F6DFC4", "#EDB97F", "#D9822B", "#A8561A", "#6B3410"];
 const HEAT_GRADIENT: Record<MapLayer, Record<number, string>> = {
-  risk: { 0.2: "#F8CBB8", 0.45: "#F09A80", 0.65: "#E0664D", 0.85: "#BF3A2E", 1: "#7E1F22" },
+  // Same breaks as the risk legend (0-19, 20-39, 40-54, 55-69, 70-84, 85-100).
+  risk: { 0: "#FDEEE8", 0.2: "#F8CBB8", 0.4: "#F09A80", 0.55: "#E0664D", 0.7: "#BF3A2E", 0.85: "#7E1F22", 1: "#7E1F22" },
   record: { 0.2: "#F6DFC4", 0.45: "#EDB97F", 0.65: "#D9822B", 0.85: "#A8561A", 1: "#6B3410" },
   influence: { 0.2: "#D7EFEB", 0.45: "#9FD6CD", 0.65: "#4FB3A5", 0.85: "#0B7F73", 1: "#064C45" },
 };
@@ -96,9 +97,19 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
       const r = results.get(id);
       if (!r) return 0;
       if (layer === "record") return Math.sqrt(((r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1)) / maxDensity);
-      return r.risk_index === null ? 0 : (r.risk_index / 100) ** 2;
+      return r.risk_index === null ? 0 : r.risk_index / 100;
     },
     [layer, results, influence, maxDensity],
+  );
+  // With the Grad-CAM layer the grid is drawn in the district view too: a click
+  // on a cell then selects its district, which keeps the district explanation.
+  const cellDistrict = useMemo(
+    () => new Map(units.features.map((f) => [f.properties.unit_id, f.properties.district_id])),
+    [units],
+  );
+  const selectUnit = useCallback(
+    (id: string) => q.select(q.unitType === "district" && layer === "influence" ? (cellDistrict.get(id) ?? id) : id),
+    [q, layer, cellDistrict],
   );
   const colorize = useCallback(
     (id: string): string | null => {
@@ -229,8 +240,9 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           />
         ) : (
           <RiskMap
-            units={q.unitType === "cell" ? units : districts}
-            outline={q.unitType === "cell" ? districts : undefined}
+            // Grad-CAM maps are cell-level: the grid is drawn even in the district view.
+            units={q.unitType === "cell" || layer === "influence" ? units : districts}
+            outline={q.unitType === "cell" || layer === "influence" ? districts : undefined}
             scope={districts}
             results={results}
             bands={bands}
@@ -238,7 +250,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             colorize={layer === "risk" ? undefined : colorize}
             selected={q.selectedUnitId ? [q.selectedUnitId] : []}
             focus={q.selectedUnitId}
-            onSelect={(id) => q.select(id)}
+            onSelect={selectUnit}
             onHover={(id) => setHover(id)}
             ariaLabel={`Mapa de riesgo por ${q.unitType === "cell" ? "celda" : "distrito"}, ${periodId ?? ""}`}
           />

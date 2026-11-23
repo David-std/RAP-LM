@@ -47,24 +47,58 @@ def influence(
     return acc / len(members)
 
 
+def hidden_states(m, x: torch.Tensor) -> list[torch.Tensor]:
+    """Encoder feature maps of every year with gradients retained.
+
+    ConvLSTM: the hidden state h_t of each step (Shi et al., 2015); the state of
+    year t reaches neighbouring cells of later years through the 3x3 gates, so
+    the maps of earlier steps carry the spatial propagation. Other variants:
+    the encoder output of each year.
+    """
+    enc = m.encoder
+    if m.variant != "convlstm":
+        feats = enc(x)
+        feats.retain_grad()
+        return [feats[t : t + 1] for t in range(x.shape[0])] + [feats]
+    T, _, H, W = x.shape
+    h = x.new_zeros(1, enc.hidden, H, W)
+    c = x.new_zeros(1, enc.hidden, H, W)
+    states = []
+    for t in range(T):
+        i, f, o, g = enc.gates(torch.cat([x[t : t + 1], h], dim=1)).chunk(4, dim=1)
+        c = torch.sigmoid(f) * c + torch.sigmoid(i) * torch.tanh(g)
+        h = torch.sigmoid(o) * torch.tanh(c)
+        h.retain_grad()
+        states.append(h)
+    return states
+
+
 def gradcam(
     members, x: torch.Tensor, valid: torch.Tensor, ti: int, weight: torch.Tensor
 ) -> np.ndarray:
-    """[H, W] Grad-CAM over the encoder feature maps of year ``ti`` (mean over members).
+    """[H, W] Grad-CAM map (HiResCAM variant) for the estimate of one unit in year ``ti``.
 
-    A = encoder(x)[ti] are the spatial feature maps the output head reads (CNN-LSTM:
-    LSTM states per cell; ConvLSTM: hidden state maps). Channel weights are the
-    spatial mean of d target / d A (global average pooling of gradients) and the
-    map is ReLU(sum_k alpha_k * A_k), as in Selvaraju et al. (2017).
+    Classic Grad-CAM (Selvaraju et al., 2017) averages the gradient over the whole
+    map into one weight per channel, which suits a single class score but, for a
+    dense regression output, also lights up distant cells that merely share the
+    pattern. HiResCAM (Draelos and Carin, 2020) keeps the gradient per cell:
+    ReLU(sum over channels and years <= ti of dTarget/dA * A), so every highlighted
+    cell lies within the network's receptive field of the unit. Mean over members.
     """
     acc = np.zeros(x.shape[2:], dtype=np.float64)
     for m in members:
-        feats = m.encoder(x)  # [T, F, H, W]
+        states = hidden_states(m, x)
+        if m.variant == "convlstm":
+            feats = torch.cat(states, dim=0)
+            steps = states[: ti + 1]
+        else:
+            feats = states[-1]
+            steps = [feats]
         target = (torch.exp(m.head(feats))[ti] * valid * weight).sum()
-        (grad,) = torch.autograd.grad(target, feats)
-        alpha = grad[ti].mean(dim=(1, 2), keepdim=True)  # [F, 1, 1]
-        cam = torch.relu((alpha * feats[ti]).sum(dim=0)) * valid
-        acc += cam.detach().numpy()
+        target.backward()
+        cam = sum((s.grad * s).sum(dim=(0, 1)) for s in steps)
+        acc += (torch.relu(cam) * valid).detach().numpy()
+        m.zero_grad(set_to_none=True)
     return acc / len(members)
 
 
@@ -101,7 +135,7 @@ def main() -> None:
     result.update(
         {
             "year": args.year,
-            "method": "Grad-CAM on encoder feature maps, mean over ensemble members",
+            "method": "Grad-CAM (HiResCAM variant) on ConvLSTM hidden states, mean over members",
         }
     )
 

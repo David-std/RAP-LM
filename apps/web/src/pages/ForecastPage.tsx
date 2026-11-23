@@ -144,7 +144,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
         <section className="card">
           <header>
             <h2>¿Es confiable?</h2>
-            <span className="card-sub">la misma red pronosticó {test?.year ?? 2024} sin haberlo visto</span>
+            <p className="card-sub">la misma red pronosticó {test?.year ?? 2024} sin haberlo visto</p>
           </header>
           <div className="kpi-row two">
             <div className="kpi">
@@ -161,7 +161,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
         <section className="card">
           <header>
             <h2>Mayor riesgo esperado</h2>
-            {unitType === "district" && totalExpected > 0 && <span className="card-sub">{totalExpected.toFixed(0)} atropellos esperados en la franja (43 distritos)</span>}
+            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{totalExpected.toFixed(0)} atropellos esperados en la franja, 43 distritos</p>}
           </header>
           <table className="data-table">
             <thead>

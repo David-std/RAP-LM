@@ -172,7 +172,7 @@ def test_gradient_influence_matches_receptive_field():  # Grad-CAM style maps (D
     assert reach == {"lstm_only": 1, "cnn_lstm": 25}  # 1x1 kernels vs two 3x3 convolutions
 
 
-def test_gradcam_is_non_negative_and_localised():  # Grad-CAM, Selvaraju et al. (2017)
+def test_gradcam_is_non_negative_and_localised():  # Grad-CAM, HiResCAM variant
     from ml.fused.saliency import gradcam
 
     torch.manual_seed(0)
@@ -184,3 +184,5 @@ def test_gradcam_is_non_negative_and_localised():  # Grad-CAM, Selvaraju et al. 
     cam = gradcam([model], torch.randn(4, 3, 9, 9), torch.ones(9, 9), 3, target)
     assert cam.shape == (9, 9)
     assert (cam >= 0).all() and cam.max() > 0
+    # Four steps of 3x3 gates reach at most 3 cells away: the border stays at zero.
+    assert cam[0, :].sum() == 0 and cam[:, 0].sum() == 0

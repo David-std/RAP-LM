@@ -1,4 +1,4 @@
-// Shared Leaflet base map: CARTO Voyager tiles (coloured water), labels in a
+// Shared Leaflet base map: Esri World Light Gray (no API key), labels in a
 // pane above the analytical layers, scale, "full Lima" button and a mask that
 // dims everything outside the 43 districts of the province of Lima (RG-01).
 
@@ -7,22 +7,22 @@ import L from "leaflet";
 import type { UnitCollection } from "../api/types";
 
 export const LIMA_BOUNDS = L.latLngBounds([-12.52, -77.2], [-11.57, -76.62]);
-const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas";
+const ATTRIBUTION = "Mapa base &copy; Esri, HERE, Garmin, &copy; colaboradores de OpenStreetMap";
 
 export function createBaseMap(host: HTMLElement, renderer: L.Renderer): L.Map {
   const m = L.map(host, { renderer, zoomSnap: 0.25, minZoom: 9, maxZoom: 17, maxBounds: LIMA_BOUNDS.pad(0.5) });
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png", {
+  L.tileLayer(`${ESRI}/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}`, {
     attribution: ATTRIBUTION,
-    subdomains: "abcd",
+    maxNativeZoom: 16,
     maxZoom: 18,
   }).addTo(m);
   m.createPane("scope-mask").style.zIndex = "390";
   const labels = m.createPane("labels");
   labels.style.zIndex = "650";
   labels.style.pointerEvents = "none";
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd",
+  L.tileLayer(`${ESRI}/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
+    maxNativeZoom: 16,
     maxZoom: 18,
     pane: "labels",
   }).addTo(m);
