@@ -217,7 +217,7 @@ def main() -> None:
                 xo[:, ch] = torch.from_numpy(layer)
                 lo = ensemble_lambda(members, xo, valid)
                 ld = float(np.einsum("khw,hw->", lo[ti], frac[di]))
-                curve.append(round((ld - base_dist[di]) / max(base_dist[di], 1e-9) * 100, 2))
+                curve.append(round(float((ld - base_dist[di]) / max(base_dist[di], 1e-9) * 100), 2))
             curves[name] = curve
         whatif["district"][d] = curves
         partial.write_text(json.dumps(whatif), encoding="utf-8")
