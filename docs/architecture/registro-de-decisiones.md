@@ -7,21 +7,21 @@ registra la aprobación del equipo.
 
 | ID | Fecha | Tipo | Estado |
 |---|---|---|---|
-| D-01 | 2026-11-22 | Solicitud de cambio (datos, objetivo) | Pendiente de aprobación del equipo |
+| D-01 | 2026-11-22 | Solicitud de cambio (datos, objetivo) | Aprobada por el PM (2026-11-23) |
 | D-02 | 2026-11-22 | Decisión de implementación (nombres de API) | Aplicada, a revisar en PR |
 | D-03 | 2026-11-22 | Decisión de implementación (malla) | Aplicada |
 | D-04 | 2026-11-22 | Decisión de implementación (persistencia) | Aplicada |
 | D-05 | 2026-11-22 | Decisión de implementación (benchmark) | Aplicada |
-| D-06 | 2026-11-22 | Solicitud de cambio (contrato API: recurso `/series`) | Pendiente de aprobación del equipo |
+| D-06 | 2026-11-22 | Solicitud de cambio (contrato API: recurso `/series`) | Aprobada por el PM (2026-11-23) |
 | D-07 | 2026-11-22 | Decisión de implementación (retiro del prototipo sintético) | Aplicada |
 | D-08 | 2026-11-22 | Decisión de implementación (definición de periodos) | Aplicada |
-| D-09 | 2026-11-22 | Solicitud de cambio (contrato API: corredores, explicaciones y ficha del modelo) | Pendiente de aprobación del equipo |
-| D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Pendiente de aprobación del equipo |
-| D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Pendiente de aprobación del equipo |
-| D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Pendiente de aprobación del equipo |
-| D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Pendiente de aprobación del equipo |
-| D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aplica sin cambiar la línea base (corrección de validez); registro para el equipo |
-| D-15 | 2026-11-23 | Solicitud de cambio (meta de M-09: p95 ≤ 2,5 s bajo carga concurrente) | Pendiente de aprobación del equipo |
+| D-09 | 2026-11-22 | Solicitud de cambio (contrato API: corredores, explicaciones y ficha del modelo) | Aprobada por el PM (2026-11-23) |
+| D-10 | 2026-11-22 | Solicitud de cambio (dataset v1.1: exposición, entorno, severidad; tres componentes de riesgo) | Aprobada por el PM (2026-11-23) |
+| D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Aprobada por el PM (2026-11-23) |
+| D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Aprobada por el PM (2026-11-23) |
+| D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Aprobada por el PM (2026-11-23) |
+| D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aprobada por el PM (2026-11-23) |
+| D-15 | 2026-11-23 | Solicitud de cambio (meta de M-09: p95 ≤ 2,5 s bajo carga concurrente) | Aprobada por el PM (2026-11-23) |
 
 ---
 

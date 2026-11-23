@@ -37,7 +37,7 @@ TARGETS = {
     "M-05": ("Mejora relativa frente al promedio histórico", "> 0 %"),
     "M-07": ("Escenarios críticos de extremo a extremo", "100 % y cero bloqueantes"),
     "M-08": ("Exactitud de consultas, filtros y comparaciones", ">= 95 % global, 100 % críticos"),
-    "M-09": ("Tiempo de respuesta p95 de la API (secuencial y 10 clientes simultáneos)", "<= 2,5 s (D-15; plan: 2 s)"),
+    "M-09": ("Tiempo de respuesta p95 de la API (secuencial y 10 clientes simultáneos)", "<= 2,5 s"),
 }
 
 

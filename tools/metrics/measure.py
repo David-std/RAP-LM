@@ -49,7 +49,7 @@ TARGETS = {
     "M-04": ">= 95 % values within tolerance; 100 % unit/period/level match",
     "M-05": "> 0 %",
     "M-08": ">= 95 % overall, 100 % critical",
-    "M-09": "p95 <= 2.5 s (D-15; plan: 2 s)",
+    "M-09": "p95 <= 2.5 s",
 }
 
 
