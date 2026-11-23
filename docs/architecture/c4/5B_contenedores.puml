@@ -4,7 +4,7 @@ title RAP-LM: contenedores (nivel 2)
 
 Person(analista, "Usuario especializado", "Analista de seguridad vial, GIS, ingeniero de tránsito o coordinador municipal")
 Person(backend, "Backend Developer & QA", "Ejecuta el pipeline por lotes y publica corridas")
-System_Ext(tiles, "Servicio de teselas", "CARTO / OpenStreetMap, solo fondo cartográfico")
+System_Ext(tiles, "Servicio de teselas", "Esri World Light Gray, solo fondo cartográfico")
 System_Ext(fuentes, "Fuentes públicas", "CENACOM, ONSV, INEI, WorldPop, MINAM, OpenStreetMap")
 
 System_Boundary(raplm, "RAP-LM (Docker Compose)") {

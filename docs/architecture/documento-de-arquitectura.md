@@ -57,13 +57,13 @@ Las decisiones de detalle y las solicitudes de cambio están en [architecture/re
 | Usuario especializado | Consulta, compara, analiza y exporta desde el navegador |
 | Backend Developer y QA | Ejecuta el pipeline y publica corridas |
 | Fuentes públicas (CENACOM, ONSV, INEI, WorldPop, MINAM, OpenStreetMap) | Instantáneas registradas con URL, licencia, fecha y SHA-256 |
-| Servicio de teselas (CARTO, OpenStreetMap) | Fondo cartográfico; no aporta datos analíticos |
+| Servicio de teselas (Esri World Light Gray, sin clave de API) | Fondo cartográfico; no aporta datos analíticos |
 
 ### 4.2. Contenedores (C4 nivel 2, Figura 5B; fuente [`c4/5B_contenedores.puml`](c4/5B_contenedores.puml))
 
 | Contenedor | Tecnología | Responsabilidad |
 |---|---|---|
-| Aplicación web | React, TypeScript, Leaflet (con leaflet.heat), servida por Nginx | Mapa en malla de 1 km, por distrito o como superficie de calor continua; vistas de corredores, comparación, análisis, modelo y metodología; proxy inverso `/api` |
+| Aplicación web | React, TypeScript, Leaflet, servida por Nginx | Mapa en malla de 1 km, por distrito o como superficie de calor continua; vistas de corredores, comparación, análisis, modelo y metodología; proxy inverso `/api` |
 | API de consulta | Python, FastAPI, Pydantic, SQLAlchemy | Recursos de solo lectura con contratos validados y errores definidos |
 | Base de datos espacial | PostgreSQL + PostGIS | Geometrías, periodos, corridas, resultados, corredores, explicaciones y procedencia |
 | Migración | Alembic | Contenedor de un solo uso que aplica el esquema versionado |
