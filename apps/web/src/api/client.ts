@@ -5,6 +5,9 @@
 import type {
   ApiErrorBody,
   Comparison,
+  CorridorCollection,
+  Explanation,
+  ModelCardDto,
   PeriodList,
   Provenance,
   RiskLevel,
@@ -110,6 +113,18 @@ export const api = {
       { unit_type: args.unitType, day_type: args.dayType, time_band: args.band, district_ids: args.districtIds },
       signal,
     ),
+
+  corridors: (args: { districtIds?: string[]; limit?: number; minEvents?: number }, signal?: AbortSignal) =>
+    get<CorridorCollection>(
+      "/corridors",
+      { district_ids: args.districtIds, limit: args.limit, min_events: args.minEvents },
+      signal,
+    ),
+
+  explanation: (unitType: UnitType, unitId: string, signal?: AbortSignal) =>
+    get<Explanation>("/explanations", { unit_type: unitType, unit_id: unitId }, signal),
+
+  model: (signal?: AbortSignal) => get<ModelCardDto>("/model", {}, signal),
 
   provenance: (
     args: { unitType?: UnitType; unitId?: string; periodId?: string },

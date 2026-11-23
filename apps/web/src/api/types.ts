@@ -235,3 +235,90 @@ export interface Series {
   period_ids: string[];
   units: SeriesUnit[];
 }
+
+export interface CorridorProps {
+  corridor_id: string;
+  district_id: string;
+  district_name: string;
+  street: string;
+  length_km: number;
+  events: number;
+  events_per_km: number;
+  rank: number;
+  cumulative_event_share: number;
+  injured: number;
+  deceased: number;
+  mean_risk_index: number | null;
+  by_family: Record<string, number>;
+  by_year: Record<string, number>;
+  by_subperiod: number[];
+  located_via: Record<string, number>;
+}
+
+export interface CorridorCollection {
+  type: "FeatureCollection";
+  run_id: string;
+  features: { type: "Feature"; id: string; properties: CorridorProps; geometry: GeoJSON.MultiLineString }[];
+}
+
+export interface Explanation {
+  meta: Meta;
+  unit_id: string;
+  unit_type: UnitType;
+  years: number[];
+  observing_family: string[];
+  expected_events: number[];
+  observed_events: number[];
+  attribution_year: number;
+  attribution_groups: string[];
+  attribution_pct: number[];
+  whatif_factors: number[] | null;
+  whatif: Record<string, number[]> | null;
+}
+
+export interface TrainingPoint {
+  0: number;
+  1: number;
+  2: number;
+}
+
+export interface SearchRow {
+  variant: string;
+  hidden: number;
+  dropout: number;
+  lr: number;
+  validation_E: number;
+  validation_nll: number;
+  best_epoch: number;
+}
+
+export interface ModelCardDto {
+  meta: Meta;
+  card: {
+    run_id: string;
+    model_family: string;
+    variant: string;
+    members: number;
+    parameters: number;
+    layers: string[];
+    input_channels: string[];
+    tensor_shapes: Record<string, number[]>;
+    config: Record<string, number>;
+    split: Record<string, Record<string, number[]>>;
+    weights_sha256: string;
+    code_commit_sha: string;
+    torch: string;
+    elapsed_seconds: number;
+    training_curves: Record<string, [number, number, number][] | null>;
+    search: SearchRow[] | null;
+    reporting_factor: Record<string, number>;
+  };
+  benchmark: BenchmarkMetrics & { search?: SearchRow[]; selected_config?: SearchRow };
+  corridor_summary: {
+    corridors: number;
+    events_assigned: number;
+    events_not_on_corridor: number;
+    total_length_km: number;
+    concentration: Record<string, number>;
+  } | null;
+}

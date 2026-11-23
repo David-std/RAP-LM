@@ -7,7 +7,7 @@ from sqlalchemy.exc import OperationalError
 
 from raster_api.config import get_settings
 from raster_api.db import get_engine
-from raster_api.v1 import errors
+from raster_api.v1 import analyst, errors
 from raster_api.v1.router import router
 
 app = FastAPI(
@@ -29,6 +29,7 @@ app.add_middleware(
 )
 errors.install(app)
 app.include_router(router)
+app.include_router(analyst.router)
 
 
 @app.get("/health", tags=["operations"])
