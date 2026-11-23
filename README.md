@@ -4,9 +4,10 @@ Web application based on neural networks (CNN-LSTM) for the spatiotemporal analy
 collision risk** (all severities) in the 43 districts of the province of Lima (Callao excluded).
 Academic project SI727, UPC, Group 06. Baseline: integrated project plan v1.6.
 
-Specialists can query, filter, compare and export a relative risk index per 1 km cell or district and per
-period (year × day type × 6-hour band), together with its level (low, medium, high), historical record and
-provenance. It is an analytical reference: no real-time prediction and no intervention recommendations.
+Specialists can query, filter, compare and export a relative risk index per 1 km cell, district and street
+corridor, per period (year × day type × 6-hour band), with three components (frequency, expected severity and
+exposure-adjusted ratio), its level (low, medium, high), the historical record by subtype and severity, an
+explanation of how the network reached it and its provenance. It is an analytical reference: no real-time prediction and no intervention recommendations.
 
 ```text
 Public sources (CENACOM 2011-2017, ONSV 2021-2024, INEI, WorldPop, MINAM, OSM)
@@ -45,15 +46,15 @@ D=../RAP-LM-DATA-LOCAL
 # 1. Fused dataset (grid, geocoding, context, manifest with SHA-256)
 python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA \
   --harmonized $D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv \
-  --out artifacts/datasets/fused-v1.0.0
+  --out artifacts/datasets/fused-v1.1.0
 # 2. Benchmark + training + frozen test evaluation
-python -m ml.fused.train --dataset artifacts/datasets/fused-v1.0.0 \
+python -m ml.fused.train --dataset artifacts/datasets/fused-v1.1.0 \
   --config ml/configs/run-main.json --out artifacts/runs/fused-cnnlstm-2026.11-r1
 # 3. Export publishable results (results.csv + SHA-256)
-python -m ml.fused.export --dataset artifacts/datasets/fused-v1.0.0 --run artifacts/runs/fused-cnnlstm-2026.11-r1
+python -m ml.fused.export --dataset artifacts/datasets/fused-v1.1.0 --run artifacts/runs/fused-cnnlstm-2026.11-r1
 # 4. Publish into PostGIS with the publisher role (atomic)
 RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm \
-python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.0.0 \
+python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.1.0 \
   --run artifacts/runs/fused-cnnlstm-2026.11-r1
 ```
 
@@ -66,7 +67,7 @@ docker compose up -d db
 RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/raplm pytest   # unit + PostGIS contract
 ruff check .
 cd apps/web && npm test && npm run typecheck && npm run build
-python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.0.0 \
+python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
   --run artifacts/runs/fused-cnnlstm-2026.11-r1 --out evidence/metrics                    # M-01..M-05, M-08, M-09
 ```
 
@@ -80,11 +81,9 @@ python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.0.0 \
 | `database` | Alembic migrations and DB roles (HT-04, HT-10) |
 | `apps/api` | Read-only FastAPI v1 (HT-09) and tests |
 | `apps/web` | React + TypeScript + Leaflet SPA (EP-01..EP-05) |
-| `tools/metrics`, `tools/validation` | Metric measurement and specialist-validation consolidation |
+| `tools/metrics`, `tools/validation`, `tools/reports` | Metric measurement, specialist-validation consolidation, benchmark report |
 | `data/catalog` | Provenance catalog (sources, variables, limitations) |
 | `docs/` | Architecture, API contract, ML protocol, decisions, control log, user manual, validation |
 | `evidence/` | Measured metric and benchmark reports |
 
-Key documents: [API contract](docs/api/contract.md), [benchmark protocol](docs/ml/benchmark-protocol.md),
-[technical decisions](docs/DECISIONES_TECNICAS.md), [development control](docs/CONTROL_DESARROLLO.md),
-[user manual](docs/manual_usuario.md), [delivery traceability](docs/delivery-traceability.md).
+Documentation index with current and design-history documents: [docs/README.md](docs/README.md).

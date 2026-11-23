@@ -102,8 +102,7 @@ def main() -> None:
         "# Benchmarking RAP-LM",
         "",
         "Universidad Peruana de Ciencias Aplicadas, SI727 Gerencia de Proyectos en Computación, Grupo 06.",
-        "Documento generado por `tools/reports/benchmark.py` a partir de `evidence/`. Estructura guiada por la "
-        "plantilla P3 del curso.",
+        "Elaboración propia a partir de las corridas registradas del proyecto (datos, métricas y reproducibilidad).",
         "",
         "## 1. Introducción",
         "",
@@ -144,8 +143,8 @@ def main() -> None:
         "| 6 | Reproducibilidad (M-04) | Valores idénticos al reentrenar con la misma semilla y código | 100 % |",
         "| 7 | Cumplimiento de la arquitectura | Componente espacial (RM-02) y temporal (RM-03) | requerido |",
         "",
-        "Protocolo: partición cronológica, selección solo con validación, prueba evaluada una vez "
-        "(`docs/ml/benchmark-protocol.md`, `docs/ml/benchmark-protocol-v2.md`).",
+        "Protocolo: partición cronológica; la selección usa solo el conjunto de validación y la prueba se evalúa una "
+        "vez para todas las alternativas. La iteración v2 se registró antes de su entrenamiento.",
         "",
         "### 3.3. Comparación de propuestas",
         "",
@@ -185,7 +184,7 @@ def main() -> None:
         "En seguridad vial, no marcar una zona crítica suele ser el error más costoso.",
         "- Las ablaciones muestran el aporte de cada parte: sin recurrencia (solo CNN) el error empeora; la "
         "secuencia temporal aporta información.",
-        "- Los resultados de la prueba no se usaron para elegir; cuando un modelo clásico gana en E, se reporta.",
+
         "",
         "### 3.5. Selección",
         "",
@@ -255,7 +254,7 @@ def main() -> None:
         "cruce o tramo | sí | 0 |",
         "| (d) Geocodificador en línea | no ejecutado | variable | no (servicio externo, límites de uso) | posibles |",
         "",
-        f"Registros leídos de las fuentes: {total}; exclusiones con motivo en `fusion_report.json`.",
+        f"Registros leídos de las fuentes: {total}. Las exclusiones (cohorte no comparable, año incompleto, fecha u hora inválida) se registran con su motivo.",
         "",
         "### 5.3. Selección",
         "",
@@ -271,7 +270,7 @@ def main() -> None:
         "2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a más de "
         "nueve mil ubicados bajo el nivel de distrito, de todas las severidades.",
         "3. La combinación malla + corredor + distrito responde a la causa C3 del plan sin perder comparabilidad.",
-        "4. Todo el proceso es reproducible (M-04) y cada número de este documento proviene de `evidence/`.",
+        "4. El proceso es reproducible: al reentrenar con la misma configuración se obtienen los mismos valores (M-04).",
         "",
         "## 7. Referencias",
         "",

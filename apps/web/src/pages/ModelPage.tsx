@@ -87,7 +87,7 @@ export function ModelPage() {
           {test.map((row) => (
             <BenchmarkBlock key={`${row.family}-${row.year}`} row={row} model={model.data!} />
           ))}
-          <p className="card-note">{benchmark.selection_rule}. Los resultados se reportan tal como salieron, también cuando un modelo clásico gana.</p>
+          <p className="card-note">Selección: {benchmark.selection_rule}. La prueba se evalúa una sola vez para todas las alternativas.</p>
         </section>
 
         {card.high_level && (
