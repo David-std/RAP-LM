@@ -105,7 +105,9 @@ class Tensors:
     factor_cell: np.ndarray | None = None  # [T, K, 12, H, W]
 
 
-def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
+def load_dataset(
+    dataset_dir: Path, years: list[int], norm_years: list[int] | None = None
+) -> Tensors:
     grid = json.loads((dataset_dir / "grid.geojson").read_text(encoding="utf-8"))
     spec = grid["grid"]
     H, W = spec["rows"], spec["cols"]
@@ -247,8 +249,12 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
         for ti, year in enumerate(years):
             yi = pop_years.index(min(max(year, pop_years[0]), pop_years[-1]))
             logs[ti, rows, cols] = np.log1p(pop[yi])
-        vals = logs[:, valid]
-        logs[:, valid] = (vals - vals.mean()) / (vals.std() + 1e-6)
+        # Standardisation statistics come from ``norm_years`` (default: the loaded years),
+        # so that a forecast that appends a year keeps the training years' inputs intact.
+        ref_t = [i for i, y in enumerate(years) if y in (norm_years or years)]
+        ref = logs[ref_t][:, valid]
+        mean, std = ref.mean(), ref.std() + 1e-6
+        logs[:, valid] = (logs[:, valid] - mean) / std
         X[:, context_order.index("population")] = logs
     X[:, len(context_order)] = valid
     base = len(context_order) + 1

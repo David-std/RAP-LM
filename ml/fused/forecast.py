@@ -74,7 +74,7 @@ def main() -> None:
     years = list(cfg["years"])
     if args.horizon != years[-1] + 1:
         raise SystemExit(f"horizon must be {years[-1] + 1} (one step after the last year)")
-    t = load_dataset(args.dataset, years + [args.horizon])
+    t = load_dataset(args.dataset, years + [args.horizon], norm_years=years)
     members = load_members(args.run, t)
     lam_m = member_lambdas(members, t.X, t.valid)  # [M, T+1, K, H, W]
     lam = lam_m.mean(axis=0)
