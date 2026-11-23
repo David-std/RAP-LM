@@ -122,7 +122,7 @@ export function HeatMap(p: Props) {
       if (!(w > 0)) continue;
       const [r, g, b] = rampColor(stops, Math.min(1, w));
       // Low values fade out so the base map stays readable; high values stay opaque.
-      img.data.set([r, g, b, Math.round(40 + 200 * Math.min(1, w))], (c.y * grid.cols + c.x) * 4);
+      img.data.set([r, g, b, Math.round(120 + 135 * Math.min(1, w))], (c.y * grid.cols + c.x) * 4);
     }
     sctx.putImageData(img, 0, 0);
     const big = document.createElement("canvas");

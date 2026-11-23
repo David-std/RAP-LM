@@ -22,7 +22,8 @@ type MapView = "cells" | "districts" | "heat";
 const DENSITY_RAMP = ["#F6DFC4", "#EDB97F", "#D9822B", "#A8561A", "#6B3410"];
 const HEAT_GRADIENT: Record<MapLayer, Record<number, string>> = {
   // Same breaks as the risk legend (0-19, 20-39, 40-54, 55-69, 70-84, 85-100).
-  risk: { 0: "#FDEEE8", 0.2: "#F8CBB8", 0.4: "#F09A80", 0.55: "#E0664D", 0.7: "#BF3A2E", 0.85: "#7E1F22", 1: "#7E1F22" },
+  // Classic heat scale for the continuous view (blue = low, magenta = highest).
+  risk: { 0: "#2B4FC7", 0.2: "#22B8CF", 0.4: "#4CC84A", 0.55: "#F2E30F", 0.7: "#F7931E", 0.85: "#E8202A", 1: "#E2189A" },
   record: { 0.2: "#F6DFC4", 0.45: "#EDB97F", 0.65: "#D9822B", 0.85: "#A8561A", 1: "#6B3410" },
   influence: { 0.2: "#D7EFEB", 0.45: "#9FD6CD", 0.65: "#4FB3A5", 0.85: "#0B7F73", 1: "#064C45" },
 };
@@ -273,7 +274,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           </div>
         )}
         <div className="legend-dock">
-          {layer === "record" && (
+          {view !== "heat" && layer === "record" && (
             <section className="legend">
               <strong>Atropellos registrados por km²</strong>
               <p className="legend-sub">{q.active.year}, {DAY_LABEL[q.active.dayType].toLowerCase()}, {BANDS[q.active.band]}. Registro de las fuentes, no estimación.</p>
@@ -285,7 +286,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               </ul>
             </section>
           )}
-          {layer === "influence" && (
+          {view !== "heat" && layer === "influence" && (
             <section className="legend">
               <strong>Influencia en la estimación (Grad-CAM)</strong>
               <p className="legend-sub">
@@ -302,7 +303,15 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               </ul>
             </section>
           )}
-          {layer === "risk" && <Legend
+          {view === "heat" && (
+            <section className="legend">
+              <strong>Mapa de calor</strong>
+              <p className="legend-sub">{layer === "risk" ? "Índice de riesgo estimado (0 a 100)" : layer === "record" ? "Atropellos registrados por km²" : "Influencia Grad-CAM"}</p>
+              <div style={{ height: 12, borderRadius: 6, background: `linear-gradient(90deg, ${Object.values(HEAT_GRADIENT[layer]).join(", ")})` }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span>Bajo</span><span>Alto</span></div>
+            </section>
+          )}
+          {view !== "heat" && layer === "risk" && <Legend
             legend={legend}
             bands={bands}
             title={`Riesgo por ${q.unitType === "cell" ? "celda de 1 km" : "distrito"}`}
