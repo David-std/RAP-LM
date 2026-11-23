@@ -43,7 +43,7 @@ def influence(
         xi = x.clone().requires_grad_(True)
         target = (torch.exp(m(xi))[ti] * valid * weight).sum()
         (grad,) = torch.autograd.grad(target, xi)
-        acc += (grad * xi).abs().sum(dim=(0, 1)).detach().numpy()
+        acc += (grad * xi).abs().sum(dim=(0, 1)).detach().cpu().numpy()
     return acc / len(members)
 
 
@@ -97,7 +97,7 @@ def gradcam(
         target = (torch.exp(m.head(feats))[ti] * valid * weight).sum()
         target.backward()
         cam = sum((s.grad * s).sum(dim=(0, 1)) for s in steps)
-        acc += (torch.relu(cam) * valid).detach().numpy()
+        acc += (torch.relu(cam) * valid).detach().cpu().numpy()
         m.zero_grad(set_to_none=True)
     return acc / len(members)
 
@@ -115,15 +115,16 @@ def main() -> None:
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--year", type=int, default=2024)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--device", default="cpu", help="cpu or cuda (forward passes only)")
     args = ap.parse_args()
     torch.set_num_threads(args.threads)
     cfg = json.loads((args.run / "run_manifest.json").read_text(encoding="utf-8"))["config"]
     t = load_dataset(args.dataset, cfg["years"])
-    members = load_members(args.run, t)
+    members = [m.to(args.device) for m in load_members(args.run, t)]
     for m in members:
         m.train(False)
-    x = torch.from_numpy(t.X)
-    valid = torch.from_numpy(t.valid.astype(np.float32))
+    x = torch.from_numpy(t.X).to(args.device)
+    valid = torch.from_numpy(t.valid.astype(np.float32)).to(args.device)
     ti = t.years.index(args.year)
     unit_at = {(int(r), int(c)): u for u, r, c in zip(t.unit_ids, t.rows, t.cols, strict=True)}
     out_path = args.run / "explanations" / "saliency.json"
@@ -142,7 +143,7 @@ def main() -> None:
     for di, d in enumerate(t.district_ids):
         if d in result["district"]:
             continue
-        w = torch.from_numpy((t.frac[di] > 0).astype(np.float32) * t.frac[di])
+        w = torch.from_numpy((t.frac[di] > 0).astype(np.float32) * t.frac[di]).to(x.device)
         result["district"][d] = top_cells(gradcam(members, x, valid, ti, w), unit_at)
         out_path.write_text(json.dumps(result), encoding="utf-8")
         print("district", d, flush=True)

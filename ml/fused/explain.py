@@ -94,7 +94,7 @@ def load_members(run: Path, t: Tensors) -> list[SpatioTemporalModel]:
 
 def ensemble_lambda(members, x: torch.Tensor, valid: torch.Tensor) -> np.ndarray:
     with torch.no_grad():
-        return np.mean([(torch.exp(m(x)) * valid).numpy() for m in members], axis=0)
+        return np.mean([(torch.exp(m(x)) * valid).cpu().numpy() for m in members], axis=0)
 
 
 def main() -> None:
@@ -103,23 +103,26 @@ def main() -> None:
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--year", type=int, default=2024)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--device", default="cpu", help="cpu or cuda (forward passes only)")
     args = ap.parse_args()
     torch.set_num_threads(args.threads)
     manifest = json.loads((args.run / "run_manifest.json").read_text(encoding="utf-8"))
     metrics = json.loads((args.run / "metrics.json").read_text(encoding="utf-8"))
     cfg = manifest["config"]
     t = load_dataset(args.dataset, cfg["years"])
-    members = load_members(args.run, t)
+    members = [m.to(args.device) for m in load_members(args.run, t)]
     out = args.run / "explanations"
     out.mkdir(exist_ok=True)
-    x = torch.from_numpy(t.X)
-    valid = torch.from_numpy(t.valid.astype(np.float32))
+    x = torch.from_numpy(t.X).to(args.device)
+    valid = torch.from_numpy(t.valid.astype(np.float32)).to(args.device)
     ti = t.years.index(args.year)
     groups = {g: [c for c in chs if c in t.channels] for g, chs in GROUPS.items()}
     groups = {g: chs for g, chs in groups.items() if chs}
     rows, cols = t.rows, t.cols
     lam = ensemble_lambda(members, x, valid)  # [T, K, H, W]
-    rho = np.mean([torch.exp(m.reporting_factors()).detach().numpy() for m in members], axis=0)
+    rho = np.mean(
+        [torch.exp(m.reporting_factors()).detach().cpu().numpy() for m in members], axis=0
+    )
     split = cfg["split"]
     published = [
         (i, y)
@@ -212,9 +215,9 @@ def main() -> None:
                     continue
                 xo = x.clone()
                 scaled = (np.log1p(raw_grid[name] * f) - mean) / std
-                layer = xo[:, ch].numpy()
+                layer = xo[:, ch].cpu().numpy()
                 layer[:, mask] = scaled[mask].astype(np.float32)
-                xo[:, ch] = torch.from_numpy(layer)
+                xo[:, ch] = torch.from_numpy(layer).to(xo.device)
                 lo = ensemble_lambda(members, xo, valid)
                 ld = float(np.einsum("khw,hw->", lo[ti], frac[di]))
                 curve.append(round(float((ld - base_dist[di]) / max(base_dist[di], 1e-9) * 100), 2))
