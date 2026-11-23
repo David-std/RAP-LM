@@ -97,7 +97,8 @@ El contrato completo está en [api/contract.md](../api/contract.md).
 3. Fusión de todos los atropellos y ubicación por cruce, tramo de calle o distrito.
 4. Variables de exposición y entorno.
 5. Tensores años × variables × malla con entradas causales.
-6. Entrenamiento y benchmark (ConvLSTM, CNN-LSTM, GLM de Poisson, ablaciones y promedio histórico).
+6. Entrenamiento y benchmark: variantes CNN-RNN (ConvLSTM y CNN-LSTM; la parte recurrente es una LSTM), GLM de
+   Poisson, ablaciones y promedio histórico.
 7. Evaluación en un año posterior al entrenamiento.
 8. Exportación de frecuencia, severidad y exposición, y explicaciones.
 9. Publicación atómica.

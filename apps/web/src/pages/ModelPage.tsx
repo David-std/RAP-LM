@@ -9,8 +9,8 @@ import { Notice } from "../components/Controls";
 import { VARIABLE_LABEL } from "../components/ZonePanel";
 
 const VARIANT_LABEL: Record<string, string> = {
-  cnn_lstm: "CNN-LSTM (referencia del plan)",
-  convlstm: "ConvLSTM (Shi et al., 2015)",
+  cnn_lstm: "CNN-RNN: CNN seguida de LSTM (referencia del plan)",
+  convlstm: "CNN-RNN: ConvLSTM, LSTM con compuertas convolucionales (Shi et al., 2015)",
   cnn_only: "Solo CNN (ablación)",
   lstm_only: "Solo LSTM (ablación)",
   poisson_glm: "GLM de Poisson (clásico)",

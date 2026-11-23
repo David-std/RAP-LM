@@ -20,8 +20,8 @@ OUT = ROOT / "docs" / "benchmarking" / "informe-de-benchmarking.md"
 VARIANT = {
     "historical_average": "Promedio histórico (B0)",
     "poisson_glm": "GLM de Poisson",
-    "convlstm": "ConvLSTM",
-    "cnn_lstm": "CNN-LSTM",
+    "convlstm": "CNN-RNN: ConvLSTM",
+    "cnn_lstm": "CNN-RNN: CNN-LSTM",
     "cnn_only": "Solo CNN (ablación)",
     "lstm_only": "Solo LSTM (ablación)",
 }
@@ -190,6 +190,7 @@ def main() -> None:
         "| GLM de Poisson | Regresión log-lineal de conteos sobre las mismas variables; modelo clásico en seguridad vial. | Práctica estándar de modelos de frecuencia de siniestros |",
         "| ConvLSTM | Celda recurrente con compuertas convolucionales; base de Hetero-ConvLSTM para riesgo de accidentes en malla. | Shi et al. (2015); Yuan, Zhou y Yang (2018) |",
         "| CNN-LSTM | CNN por año (vecindario 5 × 5 km) y LSTM por celda sobre la secuencia de años. Arquitectura de referencia del plan. | Plan v1.6; Guo et al. (2024) |",
+        "| Familia CNN-RNN | Las dos variantes anteriores combinan una parte convolucional (CNN, vecindario espacial) y una recurrente (RNN). La recurrente es una LSTM, la RNN con compuertas de memoria que retiene la historia de varios años. | Plan v1.6 |",
         "| Ablaciones | Solo CNN (sin recurrencia) y solo LSTM (sin contexto espacial) para medir el aporte de cada parte. | Diseño experimental propio |",
         "",
         "### 3.2. Criterios y parámetros de medición",

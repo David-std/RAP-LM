@@ -29,7 +29,7 @@ registra la aprobación del equipo.
 El dataset v0.2.0 tenía los gates G1, G3, G4, G5 y G6 bloqueados: no existe una sola fuente reciente, de todas las
 severidades, con ubicación en los 43 distritos.
 **Decisión:** el objetivo es la intensidad latente de **todos los atropellos** (cualquier severidad y subtipo),
-estimada por un CNN-LSTM que trata cada fuente como una observación parcial del mismo fenómeno:
+estimada por una red CNN-RNN que trata cada fuente como una observación parcial del mismo fenómeno:
 
 - CENACOM 2011–2017 (todas las severidades) con factor de registro 1 (escala de referencia);
 - ONSV 2021–2024 (siniestros con fallecido) con factor de registro aprendido;

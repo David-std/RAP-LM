@@ -1,19 +1,21 @@
 # RAP-LM
 
-Web application based on neural networks (CNN-LSTM) for the spatiotemporal analysis of **pedestrian
+Web application based on CNN-RNN neural networks for the spatiotemporal analysis of **pedestrian
 collision risk** (all severities) in the 43 districts of the province of Lima (Callao excluded).
 Academic project SI727, UPC, Group 06. Baseline: integrated project plan v1.6.
 
 Specialists can query, filter, compare and export a relative risk index per 1 km cell, district and street
 corridor, per period (year × day type × 6-hour band), with three components (frequency, expected severity and
 exposure-adjusted ratio), its level (low, medium, high), the historical record by subtype and severity, an
-explanation of how the network reached it and its provenance. It is an analytical reference: no real-time prediction and no intervention recommendations.
+explanation of how the network reached it and its provenance, plus a one-year-ahead forecast. The recurrent part of the network is an LSTM, the RNN
+type with long-term memory; the published model is a ConvLSTM (LSTM with convolutional gates). It is an
+analytical reference: no real-time prediction and no intervention recommendations.
 
 ```text
 Public sources (CENACOM 2011-2017, ONSV 2021-2024, INEI, WorldPop, MINAM, OSM)
    │  pipelines/fusion      grid 1 km (EPSG:32718), rule-based street geocoding, context
    ▼
-fused dataset  ── ml/fused ──►  CNN-LSTM vs ConvLSTM, Poisson GLM, ablations, historical average
+fused dataset  ── ml/fused ──►  CNN-RNN variants (ConvLSTM, CNN-LSTM) vs Poisson GLM, ablations, historical average
    │                               (chronological split, frozen protocol)
    ▼  pipelines/publication   one transaction, reconciliation, atomic pointer
 PostgreSQL + PostGIS  ──►  read-only FastAPI /api/v1  ──►  React + TypeScript + Leaflet (Nginx)
@@ -88,7 +90,7 @@ python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
 | Path | Content |
 |---|---|
 | `pipelines/spatial`, `pipelines/fusion` | Grid, OSM street index, geocoding rules, event fusion, context (HT-05, HT-06) |
-| `ml/fused` | Tensors, ConvLSTM/CNN-LSTM and benchmark models, training, export, explanations, Grad-CAM, forecast (HT-02, HT-07, HT-08) |
+| `ml/fused` | Tensors, CNN-RNN variants (ConvLSTM, CNN-LSTM) and benchmark models, training, export, explanations, Grad-CAM, forecast (HT-02, HT-07, HT-08) |
 | `pipelines/publication` | Atomic publisher with reconciliation (HT-11) |
 | `database` | Alembic migrations and DB roles (HT-04, HT-10) |
 | `apps/api` | Read-only FastAPI v1 (HT-09) and tests |
