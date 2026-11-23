@@ -1,6 +1,6 @@
 // Reusable controls (RF-03, RF-04, HU-10, HU-13..HU-16, HU-28).
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import type { DayType } from "../api/types";
 import { BANDS, DAY_LABEL } from "../lib/format";
@@ -151,6 +151,13 @@ export function SearchSelect({
   const id = useId();
   const current = options.find((o) => o.id === value)?.name ?? "";
   const [text, setText] = useState(current);
+  // Clearing the filter from outside (for example "Quitar filtros") must also clear the
+  // typed text; clearing because the user is typing must not.
+  const typing = useRef(false);
+  useEffect(() => {
+    if (value === null && !typing.current) setText("");
+    typing.current = false;
+  }, [value]);
   const commit = (t: string) => {
     const match = options.find((o) => o.name.toLowerCase() === t.trim().toLowerCase());
     if (match) onChange(match.id);
@@ -169,6 +176,7 @@ export function SearchSelect({
           placeholder={placeholder}
           onChange={(e) => {
             setText(e.target.value);
+            typing.current = true;
             if (value) onChange(null);
             commit(e.target.value);
           }}

@@ -121,7 +121,8 @@ export function HeatMap(p: Props) {
       const w = p.weight(c.id);
       if (!(w > 0)) continue;
       const [r, g, b] = rampColor(stops, Math.min(1, w));
-      img.data.set([r, g, b, 225], (c.y * grid.cols + c.x) * 4);
+      // Low values fade out so the base map stays readable; high values stay opaque.
+      img.data.set([r, g, b, Math.round(40 + 200 * Math.min(1, w))], (c.y * grid.cols + c.x) * 4);
     }
     sctx.putImageData(img, 0, 0);
     const big = document.createElement("canvas");
@@ -130,7 +131,7 @@ export function HeatMap(p: Props) {
     const bctx = big.getContext("2d")!;
     bctx.imageSmoothingEnabled = true;
     bctx.imageSmoothingQuality = "high";
-    bctx.filter = `blur(${UPSCALE * 0.45}px)`;
+    bctx.filter = `blur(${UPSCALE * 0.25}px)`;
     bctx.drawImage(small, 0, 0, big.width, big.height);
     overlay.current?.remove();
     overlay.current = L.imageOverlay(big.toDataURL("image/png"), grid.bounds, { opacity: 0.9, interactive: false }).addTo(m);
