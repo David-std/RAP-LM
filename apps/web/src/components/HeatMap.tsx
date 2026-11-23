@@ -30,7 +30,7 @@ interface Props {
   onHover: (unitId: string | null) => void;
 }
 
-const UPSCALE = 12;
+const UPSCALE = 32;
 
 function boxes(cells: UnitCollection): CellBox[] {
   return cells.features.map((f) => {
@@ -131,7 +131,7 @@ export function HeatMap(p: Props) {
     const bctx = big.getContext("2d")!;
     bctx.imageSmoothingEnabled = true;
     bctx.imageSmoothingQuality = "high";
-    bctx.filter = `blur(${UPSCALE * 0.25}px)`;
+    bctx.filter = `blur(${UPSCALE * 0.12}px)`;
     bctx.drawImage(small, 0, 0, big.width, big.height);
     overlay.current?.remove();
     overlay.current = L.imageOverlay(big.toDataURL("image/png"), grid.bounds, { opacity: 0.9, interactive: false }).addTo(m);
