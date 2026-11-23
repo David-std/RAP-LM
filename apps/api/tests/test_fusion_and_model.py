@@ -278,3 +278,25 @@ def test_ranking_metrics():  # P1-05: precision measured with a budget, AP and v
     assert r["k"] == 2 and r["precision_at_k"] == 1.0
     assert r["at_validation_threshold"]["recall"] == 1.0
     assert best_threshold(perfect, positive) == 0.8
+
+
+def test_station_proxy_events_never_reach_a_cell():  # audit P0-01: no false street precision
+    import pytest
+    from shapely.geometry import Point
+
+    from pipelines.fusion.events import FusedEvent, allocate
+
+    event = FusedEvent(
+        event_id="x",
+        source_id="cenacom_2012",
+        family="cenacom",
+        year=2011,
+        day_type="weekday",
+        band=0,
+        district_ubigeo="150101",
+        location_basis="station_proxy",
+        precision="street",
+        geometry=Point(0, 0),
+    )
+    with pytest.raises(ValueError, match="station-proxy"):
+        allocate([event], spec=None, cells=[])

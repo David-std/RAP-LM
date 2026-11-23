@@ -100,3 +100,25 @@ difference between iterations is of the order of the validation noise, which is 
 The search also showed that dropout has no effect in the ConvLSTM variant (identical scores at 0.1 and 0.3), so
 4 of its 8 configurations repeat others. Results are unaffected; a later iteration should search another
 hyperparameter there.
+
+## Amendment A3 (2026-11-23, before any v4 training; responds to the pre-merge audit)
+
+Iteration v4 changes the spatial policy of the data; model family, search space, seeds, selection rule,
+ensemble, partitions and thresholds stay as in v3.
+
+1. **Dataset `fused-v1.4.0`.** About 8,000 CENACOM events carry only the police station's district. In
+   2016-2017, where both districts exist, they agree in 93.2 % of 5,378 events, so the station district is
+   kept as a district-level location, but these events are no longer geocoded to a street or cell (that
+   was false precision). A guard in the fusion refuses any station-proxy event with a geometry.
+2. **Sensitivity arm** `fused-v1.4.0-exclude-station` (config `v4-sens-exclude-station.json`): the same
+   events are dropped entirely. It is compared with v4 on validation, test, cell ranking and corridors;
+   it is not published.
+3. **Publication rule.** v4 replaces v3 because it removes an unsupported location assumption, whatever
+   its error relative to v3; its metrics are reported as obtained, including if they are worse.
+4. **Reporting by observed population.** Every iteration is reported on the fatal-only test (ONSV 2024)
+   and the all-severity backtest (CENACOM January-June 2017) side by side. For the high level, besides
+   the registered confusion counts, the report gives precision with a budget equal to the positives,
+   average precision with its chance level, metrics at an index threshold chosen on validation only, and
+   the annual 1 km cell grain.
+5. **Forecast as of the last observed year.** Covariates of the forecast year are frozen at the last
+   observed year (no 2025 population); the forecast is labelled a one-step projection from data up to 2024.

@@ -106,7 +106,10 @@ class Tensors:
 
 
 def load_dataset(
-    dataset_dir: Path, years: list[int], norm_years: list[int] | None = None
+    dataset_dir: Path,
+    years: list[int],
+    norm_years: list[int] | None = None,
+    covariates_asof: int | None = None,
 ) -> Tensors:
     grid = json.loads((dataset_dir / "grid.geojson").read_text(encoding="utf-8"))
     spec = grid["grid"]
@@ -247,7 +250,10 @@ def load_dataset(
         pop = context["population_by_year"]
         logs = np.zeros((T, H, W), dtype=np.float32)
         for ti, year in enumerate(years):
-            yi = pop_years.index(min(max(year, pop_years[0]), pop_years[-1]))
+            # ``covariates_asof`` freezes the population at that year (forecast made
+            # with the information available at the end of the last observed year).
+            last = min(pop_years[-1], covariates_asof) if covariates_asof else pop_years[-1]
+            yi = pop_years.index(min(max(year, pop_years[0]), last))
             logs[ti, rows, cols] = np.log1p(pop[yi])
         # Standardisation statistics come from ``norm_years`` (default: the loaded years),
         # so that a forecast that appends a year keeps the training years' inputs intact.

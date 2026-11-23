@@ -74,7 +74,10 @@ def main() -> None:
     years = list(cfg["years"])
     if args.horizon != years[-1] + 1:
         raise SystemExit(f"horizon must be {years[-1] + 1} (one step after the last year)")
-    t = load_dataset(args.dataset, years + [args.horizon], norm_years=years)
+    # Covariates frozen at the last observed year: no information of the horizon year.
+    t = load_dataset(
+        args.dataset, years + [args.horizon], norm_years=years, covariates_asof=years[-1]
+    )
     members = load_members(args.run, t)
     lam_m = member_lambdas(members, t.X, t.valid)  # [M, T+1, K, H, W]
     lam = lam_m.mean(axis=0)
@@ -161,6 +164,7 @@ def main() -> None:
             {
                 "horizon_year": args.horizon,
                 "inputs_last_year": years[-1],
+                "covariates_asof": years[-1],
                 "members": len(members),
                 "in_sample_max_abs_gap": gap,
                 "rows": len(rows),

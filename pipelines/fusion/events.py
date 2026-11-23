@@ -154,6 +154,7 @@ def read_events(
     harmonized_csv: Path,
     districts: list[District],
     indexes: dict[str, DistrictStreetIndex],
+    station_policy: str = "district",
 ) -> tuple[list[FusedEvent], FusionReport]:
     """Read the harmonized v0.2.0 events and locate each one without invention."""
     by_ubigeo = {d.ubigeo: d for d in districts}
@@ -188,6 +189,14 @@ def read_events(
             if row["district_ubigeo"]:
                 ubigeo, basis = row["district_ubigeo"], "occurrence_district"
             else:
+                # Spatial policy (dataset v1.4, audit P0-01). Without an occurrence district
+                # only the police station's district is known. In 2016-2017, where both
+                # exist, they agree in 93.2 % of 5,378 events, so the station district is an
+                # acceptable district-level proxy; a street or cell inside it would be false
+                # precision. "district": keep at district level only; "exclude": drop.
+                if station_policy == "exclude":
+                    report.excluded[f"{source}:station_proxy_excluded"] += 1
+                    continue
                 ubigeo, basis = row["reporting_police_ubigeo"], "station_proxy"
             if ubigeo not in by_ubigeo:
                 report.excluded[f"{source}:district_outside_43"] += 1
@@ -216,7 +225,11 @@ def read_events(
                 if inside[ubigeo].contains(point):
                     event.precision, event.geometry = "point", point
                     event.location_basis = "point"
-            if event.precision == "district" and row["location_description"]:
+            if (
+                event.precision == "district"
+                and basis == "occurrence_district"
+                and row["location_description"]
+            ):
                 result = indexes[ubigeo].geocode(row["location_description"])
                 event.precision = result.precision
                 event.geometry = result.geometry
@@ -227,9 +240,15 @@ def read_events(
 
 
 def allocate(events: list[FusedEvent], spec: GridSpec, cells: list[Cell]) -> None:
-    """Assign located events to cells: points to one cell, streets by length share."""
+    """Assign located events to cells: points to one cell, streets by length share.
+
+    Station-proxy events never reach a cell: their location is only known at the
+    level of the police station's district (guard for audit P0-01).
+    """
     by_index = {(c.row, c.col): c for c in cells}
     for event in events:
+        if event.location_basis == "station_proxy" and event.geometry is not None:
+            raise ValueError(f"{event.event_id}: station-proxy event with a geometry")
         if event.geometry is None:
             continue
         if event.precision in ("point", "intersection"):

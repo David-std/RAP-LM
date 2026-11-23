@@ -20,6 +20,7 @@ registra la aprobación del equipo.
 | D-11 | 2026-11-23 | Solicitud de cambio (pronóstico anual un paso adelante y vista Pronóstico) | Pendiente de aprobación del equipo |
 | D-12 | 2026-11-23 | Solicitud de cambio (dataset v1.2: población anual, tipo de vehículo y servicio; iteración v3) | Pendiente de aprobación del equipo |
 | D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Pendiente de aprobación del equipo |
+| D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aplica sin cambiar la línea base (corrección de validez); registro para el equipo |
 
 ---
 
@@ -225,4 +226,14 @@ especialistas (paquete 4.5). **Necesidad técnica:**
 local sin costo adicional; despliegue en el plan gratuito de Render, o el plan inicial de la API durante el mes
 de la demostración si se requiere evitar la suspensión por inactividad. El Project Manager registra el monto
 que se active contra la reserva correspondiente.
+
+## D-14. Política espacial de los eventos ubicados solo por la comisaría
+
+**Origen:** auditoría previa a la fusión (hallazgo P0-01). **Contexto:** unos 8.000 registros de CENACOM no traen
+distrito de ocurrencia; la fusión usaba el distrito de la comisaría y luego buscaba la dirección en ese distrito,
+llevando el evento a una calle o celda. **Evidencia:** en 2016 y 2017, donde existen ambos datos, el distrito de la
+comisaría coincide con el de ocurrencia en el 93,2 % de 5.378 eventos. **Decisión:** el distrito de la comisaría se
+acepta como ubicación a nivel distrito, declarada; esos eventos ya no se geocodifican a calle ni celda, y la fusión
+rechaza cualquier evento de comisaría con geometría. Un brazo de sensibilidad los excluye por completo. **Impacto:**
+dataset v1.4, iteración v4 (enmienda A3), mapas de celda y vías críticas sin esos eventos.
 

@@ -1,0 +1,87 @@
+{
+  "run_id": "fused-cnnlstm-2026.11-v4-exclude-station",
+  "description": "Sensitivity arm of v4 (amendment A3): station-proxy events dropped. Not published.",
+  "years": [
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "split": {
+    "train": {
+      "cenacom": [
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017
+      ],
+      "onsv": [
+        2021,
+        2022
+      ]
+    },
+    "validation": {
+      "onsv": [
+        2023
+      ]
+    },
+    "test": {
+      "onsv": [
+        2024
+      ]
+    }
+  },
+  "seed": 20261122,
+  "hidden": 32,
+  "dropout": 0.2,
+  "lr": 0.01,
+  "weight_decay": 0.0001,
+  "max_epochs": 300,
+  "patience": 40,
+  "area_floor_km2": 0.1,
+  "thresholds": {
+    "version": "levels-v1",
+    "low_max": 40,
+    "medium_max": 70,
+    "method": "Index = percentile rank (0-100) of the annualised indicator within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70. Fixed before the test evaluation."
+  },
+  "threads": 8,
+  "search": {
+    "variants": [
+      "cnn_lstm",
+      "convlstm"
+    ],
+    "hidden": [
+      16,
+      32
+    ],
+    "dropout": [
+      0.1,
+      0.3
+    ],
+    "lr": [
+      0.003,
+      0.01
+    ],
+    "ensemble_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}

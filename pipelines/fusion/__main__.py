@@ -42,7 +42,9 @@ from pipelines.spatial.grid import build_grid, load_districts, write_districts, 
 # service and recorded factors; they differ only in the population input:
 # v1.1.1 keeps the fixed 2020 surface (network inputs identical to v1.1, so the
 # published v2 weights can be exported with it); v1.3.0 uses annual population.
-DATASET_VERSIONS = {"static": "fused-v1.1.1", "annual": "fused-v1.3.0"}
+# v1.4 (audit P0-01): station-proxy events stay at district level (never geocoded
+# to a street or cell); --station-proxy exclude builds the sensitivity variant.
+DATASET_VERSIONS = {"static": "fused-v1.1.1", "annual": "fused-v1.4.0"}
 STATIC_POPULATION = {
     "label": "Resident population",
     "source_id": "worldpop_2020",
@@ -65,6 +67,12 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--cell-size", type=int, default=1000)
     parser.add_argument("--population", choices=("annual", "static"), default="annual")
+    parser.add_argument(
+        "--station-proxy",
+        choices=("district", "exclude"),
+        default="district",
+        help="events known only by the police station district: keep at district level or drop",
+    )
     args = parser.parse_args()
     # Lineage is captured before any work so later commits cannot change it.
     code_sha, code_clean = git_sha(), tree_is_clean()
@@ -89,7 +97,7 @@ def main() -> None:
     print(f"named streets: {len(streets)}")
 
     indexes = {d.ubigeo: DistrictStreetIndex(d, streets) for d in districts}
-    events, report = read_events(args.harmonized, districts, indexes)
+    events, report = read_events(args.harmonized, districts, indexes, args.station_proxy)
     allocate(events, spec, cells)
     profiles, vehicle_report = vehicle_profiles(args.raw, args.harmonized)
     unknown = {"no_identificado": 1.0}
@@ -183,7 +191,9 @@ def main() -> None:
     (out / "fusion_report.json").write_text(json.dumps(geocoding, indent=2), encoding="utf-8")
 
     manifest = {
-        "dataset_version": DATASET_VERSIONS[args.population],
+        "dataset_version": DATASET_VERSIONS[args.population]
+        + ("-exclude-station" if args.station_proxy == "exclude" else ""),
+        "station_proxy_policy": args.station_proxy,
         "target_population": "all_pedestrian_collisions",
         "target_definition": (
             "Every recorded collision with a pedestrian involved (run over, hit-and-run, "
