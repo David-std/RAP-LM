@@ -50,6 +50,21 @@ Vitest, Playwright y métricas) y se resumen en `docs/pruebas/informe-de-pruebas
 
 ## Escenarios críticos de extremo a extremo (M-07)
 
-E2E-01 a E2E-08 en `apps/web/e2e/critical.spec.ts`. M-07 = escenarios críticos aprobados / escenarios
-críticos previstos (8). Un defecto bloqueante se registra en `docs/pruebas/informe-de-pruebas.md` (registro de
-incidencias), se corrige y se reejecuta.
+Definidos en `apps/web/e2e/critical.spec.ts` y ejecutados sobre la aplicación desplegada con una corrida publicada:
+
+| ID | Recorrido | Requisitos |
+|---|---|---|
+| E2E-01 | Mapa con todas las unidades del ámbito, leyenda y periodo activo | RF-01, RF-07 |
+| E2E-02 | Cambio de periodo que actualiza mapa y barra de estado | RF-03 |
+| E2E-03 | Panel de zona con riesgo, red año a año, registro histórico y procedencia | RF-02, RF-08, HU-23 |
+| E2E-04 | Filtro por nivel y retiro de filtros en una acción | RF-04 |
+| E2E-05 | Comparación de dos distritos en un mismo periodo | RF-05 |
+| E2E-06 | Comparación de un distrito entre dos periodos | RF-06 |
+| E2E-07 | Metodología con fuentes, variables y limitaciones | RF-08 |
+| E2E-08 | Exportación CSV del ranking con corrida y alcance | Análisis |
+| E2E-09 | Vista Modelo con arquitectura, benchmark y errores del nivel alto | RM-01, RM-05 |
+| E2E-10 | Corredores: ranking de calles y detalle de una calle | D-09 |
+| E2E-11 | Capas de densidad registrada e influencia de la red | D-09 |
+
+M-07 = escenarios críticos aprobados / escenarios críticos previstos (11). Un defecto bloqueante se registra en
+el [registro de incidencias](../registro-de-incidencias.md), se corrige y se vuelve a ejecutar.
