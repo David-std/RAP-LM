@@ -91,8 +91,8 @@ INSERT INTO model_card VALUES ('demo-run', '{{"run_id": "demo-run", "variant": "
   '{{"corridors": 1, "events_assigned": 3, "events_not_on_corridor": 0, "total_length_km": 1.0,
      "concentration": {{"10%_length": 1.0}}}}');
 INSERT INTO unit_explanation VALUES
- ('demo-run', 'grid-1km', 'F1-C1', '[1.5, 1.0]', '[3, 1]', '[12.5, -4.0]', NULL),
- ('demo-run', 'district-43', '150101', '[2.0, 1.2]', '[4, 1]', '[10.0, 2.0]', '{{"population": [-20.0, 0.0, 15.0]}}');
+ ('demo-run', 'grid-1km', 'F1-C1', '[1.5, 1.0]', '[3, 1]', '[12.5, -4.0]', NULL, '[["F1-C1", 1.0], ["F1-C2", 0.4]]'),
+ ('demo-run', 'district-43', '150101', '[2.0, 1.2]', '[4, 1]', '[10.0, 2.0]', '{{"population": [-20.0, 0.0, 15.0]}}', NULL);
 INSERT INTO corridor VALUES ('demo-run', '150101:ABANCAY', '150101', 'Abancay', 1.0, 3, 3, 1, 1.0, 2, 0, 70,
   '{{"cenacom": 3}}', '{{"2016": 3}}', '[0,0,0,3,0,0,0,0]', '{{"street": 3}}',
   ST_Multi(ST_GeomFromText('LINESTRING(-77.035 -12.045, -77.03 -12.05)', 4326)));

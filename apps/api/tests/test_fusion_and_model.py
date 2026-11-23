@@ -153,3 +153,20 @@ def test_git_sha_is_resolved_without_git_executable():  # RNF-02, incident I-10
 
     sha = git_sha()
     assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha)
+
+
+def test_gradient_influence_matches_receptive_field():  # Grad-CAM style maps (D-09)
+    from ml.fused.saliency import influence
+
+    torch.manual_seed(0)
+    x = torch.randn(4, 3, 9, 9)
+    valid = torch.ones(9, 9)
+    target = torch.zeros(9, 9)
+    target[4, 4] = 1
+    reach = {}
+    for variant in ("lstm_only", "cnn_lstm"):
+        model = SpatioTemporalModel(
+            in_channels=3, subperiods=8, families=2, hidden=8, dropout=0.0, variant=variant
+        ).eval()
+        reach[variant] = int((influence([model], x, valid, 3, target) > 1e-9).sum())
+    assert reach == {"lstm_only": 1, "cnn_lstm": 25}  # 1x1 kernels vs two 3x3 convolutions

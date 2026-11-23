@@ -243,6 +243,7 @@ def test_explanation_cell_and_district(client):  # D-09, RM-02/RM-03 transparenc
     cell = client.get("/api/v1/explanations", params={"unit_id": "F1-C1"}).json()
     assert cell["years"] == [2023, 2024] and cell["expected_events"] == [1.5, 1.0]
     assert cell["whatif"] is None
+    assert cell["saliency"] == [["F1-C1", 1.0], ["F1-C2", 0.4]]
     dist = client.get("/api/v1/explanations", params={"unit_type": "district", "unit_id": "150101"}).json()
     assert dist["whatif"]["population"] == [-20.0, 0.0, 15.0]
     assert client.get("/api/v1/explanations", params={"unit_id": "F9-C9"}).status_code == 404

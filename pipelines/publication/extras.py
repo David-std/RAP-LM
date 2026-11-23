@@ -29,6 +29,8 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
     whatif = json.loads((ex / "whatif.json").read_text(encoding="utf-8"))
     card = json.loads((ex / "card.json").read_text(encoding="utf-8"))
     corridors = json.loads((dataset / "corridors.geojson").read_text(encoding="utf-8"))
+    sal_path = ex / "saliency.json"
+    saliency = json.loads(sal_path.read_text(encoding="utf-8")) if sal_path.exists() else {}
 
     with psycopg.connect(url) as conn, conn.cursor() as cur:
         cur.execute("SELECT status FROM model_run WHERE run_id = %s", (run_id,))
@@ -54,8 +56,9 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
         n_units = 0
         for rep, key in (("grid-1km", "cell"), ("district-43", "district")):
             for unit_id, s in series[key].items():
+                sal = saliency.get(key, {}).get(unit_id)
                 cur.execute(
-                    "INSERT INTO unit_explanation VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO unit_explanation VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         run_id,
                         rep,
@@ -64,6 +67,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                         Jsonb(s["observed"]),
                         Jsonb(attribution[key][unit_id]),
                         Jsonb(whatif["district"].get(unit_id)) if key == "district" else None,
+                        Jsonb(sal) if sal else None,
                     ),
                 )
                 n_units += 1
