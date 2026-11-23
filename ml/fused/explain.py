@@ -186,12 +186,20 @@ def main() -> None:
         "variables": whatif_vars,
         "district": {},
     }
+    # Resumable: each finished district is checkpointed, so an interrupted run continues.
+    partial = out / "whatif.partial.json"
+    if partial.exists():
+        saved = json.loads(partial.read_text(encoding="utf-8"))
+        if saved["factors"] == whatif["factors"] and saved["variables"] == whatif["variables"]:
+            whatif["district"] = saved["district"]
     raw_grid = {}
     for name in t.context_order:
         g = np.zeros(t.valid.shape, dtype=np.float64)
         g[rows, cols] = raw[name]
         raw_grid[name] = g
     for di, d in enumerate(t.district_ids):
+        if d in whatif["district"]:
+            continue
         mask = frac[di] > 0.5  # cells owned mostly by the district
         curves = {}
         for name in whatif_vars:
@@ -212,8 +220,10 @@ def main() -> None:
                 curve.append(round((ld - base_dist[di]) / max(base_dist[di], 1e-9) * 100, 2))
             curves[name] = curve
         whatif["district"][d] = curves
+        partial.write_text(json.dumps(whatif), encoding="utf-8")
         print("whatif", d, flush=True)
     (out / "whatif.json").write_text(json.dumps(whatif), encoding="utf-8")
+    partial.unlink(missing_ok=True)
 
     # ---------------------------------------------------------------- model card
     m0 = members[0]
