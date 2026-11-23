@@ -38,3 +38,21 @@ the test result. Whatever M-05 v2 yields on test is reported, including if it is
 `ml/fused/search.py`, configs `ml/configs/v2-*.json`, outputs `artifacts/runs/*-v2/` with
 `search.json` (all configurations), `metrics.json` and run manifest; summary in
 `evidence/benchmarking/`.
+
+## Amendment A1 (2026-11-22, before any v2 search finished and before any v2 test evaluation)
+
+A partial v2 search (4 of 16 configurations, validation only) was interrupted by the host (out of
+memory) and is discarded. Before restarting, two changes are fixed:
+
+1. **Dataset `fused-v1.1.0`** (decision D-10). It adds eight OSM proxies of exposure and road environment
+   named by the plan (Guo et al., 2024; Hu et al., 2024): commerce, education and health POIs, mapped
+   crossings, traffic signals, footway length, arterial length (traffic-volume proxy) and collector
+   length. It also adds collision subtype and severity to each event for the historical record. Target,
+   fusion, grid, partitions and baseline are unchanged.
+2. **High-level classification errors** (defined in plan v1.6): for each test family-year, TP, FP, FN,
+   precision and recall of the "high" level for the model and the historical average, on the frozen
+   common scale (`ml/fused/classification.py`). They are reported, not used for selection.
+
+Selection (validation E), ensemble, single test evaluation and the publication rule stay as above.
+v1 runs were evaluated with the same classification code for comparison; that computation uses
+already frozen v1 models and does not change them.
