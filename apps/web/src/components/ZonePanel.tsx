@@ -397,7 +397,7 @@ function RecordCard({ result }: { result: RiskResult }) {
           </div>
           {b.factor && total > 0 && (
             <div>
-              <Breakdown title="Factores registrados por la policía" data={b.factor} labels={FACTOR_LABEL} color="#5b6472" />
+              <Breakdown title="Factores registrados por la policía" data={b.factor} labels={FACTOR_LABEL} color="#5b6472" hideZero />
               <p className="card-note">
                 Un atropello puede tener varios factores. Son causas anotadas después del hecho: describen el registro,
                 no entran a la estimación de la red.
@@ -416,8 +416,8 @@ function RecordCard({ result }: { result: RiskResult }) {
   );
 }
 
-function Breakdown<K extends string>({ title, data, labels, color }: { title: string; data: Record<K, number>; labels: Record<K, string>; color: string }) {
-  const entries = Object.entries(data) as [K, number][];
+function Breakdown<K extends string>({ title, data, labels, color, hideZero = false }: { title: string; data: Record<K, number>; labels: Record<K, string>; color: string; hideZero?: boolean }) {
+  const entries = (Object.entries(data) as [K, number][]).filter(([, v]) => !hideZero || v > 0);
   const max = Math.max(...entries.map(([, v]) => v), 1);
   return (
     <div>
