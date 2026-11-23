@@ -122,3 +122,5 @@ ensemble, partitions and thresholds stay as in v3.
    the annual 1 km cell grain.
 5. **Forecast as of the last observed year.** Covariates of the forecast year are frozen at the last
    observed year (no 2025 population); the forecast is labelled a one-step projection from data up to 2024.
+6. **Device.** A repeated GPU run of the v3 configuration reproduced weights and estimates byte for byte, so
+   v4 trains on the GPU and its reproducibility (M-04) is measured by retraining on the GPU.
