@@ -17,7 +17,7 @@ intervenciones**.
 | Unidad espacial | Una celda de la malla de 1 km (código `F{fila}-C{columna}`), un distrito o un tramo de calle (una calle dentro de un distrito). |
 | Frecuencia | Indicador principal: atropellos esperados por km² y año en esa franja, estimados por la red CNN-RNN con los años anteriores y el contexto urbano. Es el índice que colorea el mapa. |
 | Severidad esperada | Frecuencia × probabilidad de desenlace fatal de la zona. Señala dónde las consecuencias suelen ser más graves. |
-| Riesgo por exposición | Razón entre la frecuencia estimada y la que explicaría solo la exposición (población, comercio, transporte, veredas, vías arteriales). 1× = lo esperado por la exposición; 2× = el doble. |
+| Frente al contexto | Razón entre la frecuencia estimada y la que predice un modelo estadístico solo con variables de contexto (población, comercio, transporte, veredas, vías arteriales). 1× = lo que predice el contexto; 2× = el doble. **No es una tasa por peatón expuesto**: Lima no tiene conteos de peatones, y la razón no indica causa. |
 | Índice (0 a 100) | Posición del indicador frente a la distribución de referencia: 85 significa que supera al 85 % de las celdas y franjas de referencia. **No es una probabilidad.** |
 | Nivel | Bajo (menos de 40), medio (40 a 69) y alto (70 o más). Umbrales fijados antes de evaluar el modelo. |
 | Sin resultado (trama) | No hay estimación para esa unidad o periodo. **No equivale a riesgo bajo.** |
@@ -49,7 +49,7 @@ Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 
 | Tarjeta | Qué responde |
 |---|---|
-| Riesgo estimado | Nivel, índice de frecuencia, severidad esperada y riesgo por exposición; posición en Lima y diferencia frente al promedio histórico. |
+| Riesgo estimado | Nivel, índice de frecuencia (con su valor en atropellos esperados por km² al año), severidad esperada y razón frente al contexto; posición en Lima y diferencia frente al promedio histórico. |
 | La red año a año | Atropellos que la red esperaba registrar frente a los registrados, año por año. Muestra cómo la parte recurrente sigue la evolución; clic en un año para cambiar el periodo. |
 | Perfil horario | Índice en las ocho combinaciones de tipo de día y franja del año activo; clic para cambiar de franja. |
 | Registro histórico | Total del periodo con desglose por subtipo, severidad, vehículo, servicio de transporte y factores registrados; lesionados y fallecidos. |
@@ -127,7 +127,7 @@ variables por grupo (ocurrencia, severidad, exposición y contexto) y las limita
 
 - Compare zonas en el mismo periodo, o una zona consigo misma entre periodos.
 - Un nivel alto indica dónde se concentra el riesgo relativo, no su causa ni la intervención que corresponde.
-- Use los tres componentes juntos: una zona con frecuencia media pero severidad alta o riesgo por exposición alto
+- Use los tres componentes juntos: una zona con frecuencia media pero severidad alta o muy por encima de lo que predice su contexto
   merece atención distinta de una con muchos atropellos leves en una zona muy transitada.
 - Revise la procedencia: 2021 a 2024 se observa solo con siniestros fatales (ONSV) y el modelo los vincula al
   conjunto de atropellos; 2011 a 2017 proviene del censo de comisarías, de todas las severidades.

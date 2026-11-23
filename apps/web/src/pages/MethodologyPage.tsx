@@ -35,9 +35,9 @@ export function MethodologyPage() {
             <p className="card-note" style={{ color: "var(--ink-2)" }}>Frecuencia estimada × probabilidad de desenlace fatal de la zona, calculada con los años de entrenamiento y suavizada hacia el distrito y la ciudad cuando hay pocos eventos.</p>
           </section>
           <section className="card">
-            <h3>Riesgo por exposición</h3>
-            <p className="card-sub">Componente de exposición</p>
-            <p className="card-note" style={{ color: "var(--ink-2)" }}>Razón entre la frecuencia estimada y la que explicaría solo la exposición (población, comercio, transporte, veredas y vías arteriales). Mayor que 1: más atropellos de los esperados por la exposición.</p>
+            <h3>Exceso frente al contexto</h3>
+            <p className="card-sub">Comparación con un modelo de contexto, sin aforos peatonales</p>
+            <p className="card-note" style={{ color: "var(--ink-2)" }}>Razón entre la frecuencia estimada por la red y la que predice un modelo de Poisson entrenado solo con variables de contexto (población, comercio, transporte, veredas y vías arteriales) en los años de entrenamiento. Mayor que 1: más atropellos de los que el contexto por sí solo predice. No es una tasa por peatón expuesto, porque no hay conteos de peatones en Lima; tampoco indica causa.</p>
           </section>
         </div>
 

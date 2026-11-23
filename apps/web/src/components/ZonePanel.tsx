@@ -18,7 +18,7 @@ import { Notice } from "./Controls";
 export const GROUP_LABEL: Record<string, string> = {
   occurrence: "Ocurrencia",
   severity: "Severidad",
-  exposure: "Exposición",
+  exposure: "Exposición (proxies)",
   context: "Contexto",
 };
 
@@ -271,20 +271,20 @@ function RiskCard({ result, bands }: { result: RiskResult; bands: ClassBand[] })
         )}
       </header>
       <div className="kpi-row">
-        <div className="kpi" title="Índice de frecuencia: posición frente a la distribución de referencia">
-          <span className="kpi-label">Frecuencia</span>
+        <div className="kpi" title="Índice de frecuencia (0 a 100): posición del valor estimado frente a la distribución de referencia">
+          <span className="kpi-label">Frecuencia, índice</span>
           <span className="kpi-value">{fmtIndex(result.risk_index)}</span>
-          <span className="kpi-foot">{fmtValue(result.indicator_value)} por km² al año</span>
+          <span className="kpi-foot">valor: {fmtValue(result.indicator_value, 3)} atropellos esperados por km² al año</span>
         </div>
         <div className="kpi" title="Atropellos esperados con desenlace fatal (frecuencia × probabilidad de fallecido de la zona)">
-          <span className="kpi-label">Severidad</span>
+          <span className="kpi-label">Severidad, índice</span>
           <span className="kpi-value">{result.severity.index === null ? "–" : Math.round(result.severity.index)}</span>
           <span className="kpi-foot">{result.severity.value === null ? "no disponible" : `${fmtValue(result.severity.value, 3)} fatales/km²`}</span>
         </div>
-        <div className="kpi" title="Razón entre lo estimado y lo esperado solo por exposición (población, comercio, transporte, veredas, arterias)">
-          <span className="kpi-label">Por exposición</span>
-          <span className="kpi-value">{result.exposure.value === null ? "–" : `${fmtValue(result.exposure.value, 1)}×`}</span>
-          <span className="kpi-foot">{result.exposure.index === null ? "no disponible" : `índice ${Math.round(result.exposure.index)}`}</span>
+        <div className="kpi" title="Razón entre la frecuencia estimada y la que predice un modelo estadístico solo con variables de contexto (población, comercio, transporte, veredas, arterias). No es una tasa por peatón: no hay aforos peatonales.">
+          <span className="kpi-label">Frente al contexto</span>
+          <span className="kpi-value">{result.exposure.value === null ? "–" : `${fmtValue(result.exposure.value, 2)}×`}</span>
+          <span className="kpi-foot">{result.exposure.index === null ? "no disponible" : `1× = lo que predice el contexto; índice ${Math.round(result.exposure.index)}`}</span>
         </div>
       </div>
       {result.risk_index !== null && (

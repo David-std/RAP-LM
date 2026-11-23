@@ -95,9 +95,9 @@ export function ForecastPage({ units, districts, legend }: Props) {
         <section className="card how">
           <h3>Cómo se obtiene</h3>
           <ol>
-            <li>La red CNN-RNN recibe el historial de atropellos hasta {last ?? "el último año"} y el contexto urbano de cada celda.</li>
+            <li>La red CNN-RNN recibe el historial de atropellos hasta {last ?? "el último año"} y el contexto urbano de cada celda, congelado a ese año (población {last ?? ""}).</li>
             <li>La parte convolucional (CNN) lee el vecindario de cada celda; la recurrente (RNN) arrastra la memoria de los años previos.</li>
-            <li>Proyecta un paso adelante: {horizon ?? "el año siguiente"}, sin ningún dato de ese año.</li>
+            <li>Proyecta un paso adelante, {horizon ?? "el año siguiente"}, solo con la información disponible al cierre de {last ?? "el último año"}. Como {horizon ?? "ese año"} ya pasó, es un pronóstico retrospectivo: sirve para contrastarlo cuando se publiquen sus registros.</li>
             <li>El rango es el desacuerdo entre los 5 modelos del ensamble.</li>
           </ol>
         </section>

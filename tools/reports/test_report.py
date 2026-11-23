@@ -21,9 +21,15 @@ EV = ROOT / "evidence"
 OUT = ROOT / "docs" / "pruebas" / "informe-de-pruebas.md"
 
 TARGETS = {
-    "M-01": ("Correspondencia espacial", ">= 95 %"),
-    "M-02": ("Completitud del contexto de cada resultado", ">= 95 %"),
-    "M-03": ("Trazabilidad de fuente y versión", ">= 95 %"),
+    "M-01": ("Correspondencia espacial (eventos ONSV con coordenadas verificables)", ">= 95 %"),
+    "M-02": (
+        "Completitud del contexto de cada resultado publicado (campos obligatorios)",
+        ">= 95 %",
+    ),
+    "M-03": (
+        "Trazabilidad de fuente y versión (muestra de 200 resultados, semilla fija)",
+        ">= 95 %",
+    ),
     "M-04": (
         "Reproducibilidad del pipeline",
         ">= 95 % dentro de tolerancia; 100 % unidad, periodo y nivel",
@@ -97,19 +103,43 @@ def metric(mid: str) -> dict | None:
 
 def fmt_metric(mid: str, m: dict) -> str:
     if mid == "M-05":
-        rows = m.get("evaluations", [])
-        return "; ".join(
-            f"prueba {r['family'].upper()} {r['year']}: {'+' if r['improvement_pct'] > 0 else ''}"
-            f"{es(r['improvement_pct'], 2)} %"
-            for r in rows
-            if r.get("improvement_pct") is not None
-        )
+        return _m05(m)
     if mid == "M-09":
-        return f"p95 {es(m['value'], 2)} s ({m['requests']} peticiones, {m['errors']} errores)"
+        return _m09(m)
     if m.get("numerator") is not None:
         n, d = (f"{v:,}".replace(",", ".") for v in (m["numerator"], m["denominator"]))
         return f"{n}/{d} = {es(m['value'])} %"
     return str(m.get("value"))
+
+
+def _m05(m: dict) -> str:
+    """Fatal-only test of the run plus, when present, the all-severity backtest of the iteration."""
+    text = "; ".join(
+        f"prueba {r['family'].upper()} {r['year']} (fatales): {'+' if r['improvement_pct'] > 0 else ''}"
+        f"{es(r['improvement_pct'], 2)} %"
+        for r in m.get("evaluations", [])
+        if r.get("improvement_pct") is not None
+    )
+    version = m.get("run_id", "").rsplit("-", 1)[-1]
+    backtest = EV / "benchmarking" / f"fused-cnnlstm-backtest-2017-{version}.metrics.json"
+    if backtest.exists():
+        t = json.loads(backtest.read_text(encoding="utf-8"))["test"][0]
+        sign = "+" if t["relative_improvement_pct"] > 0 else ""
+        text += (
+            f"; backtest {t['family'].upper()} {t['year']} (todas las severidades): "
+            f"{sign}{es(t['relative_improvement_pct'], 2)} %"
+        )
+    return text
+
+
+def _m09(m: dict) -> str:
+    if "concurrent" not in m:
+        return f"p95 {es(m['value'], 2)} s ({m['requests']} peticiones, {m['errors']} errores)"
+    seq, con = m["sequential"], m["concurrent"]
+    return (
+        f"p95 {es(seq['p95'], 2)} s secuencial y {es(con['p95'], 2)} s con {con['clients']} clientes "
+        f"simultáneos ({m['requests']} peticiones cada una, {m['errors']} errores)"
+    )
 
 
 def main() -> None:

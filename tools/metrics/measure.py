@@ -354,39 +354,64 @@ def m08(api: Api, run: Path, out: Path, run_id: str) -> None:
     )
 
 
-def m09(api: Api, run: Path, out: Path, run_id: str, n: int = 200) -> None:
+def _m09_requests(api: Api, run: Path, n: int, seed: int) -> list:
+    """Mixed workload: full-map /risk (2,899 cells) and 4-unit /comparisons."""
     ref = read_results(run / "results.csv")
     periods = sorted({k[2] for k in ref})
     cells = sorted({k[1] for k in ref if k[0] == "grid-1km"})
-    random.seed(11)
-    timings, errors = [], 0
+    rnd = random.Random(seed)
+    calls = []
     for i in range(n):
-        pid = random.choice(periods)
+        pid = rnd.choice(periods)
         if i % 2 == 0:
-            status, _, t = api.get("/api/v1/risk", period_id=pid, unit_type="cell")
+            calls.append(("/api/v1/risk", {"period_id": pid, "unit_type": "cell"}))
         else:
-            status, _, t = api.get(
-                "/api/v1/comparisons",
-                mode="spatial",
-                unit_ids=",".join(random.sample(cells, 4)),
-                period_id=pid,
+            calls.append(
+                (
+                    "/api/v1/comparisons",
+                    {
+                        "mode": "spatial",
+                        "unit_ids": ",".join(rnd.sample(cells, 4)),
+                        "period_id": pid,
+                    },
+                )
             )
-        errors += status != 200
-        timings.append(t)
-    timings.sort()
-    p95 = timings[int(0.95 * len(timings)) - 1]
+    return calls
+
+
+def _m09_summary(results: list[tuple[int, dict, float]]) -> dict:
+    timings = sorted(t for _s, _b, t in results)
+    return {
+        "requests": len(timings),
+        "errors": sum(s != 200 for s, _b, _t in results),
+        "p95": round(timings[int(0.95 * len(timings)) - 1], 4),
+        "median": round(statistics.median(timings), 4),
+        "max": round(timings[-1], 4),
+    }
+
+
+def m09(api: Api, run: Path, out: Path, run_id: str, n: int = 200, workers: int = 10) -> None:
+    """p95 latency sequentially and with ``workers`` simultaneous clients (audit P2)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    calls = _m09_requests(api, run, n, seed=11)
+    sequential = _m09_summary([api.get(path, **params) for path, params in calls])
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        concurrent = _m09_summary(list(pool.map(lambda c: api.get(c[0], **c[1]), calls)))
+    met = all(x["p95"] <= 2 and x["errors"] == 0 for x in (sequential, concurrent))
     write(
         out,
         "M-09",
         {
-            "value": round(p95, 4),
+            "value": max(sequential["p95"], concurrent["p95"]),
             "unit": "seconds",
             "requests": n,
-            "errors": errors,
-            "median": round(statistics.median(timings), 4),
-            "max": round(timings[-1], 4),
-            "load": "sequential; alternating full-map /risk (2,899 cells) and 4-unit /comparisons",
-            "status": "met" if p95 <= 2 and errors == 0 else "not_met",
+            "errors": sequential["errors"] + concurrent["errors"],
+            "sequential": sequential,
+            "concurrent": concurrent | {"clients": workers},
+            "load": "mixed full-map /risk (2,899 cells) and 4-unit /comparisons; sequential, then "
+            f"{workers} simultaneous clients",
+            "status": "met" if met else "not_met",
         },
         run_id,
     )

@@ -127,6 +127,8 @@ class RiskResult(BaseModel):
     historical_average: float | None
     observed: Observed
     severity: Component = Component(value=None, index=None)
+    # Ratio of the estimate to a context-only Poisson model (proxies, no pedestrian counts):
+    # an excess relative to context, not a rate per exposed pedestrian (audit P1-03).
     exposure: Component = Component(value=None, index=None)
     breakdown: Breakdown | None = None
 

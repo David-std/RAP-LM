@@ -287,6 +287,7 @@ export interface CorridorProps {
   length_km: number;
   events: number;
   events_per_km: number;
+  rate_adj?: number; // smoothed events per km (client side)
   rank: number;
   cumulative_event_share: number;
   injured: number;
@@ -383,13 +384,27 @@ export interface Confusion {
   f1: number | null;
 }
 
+export interface Ranking {
+  k: number;
+  precision_at_k: number | null;
+  average_precision: number | null;
+  capture_top10?: number;
+  at_validation_threshold?: Confusion;
+}
+
 export interface HighLevelRow {
   family: string;
   year: number;
+  partition?: "validation";
   units: number;
   reference_high: number;
+  base_rate?: number;
   model: Confusion;
   baseline?: Confusion;
+  model_ranking?: Ranking;
+  baseline_ranking?: Ranking;
+  validation_thresholds?: { model: number | null; baseline: number | null };
+  annual_cell?: { cells: number; positives: number; model: Ranking; baseline?: Ranking };
 }
 
 export interface ForecastRow {

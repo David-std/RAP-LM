@@ -16,7 +16,8 @@ const VARIANT_LABEL: Record<string, string> = {
   poisson_glm: "GLM de Poisson (clásico)",
 };
 const FAMILY_LABEL: Record<string, string> = { cenacom: "CENACOM", onsv: "ONSV" };
-const pct = (v: number | null | undefined) => (v === null || v === undefined ? "n/a" : `${(v * 100).toFixed(0)} %`);
+const num = (v: number | null | undefined) => (v === null || v === undefined ? "n/a" : v.toFixed(2).replace(".", ","));
+const pct = (v: number | null | undefined) => (v === null || v === undefined ? "n/a" : `${(v * 100).toFixed(1).replace(".", ",")} %`);
 
 export function ModelPage() {
   const model = useApi((s) => api.model(s), []);
@@ -25,6 +26,7 @@ export function ModelPage() {
     return <div className="page"><div className="page-inner"><Notice tone="warn">La corrida publicada aún no tiene ficha del modelo ({model.error?.message}).</Notice></div></div>;
   }
   const { card, benchmark } = model.data;
+  const testRow = card.high_level?.find((r) => r.partition !== "validation");
   const test = benchmark.test ?? [];
   const main = test[0];
   return (
@@ -45,7 +47,11 @@ export function ModelPage() {
         <div className="grid cols-4">
           <Kpi label="Parámetros entrenables" value={card.parameters.toLocaleString("es-PE")} foot={`${card.members} modelo(s)`} />
           <Kpi label="Mejora frente al promedio histórico (M-05)" value={main?.relative_improvement_pct == null ? "n/a" : `${main.relative_improvement_pct > 0 ? "+" : ""}${main.relative_improvement_pct.toFixed(1)} %`} foot={main ? `prueba ${FAMILY_LABEL[main.family]} ${main.year}` : ""} />
-          <Kpi label="Recall del nivel alto" value={pct(card.high_level?.[0]?.model.recall)} foot={`base: ${pct(card.high_level?.[0]?.baseline?.recall)}`} />
+          <Kpi
+            label="Priorización de celdas, precisión promedio"
+            value={num(testRow?.annual_cell?.model.average_precision)}
+            foot={`histórico ${num(testRow?.annual_cell?.baseline?.average_precision)}; azar ${num(testRow?.annual_cell ? testRow.annual_cell.positives / testRow.annual_cell.cells : null)}`}
+          />
           <Kpi label="Tiempo de entrenamiento" value={`${Math.round(card.elapsed_seconds / 60)} min`} foot={`CPU, ${card.config.threads} hilos, PyTorch ${card.torch}`} />
         </div>
 
@@ -95,15 +101,15 @@ export function ModelPage() {
             <header>
               <div>
                 <h2>Errores del nivel alto</h2>
-                <p className="card-sub">Unidades = celdas × franjas. Falso positivo: marcada alta sin serlo en lo observado; falso negativo: alta observada no marcada.</p>
+                <p className="card-sub">Unidades = celdas × franjas del año de prueba. Falso positivo: marcada alta sin serlo en lo observado; falso negativo: alta observada no marcada.</p>
               </div>
             </header>
             <table className="data-table">
               <thead>
-                <tr><th scope="col">Prueba</th><th scope="col">Enfoque</th><th scope="col" className="num">Altas observadas</th><th scope="col" className="num">Detectadas</th><th scope="col" className="num">Falsos negativos</th><th scope="col" className="num">Falsos positivos</th><th scope="col" className="num">Recall</th><th scope="col" className="num">Precisión</th></tr>
+                <tr><th scope="col">Prueba</th><th scope="col">Enfoque</th><th scope="col" className="num">Altas observadas</th><th scope="col" className="num">Detectadas</th><th scope="col" className="num">Falsos negativos</th><th scope="col" className="num">Falsos positivos</th><th scope="col" className="num">Recall</th><th scope="col" className="num">Precisión</th><th scope="col" className="num">F1</th></tr>
               </thead>
               <tbody>
-                {card.high_level.flatMap((r) => [
+                {card.high_level.filter((r) => r.partition !== "validation").flatMap((r) => [
                   { who: "Modelo", c: r.model, r },
                   ...(r.baseline ? [{ who: "Promedio histórico", c: r.baseline, r }] : []),
                 ]).map(({ who, c, r }) => (
@@ -116,11 +122,48 @@ export function ModelPage() {
                     <td className="num">{c.fp.toLocaleString("es-PE")}</td>
                     <td className="num">{pct(c.recall)}</td>
                     <td className="num">{pct(c.precision)}</td>
+                    <td className="num">{num(c.f1)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="card-note">La red deja escapar menos zonas críticas (menos falsos negativos) a cambio de marcar más zonas que no resultaron altas. La referencia observada es ruidosa: una celda con un solo evento ya puede quedar alta.</p>
+            <p className="card-note">
+              El nivel alto es un percentil de una escala continua (índice 70 o más), así que marca muchas unidades; si la
+              referencia es rara, como los atropellos fatales de ONSV, la precisión queda acotada por positivos sobre
+              marcadas aunque el orden fuera perfecto. Por eso se reportan también medidas de priorización con el mismo
+              presupuesto para la red y el promedio histórico.
+            </p>
+            <table className="data-table">
+              <thead>
+                <tr><th scope="col">Prueba</th><th scope="col">Medida</th><th scope="col" className="num">Modelo</th><th scope="col" className="num">Promedio histórico</th><th scope="col" className="num">Azar</th></tr>
+              </thead>
+              <tbody>
+                {card.high_level.filter((r) => r.partition !== "validation" && r.model_ranking).flatMap((r) => {
+                  const name = `${FAMILY_LABEL[r.family]} ${r.year}`;
+                  const rows = [
+                    { m: `Precisión con presupuesto igual a los positivos (${r.model_ranking!.k}), celda × franja`, a: pct(r.model_ranking!.precision_at_k), b: pct(r.baseline_ranking?.precision_at_k), c: pct(r.base_rate) },
+                    { m: "Precisión promedio, celda × franja", a: num(r.model_ranking!.average_precision), b: num(r.baseline_ranking?.average_precision), c: num(r.base_rate) },
+                  ];
+                  const at = r.model_ranking!.at_validation_threshold;
+                  if (at) rows.push({ m: `Umbral elegido en validación (índice ${r.validation_thresholds?.model}): precisión, recall, F1`, a: `${pct(at.precision)}, ${pct(at.recall)}, ${num(at.f1)}`, b: r.baseline_ranking?.at_validation_threshold ? `${pct(r.baseline_ranking.at_validation_threshold.precision)}, ${pct(r.baseline_ranking.at_validation_threshold.recall)}, ${num(r.baseline_ranking.at_validation_threshold.f1)}` : "n/a", c: "" });
+                  const an = r.annual_cell;
+                  if (an) {
+                    rows.push({ m: `Celdas de 1 km en el año: precisión con presupuesto (${an.positives} celdas con atropello)`, a: pct(an.model.precision_at_k), b: pct(an.baseline?.precision_at_k), c: pct(an.positives / an.cells) });
+                    rows.push({ m: "Celdas de 1 km en el año: precisión promedio", a: num(an.model.average_precision), b: num(an.baseline?.average_precision), c: num(an.positives / an.cells) });
+                    rows.push({ m: "Celdas de 1 km en el año: celdas con atropello dentro del 10 % priorizado", a: pct(an.model.capture_top10), b: pct(an.baseline?.capture_top10), c: "10 %" });
+                  }
+                  return rows.map((x, i) => (
+                    <tr key={`${name}${i}`}>
+                      <th scope="row">{i === 0 ? name : ""}</th>
+                      <td>{x.m}</td>
+                      <td className="num">{x.a}</td>
+                      <td className="num">{x.b}</td>
+                      <td className="num">{x.c}</td>
+                    </tr>
+                  ));
+                })}
+              </tbody>
+            </table>
           </section>
         )}
 
@@ -266,8 +309,8 @@ function Partitions({ split }: { split: Record<string, Record<string, number[]>>
 }
 
 function Architecture({ variant, channels }: { variant: string; channels: number }) {
-  const conv = variant === "convlstm" ? "ConvLSTM: compuertas convolucionales 3×3 (espacio y tiempo a la vez)" : "CNN: 2 convoluciones 3×3 por año";
-  const rnn = variant === "convlstm" ? "Estado recurrente por celda, año a año" : "LSTM por celda sobre la secuencia de años";
+  const conv = variant === "convlstm" ? "Compuertas convolucionales 3×3 (ConvLSTM)" : "2 convoluciones 3×3 por año (CNN)";
+  const rnn = variant === "convlstm" ? "Memoria LSTM por celda, año a año" : "LSTM por celda sobre los años";
   const boxes = [
     { t: "Entrada", s: `${channels} variables por celda y año` },
     { t: "Espacial", s: conv },
@@ -279,17 +322,17 @@ function Architecture({ variant, channels }: { variant: string; channels: number
   const bw = 170;
   const gap = (w - bw * boxes.length) / (boxes.length - 1);
   return (
-    <svg viewBox={`0 0 ${w} 110`} className="chart" role="img" aria-label="Diagrama de la arquitectura de la red">
+    <svg viewBox={`0 0 ${w} 130`} className="chart" role="img" aria-label="Diagrama de la arquitectura de la red">
       {boxes.map((b, i) => {
         const x = i * (bw + gap);
         return (
           <g key={b.t}>
-            <rect x={x} y={20} width={bw} height={70} rx={10} fill={i === 1 || i === 2 ? "var(--accent-bg)" : "var(--bg-2)"} stroke="var(--line)" />
-            <text x={x + 12} y={46} style={{ font: "600 13px var(--font)", fill: "var(--ink)" }}>{b.t}</text>
-            <foreignObject x={x + 10} y={52} width={bw - 20} height={36}>
-              <div style={{ font: "11px var(--font)", color: "var(--muted)", lineHeight: 1.3 }}>{b.s}</div>
+            <rect x={x} y={14} width={bw} height={100} rx={10} fill={i === 1 || i === 2 ? "var(--accent-bg)" : "var(--bg-2)"} stroke="var(--line)" />
+            <text x={x + 12} y={42} style={{ font: "600 13px var(--font)", fill: "var(--ink)" }}>{b.t}</text>
+            <foreignObject x={x + 10} y={54} width={bw - 20} height={56}>
+              <div style={{ font: "12px var(--font)", color: "var(--muted)", lineHeight: 1.3, overflowWrap: "anywhere" }}>{b.s}</div>
             </foreignObject>
-            {i < boxes.length - 1 && <path d={`M${x + bw + 4} 55 L${x + bw + gap - 6} 55`} stroke="var(--ink-2)" strokeWidth={1.5} markerEnd="url(#arrow)" />}
+            {i < boxes.length - 1 && <path d={`M${x + bw + 4} 64 L${x + bw + gap - 6} 64`} stroke="var(--ink-2)" strokeWidth={1.5} markerEnd="url(#arrow)" />}
           </g>
         );
       })}

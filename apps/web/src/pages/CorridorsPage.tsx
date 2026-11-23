@@ -17,6 +17,7 @@ import { exportCsv, type ExportColumn } from "../lib/export";
 import { BANDS, fmtCount } from "../lib/format";
 import { colorFor, type ClassBand } from "../lib/levels";
 
+const PRIOR_KM = 0.5;
 const DENSITY_RAMP = ["#F8CBB8", "#F09A80", "#E0664D", "#BF3A2E", "#7E1F22"];
 const VEHICLE_NAME: Record<string, string> = {
   auto: "auto",
@@ -41,14 +42,29 @@ interface Props {
 export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props) {
   const [district, setDistrict] = useState<string>(initialDistrict ?? "");
   const [limit, setLimit] = useState(300);
+  const [minKm, setMinKm] = useState(0.3);
   const [selected, setSelected] = useState<string | null>(null);
   const data = useApi(
     (s) => api.corridors({ districtIds: district ? [district] : undefined, limit, minEvents: 1 }, s),
     [district, limit],
   );
   const all = useApi((s) => api.model(s), []);
-  const features = data.data?.features ?? [];
-  const sorted = useMemo(() => [...features].sort((a, b) => b.properties.events_per_km - a.properties.events_per_km), [features]);
+  // Rates of very short segments are unstable (24 events on 0.1 km = 240/km). The ranking
+  // uses a smoothed rate that adds PRIOR_KM of street at the citywide rate (empirical
+  // Bayes); long streets barely change, short ones are pulled towards the city mean.
+  const enriched = useMemo<CorridorCollection | null>(() => {
+    if (!data.data) return null;
+    const fs = data.data.features;
+    const city = fs.reduce((a, f) => a + f.properties.events, 0) / Math.max(fs.reduce((a, f) => a + f.properties.length_km, 0), 1e-9);
+    return {
+      ...data.data,
+      features: fs
+        .filter((f) => f.properties.length_km >= minKm)
+        .map((f) => ({ ...f, properties: { ...f.properties, rate_adj: (f.properties.events + city * PRIOR_KM) / (f.properties.length_km + PRIOR_KM) } })),
+    };
+  }, [data.data, minKm]);
+  const features = enriched?.features ?? [];
+  const sorted = useMemo(() => [...features].sort((a, b) => (b.properties.rate_adj ?? 0) - (a.properties.rate_adj ?? 0)), [features]);
   const current = features.find((f) => f.id === selected)?.properties ?? null;
   const summary = all.data?.corridor_summary;
   const options = useMemo(
@@ -95,19 +111,28 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
           </select>
           <label className="field-label" htmlFor="corr-limit">Tramos de calle mostrados: {limit}</label>
           <input id="corr-limit" type="range" min={50} max={1000} step={50} value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
+          <label className="field-label" htmlFor="corr-min">Longitud mínima del tramo</label>
+          <select id="corr-min" className="select" value={minKm} onChange={(e) => setMinKm(Number(e.target.value))}>
+            <option value={0}>Todos</option>
+            <option value={0.3}>0,3 km</option>
+            <option value={0.5}>0,5 km</option>
+            <option value={1}>1 km</option>
+          </select>
           <button type="button" className="btn" disabled={!features.length} onClick={() => exportCsv(`rap-lm-vias-criticas${district ? `-${district}` : ""}`, sorted.map((f) => f.properties), columns, meta, `corridors ${district || "all"}`)}>
             Exportar CSV
           </button>
         </div>
         <p className="muted small">
-          Un cruce reparte medio evento a cada calle. Las avenidas de doble calzada suman ambas vías en la longitud, lo que
+          El ranking usa una tasa ajustada: suma a cada calle {PRIOR_KM.toString().replace(".", ",")} km con la tasa media de
+          Lima, para que un tramo muy corto con pocos atropellos no aparezca con una tasa desproporcionada. Un cruce
+          reparte medio evento a cada calle. Las avenidas de doble calzada suman ambas vías en la longitud, lo que
           reduce sus eventos por km. Eventos sin calle identificable quedan fuera ({summary ? fmtCount(summary.events_not_on_corridor) : "…"}).
         </p>
       </aside>
 
       <main className="map-area">
         {data.error && <Notice tone="error">{data.error.message}</Notice>}
-        <CorridorMap data={data.data} scope={districts} selected={selected} onSelect={setSelected} />
+        <CorridorMap data={enriched} scope={districts} selected={selected} onSelect={setSelected} />
         {data.loading && <div className="map-loading">Cargando…</div>}
         <div className="legend-dock">
           <section className="legend">
@@ -141,7 +166,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
                     {i + 1}. {f.properties.street}
                   </button>
                   <span className="num small">
-                    {f.properties.events_per_km.toFixed(1)}/km, {fmtCount(f.properties.events)}
+                    {(f.properties.rate_adj ?? f.properties.events_per_km).toFixed(1)}/km ajustado, {fmtCount(f.properties.events)} en {f.properties.length_km.toFixed(1).replace(".", ",")} km
                     <span className="muted"> {f.properties.district_name}</span>
                   </span>
                 </li>
@@ -192,7 +217,7 @@ function CorridorDetail({ c, bands, onBack }: { c: CorridorProps; bands: ClassBa
         </div>
         <div className="kpi-row" style={{ marginTop: 12 }}>
           <div className="kpi"><span className="kpi-label">Atropellos</span><span className="kpi-value">{fmtCount(c.events)}</span><span className="kpi-foot">registrados</span></div>
-          <div className="kpi"><span className="kpi-label">Por km</span><span className="kpi-value">{c.events_per_km.toFixed(1)}</span><span className="kpi-foot">puesto {c.rank}</span></div>
+          <div className="kpi"><span className="kpi-label">Por km, ajustado</span><span className="kpi-value">{(c.rate_adj ?? c.events_per_km).toFixed(1)}</span><span className="kpi-foot">sin ajustar {c.events_per_km.toFixed(1)} en {c.length_km.toFixed(2).replace(".", ",")} km</span></div>
           <div className="kpi">
             <span className="kpi-label">Riesgo modelado</span>
             <span className="kpi-value">{c.mean_risk_index === null ? "–" : Math.round(c.mean_risk_index)}</span>
@@ -282,19 +307,19 @@ function CorridorMap({ data, scope, selected, onSelect }: { data: CorridorCollec
     if (!m) return;
     layer.current?.remove();
     if (!data) return;
-    const dens = data.features.map((f) => f.properties.events_per_km).sort((a, b) => a - b);
+    const dens = data.features.map((f) => f.properties.rate_adj ?? f.properties.events_per_km).sort((a, b) => a - b);
     const q = (p: number) => dens[Math.min(dens.length - 1, Math.floor(p * dens.length))] ?? 0;
     const cuts = [q(0.2), q(0.4), q(0.6), q(0.8)];
     layer.current = L.geoJSON(data as unknown as GeoJSON.FeatureCollection, {
       style: (f) => {
         const p = f!.properties as CorridorProps;
-        const k = cuts.filter((c) => p.events_per_km > c).length;
+        const k = cuts.filter((c) => (p.rate_adj ?? p.events_per_km) > c).length;
         const isSel = f!.id === selected || p.corridor_id === selected;
         return { color: isSel ? "#16181d" : DENSITY_RAMP[k], weight: isSel ? 7 : 2 + k, opacity: 0.95 };
       },
       onEachFeature: (f, lyr) => {
         const p = f.properties as CorridorProps;
-        lyr.bindTooltip(`<b>${p.street}</b><br>${p.district_name}<br>${p.events} atropellos, ${p.events_per_km.toFixed(1)} por km`, { sticky: true });
+        lyr.bindTooltip(`<b>${p.street}</b><br>${p.district_name}<br>${p.events} atropellos en ${p.length_km.toFixed(2)} km, ${(p.rate_adj ?? p.events_per_km).toFixed(1)} por km ajustado`, { sticky: true });
         lyr.on("click", () => select.current(p.corridor_id));
       },
     }).addTo(m);
