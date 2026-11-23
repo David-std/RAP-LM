@@ -63,7 +63,7 @@ Las decisiones de detalle y las solicitudes de cambio están en [architecture/re
 
 | Contenedor | Tecnología | Responsabilidad |
 |---|---|---|
-| Aplicación web | React, TypeScript, Leaflet, servida por Nginx | Vistas de mapa, corredores, comparación, análisis, modelo y metodología; proxy inverso `/api` |
+| Aplicación web | React, TypeScript, Leaflet (con leaflet.heat), servida por Nginx | Mapa en malla de 1 km, por distrito o como superficie de calor continua; vistas de corredores, comparación, análisis, modelo y metodología; proxy inverso `/api` |
 | API de consulta | Python, FastAPI, Pydantic, SQLAlchemy | Recursos de solo lectura con contratos validados y errores definidos |
 | Base de datos espacial | PostgreSQL + PostGIS | Geometrías, periodos, corridas, resultados, corredores, explicaciones y procedencia |
 | Migración | Alembic | Contenedor de un solo uso que aplica el esquema versionado |

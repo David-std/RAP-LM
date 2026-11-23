@@ -26,13 +26,20 @@ intervenciones**.
 
 ## 2. Mapa de riesgo
 
-1. **Unidad y periodo:** en el panel izquierdo elija celda o distrito, el año, el tipo de día y la franja. Solo
-   aparecen años con alguna fuente (2011 a 2017 y 2021 a 2024). Todas las vistas usan el mismo periodo.
-2. **Filtros:** marque niveles (alto, medio, bajo) o elija un distrito. Las unidades fuera del filtro se atenúan;
-   *Quitar filtros* restablece el conjunto completo. Abrir o cerrar una zona no cambia los filtros.
-3. **Buscar:** escriba un código de celda (por ejemplo `F54-C35`) o parte del nombre de un distrito.
-4. **Navegar:** rueda o botones para acercar, arrastre para desplazarse, botón ⤢ para volver a toda Lima.
-5. **Leyenda:** abajo a la izquierda, con rangos numéricos y nombres de nivel (no depende solo del color).
+1. **Vista:** *Malla 1 km* muestra las celdas con las que trabaja la red; *Distritos*, los valores agregados de
+   los 43 distritos; *Calor*, una superficie continua. En la vista de calor basta pasar el cursor por cualquier
+   punto para leer los valores de la celda de 1 km que lo contiene, y un clic abre su panel.
+2. **Qué mostrar:** *Riesgo estimado* (índice de la red CNN-RNN), *Atropellos registrados* (densidad por km² en
+   las fuentes, con su propia escala) o *Grad-CAM* (qué zonas pesan en la estimación de la zona seleccionada;
+   disponible para los distritos y para las celdas de mayor riesgo de 2024).
+3. **Periodo:** elija el año en la lista o avance con las flechas, el tipo de día y la franja. Solo aparecen años
+   con alguna fuente (2011 a 2017 y 2021 a 2024). Todas las vistas usan el mismo periodo.
+4. **Filtros:** active uno o más chips de nivel (alto, medio, bajo; cada uno indica cuántas zonas tiene) o escriba
+   un distrito. Las unidades fuera del filtro se atenúan y un resumen indica lo que se muestra; *Quitar filtros*
+   restablece el conjunto completo. Abrir o cerrar una zona no cambia los filtros.
+5. **Ir a una zona:** escriba un código de celda (por ejemplo `F54-C35`) o parte del nombre de un distrito.
+6. **Navegar:** rueda o botones para acercar, arrastre para desplazarse, botón ⤢ para volver a toda Lima.
+7. **Leyenda:** abajo a la izquierda, con rangos numéricos y nombres de nivel (no depende solo del color).
 
 ### Panel de zona
 
