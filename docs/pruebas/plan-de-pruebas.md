@@ -64,7 +64,7 @@ Definidos en `apps/web/e2e/critical.spec.ts` y ejecutados sobre la aplicación d
 | E2E-08 | Exportación CSV del ranking con corrida y alcance | Análisis |
 | E2E-09 | Vista Modelo con arquitectura, benchmark y errores del nivel alto | RM-01, RM-05 |
 | E2E-10 | Corredores: ranking de calles y detalle de una calle | D-09 |
-| E2E-11 | Capas de densidad registrada e influencia de la red | D-09 |
+| E2E-11 | Densidad registrada, vista de calor continua y capa Grad-CAM | D-09 |
 
 M-07 = escenarios críticos aprobados / escenarios críticos previstos (11). Un defecto bloqueante se registra en
 el [registro de incidencias](../registro-de-incidencias.md), se corrige y se vuelve a ejecutar.

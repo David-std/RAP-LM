@@ -256,3 +256,25 @@ details[open] summary { margin-bottom: 8px; }
   .span-2, .span-3 { grid-column: auto; }
   .topbar-run { display: none; }
 }
+
+/* ---------------------------------------------------------------- controls v2 */
+.stepper { display: grid; grid-template-columns: 34px 1fr 34px; gap: 6px; }
+.step-btn { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; cursor: pointer; font-size: 16px; }
+.step-btn:hover:not(:disabled) { background: var(--seg); }
+.step-btn:disabled { opacity: .4; cursor: default; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.filter-chip:hover { border-color: var(--ink-2); }
+.filter-chip.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+.chip-count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.filter-chip.on .chip-count { color: var(--accent); }
+.search-select { display: flex; align-items: center; gap: 4px; }
+.option-list { display: flex; flex-direction: column; gap: 4px; }
+.option { display: flex; gap: 10px; align-items: flex-start; text-align: left; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 7px 10px; cursor: pointer; }
+.option:hover { border-color: var(--ink-2); }
+.option.on { border-color: var(--accent); background: var(--accent-bg); }
+.option-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line); margin-top: 3px; flex: none; }
+.option.on .option-dot { border-color: var(--accent); background: radial-gradient(var(--accent) 45%, transparent 50%); }
+.option-label { display: block; font-weight: 500; }
+.option-desc { display: block; font-size: 11.5px; color: var(--muted); }
+.rail-summary { font-size: 12px; color: var(--ink-2); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 9px; }

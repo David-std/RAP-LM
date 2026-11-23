@@ -22,7 +22,7 @@ test("E2E-01 RF-01 RF-07: map shows every unit of the scope with legend and acti
 test("E2E-02 RF-03 HU-11: changing the period updates map and status together", async ({ page }) => {
   await ready(page);
   const req = page.waitForRequest((r) => r.url().includes("/api/v1/risk") && r.url().includes("period_id=2021-"));
-  await page.getByRole("radio", { name: "2021" }).first().click();
+  await page.getByLabel("Año").first().selectOption("2021");
   await req;
   await expect(page.locator(".statusbar")).toContainText("2021");
 });
@@ -44,11 +44,13 @@ test("E2E-03 RF-02 RF-08 HU-06 HU-07 HU-23: zone panel with risk, network series
 test("E2E-04 RF-04 HU-13 HU-16: level filter applies and clears in one action", async ({ page }) => {
   await ready(page);
   const req = page.waitForRequest((r) => r.url().includes("levels=high"));
-  await page.getByRole("checkbox", { name: /Alto/ }).check();
+  const chip = page.getByRole("button", { name: /^Alto/ });
+  await chip.click();
   await req;
-  await expect(page.getByText(/Filtros: Alto/)).toBeVisible();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByText(/Mostrando alto en los 43 distritos/)).toBeVisible();
   await page.getByRole("button", { name: "Quitar filtros" }).click();
-  await expect(page.getByRole("checkbox", { name: /Alto/ })).not.toBeChecked();
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
 });
 
 test("E2E-05 RF-05 HU-17: compare two districts in the same period", async ({ page }) => {
@@ -98,12 +100,14 @@ test("E2E-10 D-09: corridors view ranks streets and opens a street detail", asyn
   await expect(page.getByText("Atropellos por año")).toBeVisible();
 });
 
-test("E2E-11 map layers: recorded density and network influence", async ({ page }) => {
+test("E2E-11 D-09: recorded density, continuous heat view and Grad-CAM layer", async ({ page }) => {
   await ready(page);
-  await page.getByRole("radio", { name: "Registro histórico" }).click();
+  await page.getByRole("radio", { name: /Atropellos registrados/ }).click();
   await expect(page.getByText("Atropellos registrados por km²")).toBeVisible();
-  await page.getByRole("radio", { name: "Influencia de la red" }).click();
-  await page.getByRole("radio", { name: "Distrito" }).click();
+  await page.getByRole("radio", { name: "Calor" }).click();
+  await expect(page.getByLabel("Mapa de calor continuo")).toBeVisible();
+  await page.getByRole("radio", { name: "Distritos" }).click();
+  await page.getByRole("radio", { name: /Grad-CAM/ }).click();
   await page.locator(".leaflet-overlay-pane path").nth(10).dispatchEvent("click");
   await expect(page.getByText(/Grad-CAM: celdas/)).toBeVisible();
 });
