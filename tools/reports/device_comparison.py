@@ -1,6 +1,9 @@
 """Compare the same run configuration trained on CPU and on GPU (plan resource: GPU).
 
-Usage: python -m tools.reports.device_comparison --cpu artifacts/runs/<run> --gpu artifacts/runs/<run>
+Usage::
+
+    python -m tools.reports.device_comparison \
+        --cpu artifacts/runs/<run> --gpu artifacts/runs/<run>
 
 Writes evidence/benchmarking/device_comparison.json: training time of the search
 plus ensemble on each device, ensemble validation error, and agreement of the
