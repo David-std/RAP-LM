@@ -58,7 +58,7 @@
     "medium_max": 70,
     "method": "Index = percentile rank (0-100) of the annualised indicator within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70. Fixed before the test evaluation."
   },
-  "threads": 8,
+  "threads": 16,
   "search": {
     "variants": [
       "cnn_lstm",

@@ -45,7 +45,7 @@
     "medium_max": 70,
     "method": "Same rule as the main run."
   },
-  "threads": 8,
+  "threads": 16,
   "search": {
     "variants": [
       "cnn_lstm",
