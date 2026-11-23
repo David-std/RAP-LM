@@ -33,7 +33,7 @@ import numpy as np
 import torch
 
 from ml.fused.model import SpatioTemporalModel
-from ml.fused.tensors import CONTEXT_ORDER, Tensors, load_dataset
+from ml.fused.tensors import Tensors, load_dataset
 from pipelines.fusion.events import SOURCE_FAMILIES, SUBPERIODS
 
 WHATIF_FACTORS = (0.0, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0)
@@ -159,24 +159,24 @@ def main() -> None:
     # ---------------------------------------------------------------- what-if (district PDP)
     raw = np.load(args.dataset / "context.npz")
     stats = {}
-    for name in CONTEXT_ORDER:
+    for name in t.context_order:
         vals = np.log1p(raw[name])
         stats[name] = (vals.mean(), vals.std() + 1e-6)
     whatif = {
         "year": args.year,
         "factors": list(WHATIF_FACTORS),
-        "variables": list(CONTEXT_ORDER),
+        "variables": list(t.context_order),
         "district": {},
     }
     raw_grid = {}
-    for name in CONTEXT_ORDER:
+    for name in t.context_order:
         g = np.zeros(t.valid.shape, dtype=np.float64)
         g[rows, cols] = raw[name]
         raw_grid[name] = g
     for di, d in enumerate(t.district_ids):
         mask = frac[di] > 0.5  # cells owned mostly by the district
         curves = {}
-        for name in CONTEXT_ORDER:
+        for name in t.context_order:
             ch = t.channels.index(name)
             mean, std = stats[name]
             curve = []

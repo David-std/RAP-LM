@@ -144,7 +144,9 @@ def results(
         SELECT {_UNIT_COLUMNS}, p.period_id,
                coalesce(r.availability, 'no_result') AS availability,
                r.indicator_value, r.risk_index, r.risk_level, r.historical_average,
-               r.observed_events, r.observed_injured, r.observed_deceased
+               r.observed_events, r.observed_injured, r.observed_deceased,
+               r.severity_value, r.severity_index, r.exposure_ratio, r.exposure_index,
+               r.breakdown
         FROM spatial_unit u
         JOIN district d ON d.district_id = u.district_id
         CROSS JOIN analysis_period p

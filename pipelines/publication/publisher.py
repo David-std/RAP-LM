@@ -300,7 +300,8 @@ def stage_run(
     with cur.copy(
         """COPY risk_result (run_id, representation_id, unit_id, period_id, availability,
                indicator_value, risk_index, risk_level, historical_average, observed_events,
-               observed_injured, observed_deceased) FROM STDIN WITH (FORMAT csv, NULL '')"""
+               observed_injured, observed_deceased, severity_value, severity_index,
+               exposure_ratio, exposure_index, breakdown) FROM STDIN WITH (FORMAT csv, NULL '')"""
     ) as copy:
         while chunk := buffer.read(1 << 20):
             copy.write(chunk)

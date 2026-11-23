@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 from shapely.geometry import shape
 
+from pipelines.fusion.osm_context import build_osm_context
 from pipelines.fusion.streets import Street
 from pipelines.spatial.grid import TO_ANALYSIS, Cell, GridSpec, to_analysis
 
@@ -81,6 +82,49 @@ CONTEXT_VARIABLES = (
         "km",
         "minam_road_types",
         "2021",
+    ),
+    # Dataset v1.1 (D-10): OSM 2026 proxies of activity, walkability and traffic.
+    ContextVariable(
+        "poi_commerce",
+        "Commerce and services POIs",
+        "exposure",
+        "count",
+        "osm_lima_extract",
+        "2026",
+    ),
+    ContextVariable(
+        "poi_education", "Education POIs", "exposure", "count", "osm_lima_extract", "2026"
+    ),
+    ContextVariable("poi_health", "Health POIs", "exposure", "count", "osm_lima_extract", "2026"),
+    ContextVariable(
+        "osm_crossings",
+        "Mapped pedestrian crossings",
+        "context",
+        "count",
+        "osm_lima_extract",
+        "2026",
+    ),
+    ContextVariable(
+        "osm_signals", "Mapped traffic signals", "context", "count", "osm_lima_extract", "2026"
+    ),
+    ContextVariable(
+        "footway_km",
+        "Footway and pedestrian street length",
+        "context",
+        "km",
+        "osm_lima_extract",
+        "2026",
+    ),
+    ContextVariable(
+        "arterial_km",
+        "Arterial road length (traffic volume proxy)",
+        "context",
+        "km",
+        "osm_lima_extract",
+        "2026",
+    ),
+    ContextVariable(
+        "collector_km", "Collector road length", "context", "km", "osm_lima_extract", "2026"
     ),
 )
 
@@ -147,7 +191,7 @@ def build_context(
             to_analysis(shape(f["geometry"])) for f in _features(minam / name / f"{name}.geojson")
         ]
 
-    return {
+    context = {
         "population": _worldpop(
             raw_root
             / "population/worldpop/2020/peru_worldpop_population_2020_constrained_100m.tif",
@@ -165,3 +209,5 @@ def build_context(
         ),
         "special_road_km": _line_km(lines("road_types"), cells),
     }
+    context.update(build_osm_context(raw_root / "geography/roads/osm/Lima.osm.pbf", spec, cells))
+    return context

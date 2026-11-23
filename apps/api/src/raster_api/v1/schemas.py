@@ -94,6 +94,20 @@ class Observed(BaseModel):
     pedestrians_deceased: int | None
 
 
+class Component(BaseModel):
+    """Secondary risk component on its own frozen percentile scale (D-10)."""
+
+    value: float | None
+    index: float | None
+
+
+class Breakdown(BaseModel):
+    """Historical record by severity class and collision subtype (counts)."""
+
+    severity: dict[str, float]
+    type: dict[str, float]
+
+
 class RiskResult(BaseModel):
     unit: UnitRef
     period: Period
@@ -105,6 +119,9 @@ class RiskResult(BaseModel):
     risk_level: RiskLevel | None
     historical_average: float | None
     observed: Observed
+    severity: Component = Component(value=None, index=None)
+    exposure: Component = Component(value=None, index=None)
+    breakdown: Breakdown | None = None
 
 
 class LevelCounts(BaseModel):

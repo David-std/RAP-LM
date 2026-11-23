@@ -20,8 +20,10 @@ from sqlalchemy import Connection
 from raster_api.v1 import repository as repo
 from raster_api.v1.errors import ApiError
 from raster_api.v1.schemas import (
+    Breakdown,
     Comparison,
     ComparisonItem,
+    Component,
     Legend,
     LevelBand,
     LevelCounts,
@@ -138,7 +140,29 @@ class Context:
                 pedestrians_injured=row["observed_injured"],
                 pedestrians_deceased=row["observed_deceased"],
             ),
+            severity=Component(
+                value=row.get("severity_value") if estimated else None,
+                index=row.get("severity_index") if estimated else None,
+            ),
+            exposure=Component(
+                value=row.get("exposure_ratio") if estimated else None,
+                index=row.get("exposure_index") if estimated else None,
+            ),
+            breakdown=_breakdown(row.get("breakdown")),
         )
+
+
+SEVERITY_KEYS = ("fatal", "nonfatal", "material_only", "unknown")
+TYPE_KEYS = ("atropello", "atropello_fuga", "choque_y_atropello", "otro")
+
+
+def _breakdown(raw: Any) -> Breakdown | None:
+    if not raw:
+        return None
+    return Breakdown(
+        severity=dict(zip(SEVERITY_KEYS, raw["severity"], strict=True)),
+        type=dict(zip(TYPE_KEYS, raw["type"], strict=True)),
+    )
 
 
 def list_periods(ctx: Context) -> PeriodList:

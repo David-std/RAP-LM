@@ -25,6 +25,13 @@ import numpy as np
 
 from pipelines.fusion.events import SOURCE_FAMILIES, SUBPERIODS, coverage_fraction
 
+# Severity and subtype classes of the historical record (dataset v1.1).
+SEVERITY_CLASSES = ("fatal", "nonfatal", "material_only", "unknown")
+TYPE_CLASSES = ("atropello", "atropello_fuga", "choque_y_atropello", "otro")
+SEVERITY_MAP = {"fatal": 0, "fatal_incident": 0, "nonfatal": 1, "material_only": 2}
+TYPE_MAP = {"atropello": 0, "atropello_fuga": 1, "choque_y_atropello": 2}
+
+# v1.0 order; datasets declare their own order in dataset_manifest.json.
 CONTEXT_ORDER = (
     "population",
     "transit_stops",
@@ -57,6 +64,11 @@ class Tensors:
     events_total: np.ndarray  # [S, T, K, D] all events (located + district) per district
     injured_dist: np.ndarray  # [T, K, D] pedestrians injured, all events of the district
     deceased_dist: np.ndarray
+    context_order: tuple[str, ...] = CONTEXT_ORDER
+    severity_cell: np.ndarray | None = None  # [T, K, 4, H, W] located events by severity class
+    type_cell: np.ndarray | None = None  # [T, K, 4, H, W] located events by subtype
+    severity_dist: np.ndarray | None = None  # [T, K, 4, D] all events by severity class
+    type_dist: np.ndarray | None = None
 
 
 def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
@@ -96,6 +108,10 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
     deceased = np.zeros((T, K, H, W), dtype=np.float32)
     injured_dist = np.zeros((T, K, D), dtype=np.float32)
     deceased_dist = np.zeros((T, K, D), dtype=np.float32)
+    severity_cell = np.zeros((T, K, 4, H, W), dtype=np.float32)
+    type_cell = np.zeros((T, K, 4, H, W), dtype=np.float32)
+    severity_dist = np.zeros((T, K, 4, D), dtype=np.float32)
+    type_dist = np.zeros((T, K, 4, D), dtype=np.float32)
     n_total = np.zeros((S, T), dtype=np.float64)
     n_located = np.zeros((S, T), dtype=np.float64)
 
@@ -113,12 +129,18 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
             dec = float(e["pedestrian_deceased"] or 0)
             injured_dist[t, k, di] += inj
             deceased_dist[t, k, di] += dec
+            sev = SEVERITY_MAP.get(e.get("severity", ""), 3)
+            typ = TYPE_MAP.get(e.get("collision_type", ""), 3)
+            severity_dist[t, k, sev, di] += 1
+            type_dist[t, k, typ, di] += 1
             allocation = json.loads(e["allocation"])
             if allocation:
                 n_located[s, t] += 1
                 for unit, w in allocation.items():
                     r, c = index[unit]
                     y_cell[s, t, k, r, c] += w
+                    severity_cell[t, k, sev, r, c] += w
+                    type_cell[t, k, typ, r, c] += w
                     injured[t, k, r, c] += w * inj
                     deceased[t, k, r, c] += w * dec
             else:
@@ -131,18 +153,20 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
                 cover[s, t, k] = coverage_fraction(fam, year, day_type)
     located = np.where(n_total > 0, n_located / np.maximum(n_total, 1), 0).astype(np.float32)
 
+    manifest = json.loads((dataset_dir / "dataset_manifest.json").read_text(encoding="utf-8"))
+    context_order = tuple(v["variable_id"] for v in manifest["context_variables"])
     context = np.load(dataset_dir / "context.npz")
     ctx_units = list(context["unit_ids"])
     assert ctx_units == unit_ids, "context.npz is not aligned with grid.geojson"
-    static = np.zeros((len(CONTEXT_ORDER), H, W), dtype=np.float32)
-    for i, name in enumerate(CONTEXT_ORDER):
+    static = np.zeros((len(context_order), H, W), dtype=np.float32)
+    for i, name in enumerate(context_order):
         static[i, rows, cols] = np.log1p(context[name])
     # Standardise over valid cells (context is time-invariant: no split leakage).
     for i in range(static.shape[0]):
         vals = static[i][valid]
         static[i][valid] = (vals - vals.mean()) / (vals.std() + 1e-6)
 
-    channels = list(CONTEXT_ORDER) + ["valid_cell"]
+    channels = list(context_order) + ["valid_cell"]
     dyn_names = []
     for fam in SOURCE_FAMILIES:
         dyn_names += [
@@ -152,9 +176,9 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
         ]
     channels += dyn_names
     X = np.zeros((T, len(channels), H, W), dtype=np.float32)
-    X[:, : len(CONTEXT_ORDER)] = static[None]
-    X[:, len(CONTEXT_ORDER)] = valid
-    base = len(CONTEXT_ORDER) + 1
+    X[:, : len(context_order)] = static[None]
+    X[:, len(context_order)] = valid
+    base = len(context_order) + 1
     district_area = (frac * area[None]).sum(axis=(1, 2))  # km2 per district
     for t in range(1, T):
         for s in range(S):
@@ -189,4 +213,9 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
         events_total=events_total,
         injured_dist=injured_dist,
         deceased_dist=deceased_dist,
+        context_order=context_order,
+        severity_cell=severity_cell,
+        type_cell=type_cell,
+        severity_dist=severity_dist,
+        type_dist=type_dist,
     )

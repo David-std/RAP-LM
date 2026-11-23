@@ -127,6 +127,8 @@ class FusedEvent:
     matched_streets: tuple[str, ...] = ()
     injured: int | None = None
     deceased: int | None = None
+    collision_type: str = ""
+    severity: str = ""
     allocation: dict[str, float] = field(default_factory=dict)  # unit_id -> weight
 
 
@@ -201,6 +203,8 @@ def read_events(
                 geometry=None,
                 injured=_int(row["pedestrian_injured_count"]),
                 deceased=_int(row["pedestrian_deceased_count"]),
+                collision_type=row["collision_type"],
+                severity=row["incident_severity"] or "unknown",
             )
             lat, lon = row["latitude"], row["longitude"]
             if lat and lon and row["coordinate_status"] == "within_declared_district":

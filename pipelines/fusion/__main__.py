@@ -37,7 +37,7 @@ from pipelines.fusion.streets import extract_streets, read_streets, write_street
 from pipelines.lineage import git_sha, tree_is_clean
 from pipelines.spatial.grid import build_grid, load_districts, write_districts, write_grid
 
-DATASET_VERSION = "fused-v1.0.0"
+DATASET_VERSION = "fused-v1.1.0"  # v1.1: OSM context (D-10), subtype and severity
 
 
 def sha256(path: Path) -> str:
@@ -96,6 +96,8 @@ def main() -> None:
                 "matched_streets",
                 "pedestrian_injured",
                 "pedestrian_deceased",
+                "collision_type",
+                "severity",
                 "allocation",
             ]
         )
@@ -114,6 +116,8 @@ def main() -> None:
                     "|".join(e.matched_streets),
                     "" if e.injured is None else e.injured,
                     "" if e.deceased is None else e.deceased,
+                    e.collision_type,
+                    e.severity,
                     json.dumps(
                         {k: round(v, 6) for k, v in e.allocation.items()}, separators=(",", ":")
                     ),
