@@ -262,3 +262,19 @@ def test_context_profile_percentiles():  # D-12: zone environment against the re
     signals = {u: dict((k, (v, p)) for k, v, p in out[u]).get("signals_per_street_km") for u in ids}
     assert signals["a"][1] < signals["b"][1] < signals["c"][1]
     assert signals["d"] is None and MIN_STREET_KM > 0.1  # too little street for a per-km ratio
+
+
+def test_ranking_metrics():  # P1-05: precision measured with a budget, AP and validation threshold
+    import numpy as np
+
+    from ml.fused.classification import _average_precision, _ranking, best_threshold
+
+    positive = np.array([True, False, True, False, False])
+    perfect = np.array([0.9, 0.1, 0.8, 0.2, 0.3])
+    assert _average_precision(perfect, positive) == 1.0
+    worst = -perfect
+    assert _average_precision(worst, positive) < 0.5
+    r = _ranking(perfect, positive, 0.5)
+    assert r["k"] == 2 and r["precision_at_k"] == 1.0
+    assert r["at_validation_threshold"]["recall"] == 1.0
+    assert best_threshold(perfect, positive) == 0.8
