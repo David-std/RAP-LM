@@ -1,4 +1,4 @@
-"""Gradient influence map per explained unit (D-09).
+"""Grad-CAM map per explained unit (D-09).
 
 Revision ID: 0004
 """

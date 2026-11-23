@@ -105,7 +105,7 @@ test("E2E-11 map layers: recorded density and network influence", async ({ page 
   await page.getByRole("radio", { name: "Influencia de la red" }).click();
   await page.getByRole("radio", { name: "Distrito" }).click();
   await page.locator(".leaflet-overlay-pane path").nth(10).dispatchEvent("click");
-  await expect(page.getByText(/gradiente × entrada/)).toBeVisible();
+  await expect(page.getByText(/Grad-CAM: celdas/)).toBeVisible();
 });
 
 test("E2E-08 analyst ranking exports CSV with run and scope", async ({ page }) => {

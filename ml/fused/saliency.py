@@ -1,4 +1,4 @@
-"""Gradient influence maps (Grad-CAM style) for the published network (D-09).
+"""Grad-CAM maps for the published network (D-09).
 
 Usage::
 
@@ -47,6 +47,27 @@ def influence(
     return acc / len(members)
 
 
+def gradcam(
+    members, x: torch.Tensor, valid: torch.Tensor, ti: int, weight: torch.Tensor
+) -> np.ndarray:
+    """[H, W] Grad-CAM over the encoder feature maps of year ``ti`` (mean over members).
+
+    A = encoder(x)[ti] are the spatial feature maps the output head reads (CNN-LSTM:
+    LSTM states per cell; ConvLSTM: hidden state maps). Channel weights are the
+    spatial mean of d target / d A (global average pooling of gradients) and the
+    map is ReLU(sum_k alpha_k * A_k), as in Selvaraju et al. (2017).
+    """
+    acc = np.zeros(x.shape[2:], dtype=np.float64)
+    for m in members:
+        feats = m.encoder(x)  # [T, F, H, W]
+        target = (torch.exp(m.head(feats))[ti] * valid * weight).sum()
+        (grad,) = torch.autograd.grad(target, feats)
+        alpha = grad[ti].mean(dim=(1, 2), keepdim=True)  # [F, 1, 1]
+        cam = torch.relu((alpha * feats[ti]).sum(dim=0)) * valid
+        acc += cam.detach().numpy()
+    return acc / len(members)
+
+
 def top_cells(sal: np.ndarray, unit_at: dict[tuple[int, int], str]) -> list[list]:
     flat = [(float(sal[r, c]), u) for (r, c), u in unit_at.items() if sal[r, c] > 0]
     flat.sort(reverse=True)
@@ -77,13 +98,18 @@ def main() -> None:
         if out_path.exists()
         else {"district": {}, "cell": {}}
     )
-    result.update({"year": args.year, "method": "mean |gradient x input| over ensemble members"})
+    result.update(
+        {
+            "year": args.year,
+            "method": "Grad-CAM on encoder feature maps, mean over ensemble members",
+        }
+    )
 
     for di, d in enumerate(t.district_ids):
         if d in result["district"]:
             continue
         w = torch.from_numpy((t.frac[di] > 0).astype(np.float32) * t.frac[di])
-        result["district"][d] = top_cells(influence(members, x, valid, ti, w), unit_at)
+        result["district"][d] = top_cells(gradcam(members, x, valid, ti, w), unit_at)
         out_path.write_text(json.dumps(result), encoding="utf-8")
         print("district", d, flush=True)
 
@@ -98,7 +124,7 @@ def main() -> None:
             continue
         w = torch.zeros_like(valid)
         w[r, c] = 1.0
-        result["cell"][u] = top_cells(influence(members, x, valid, ti, w), unit_at)
+        result["cell"][u] = top_cells(gradcam(members, x, valid, ti, w), unit_at)
         if len(result["cell"]) % 20 == 0:
             out_path.write_text(json.dumps(result), encoding="utf-8")
             print("cells", len(result["cell"]), flush=True)

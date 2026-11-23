@@ -13,8 +13,7 @@ provincia de Lima, por celda de 1 km, distrito, calle y periodo. Cada resultado 
 la explicación de cómo lo estimó la red.
 
 Una cadena *datos de historial y contexto → ConvLSTM (CNN + RNN) → estimación del riesgo → mapa de calor*
-organiza el sistema, con mapas de densidad del registro histórico y mapas de influencia por gradiente (estilo
-Grad-CAM) para explicar el modelo.
+organiza el sistema, con mapas de densidad del registro histórico y mapas Grad-CAM para explicar el modelo.
 
 Fuera del alcance:
 - operación en tiempo real (RG-02);

@@ -170,3 +170,17 @@ def test_gradient_influence_matches_receptive_field():  # Grad-CAM style maps (D
         ).eval()
         reach[variant] = int((influence([model], x, valid, 3, target) > 1e-9).sum())
     assert reach == {"lstm_only": 1, "cnn_lstm": 25}  # 1x1 kernels vs two 3x3 convolutions
+
+
+def test_gradcam_is_non_negative_and_localised():  # Grad-CAM, Selvaraju et al. (2017)
+    from ml.fused.saliency import gradcam
+
+    torch.manual_seed(0)
+    model = SpatioTemporalModel(
+        in_channels=3, subperiods=8, families=2, hidden=8, dropout=0.0, variant="convlstm"
+    ).eval()
+    target = torch.zeros(9, 9)
+    target[4, 4] = 1
+    cam = gradcam([model], torch.randn(4, 3, 9, 9), torch.ones(9, 9), 3, target)
+    assert cam.shape == (9, 9)
+    assert (cam >= 0).all() and cam.max() > 0

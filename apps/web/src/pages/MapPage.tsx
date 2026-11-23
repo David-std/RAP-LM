@@ -58,7 +58,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     !!periodId && !!q.selectedUnitId,
   );
 
-  // Influence map (Grad-CAM style) of the selected unit, precomputed offline.
+  // Grad-CAM map of the selected unit, precomputed offline.
   const explanation = useApi(
     (s) => api.explanation(q.unitType, q.selectedUnitId!, s),
     [q.unitType, q.selectedUnitId],
@@ -231,11 +231,11 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           )}
           {layer === "influence" && (
             <section className="legend">
-              <strong>Influencia en la estimación</strong>
+              <strong>Influencia en la estimación (Grad-CAM)</strong>
               <p className="legend-sub">
                 {q.selectedUnitId
                   ? explanation.data?.saliency
-                    ? `Celdas cuyos datos más pesan en la estimación de ${q.selectedUnitId} (gradiente × entrada, estilo Grad-CAM).`
+                    ? `Grad-CAM: celdas cuyas características internas de la red más pesan en la estimación de ${q.selectedUnitId}.`
                     : "Disponible para distritos y para las celdas de mayor riesgo de 2024."
                   : "Seleccione una zona en el mapa."}
               </p>
