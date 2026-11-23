@@ -2,7 +2,7 @@
 
 **Regla:** cada caso se definió antes de ejecutarse y su resultado se toma de la evidencia generada por las
 herramientas, no de esta tabla. Los resultados de cada ejecución están en `evidence/` (reportes de pytest,
-Vitest, Playwright y métricas) y se resumen en `docs/CONTROL_DESARROLLO.md`.
+Vitest, Playwright y métricas) y se resumen en `docs/pruebas/informe-de-pruebas.md`.
 
 | Tipo | Herramienta | Archivo |
 |---|---|---|
@@ -51,5 +51,5 @@ Vitest, Playwright y métricas) y se resumen en `docs/CONTROL_DESARROLLO.md`.
 ## Escenarios críticos de extremo a extremo (M-07)
 
 E2E-01 a E2E-08 en `apps/web/e2e/critical.spec.ts`. M-07 = escenarios críticos aprobados / escenarios
-críticos previstos (8). Un defecto bloqueante se registra en `docs/CONTROL_DESARROLLO.md` (registro de
+críticos previstos (8). Un defecto bloqueante se registra en `docs/pruebas/informe-de-pruebas.md` (registro de
 incidencias), se corrige y se reejecuta.

@@ -1,7 +1,7 @@
 # Benchmark and evaluation protocol — fused all-severity run
 
 **Status:** frozen before the first test evaluation (2026-11-22). Changing any item below after
-seeing test results requires a change request in `docs/DECISIONES_TECNICAS.md`.
+seeing test results requires a change request in `docs/architecture/registro-de-decisiones.md`.
 **Trace:** HT-02 (RM-01, WBS 3.1.2), HT-07/HT-08 (RM-02/RM-03, WBS 3.2.2/3.2.3), evaluation
 RM-05 / M-05 (WBS 4.4). Code: `ml/fused/`, configs in `ml/configs/`.
 

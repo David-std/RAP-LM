@@ -1,4 +1,4 @@
-// Each test is one critical scenario of the test plan (docs/pruebas/plan_de_pruebas.md).
+// Each test is one critical scenario of the test plan (docs/pruebas/plan-de-pruebas.md).
 import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page) {

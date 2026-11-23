@@ -1,5 +1,5 @@
 # ruff: noqa: E501  (Markdown table rows are kept on one line)
-"""Generate docs/benchmarking/BENCHMARKING.md from evidence files (P3 structure as a guide).
+"""Generate docs/benchmarking/informe-de-benchmarking.md from evidence files (P3 structure as a guide).
 
 Usage: python -m tools.reports.benchmark
 

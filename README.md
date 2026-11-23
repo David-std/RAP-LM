@@ -91,4 +91,4 @@ python -m tools.metrics.measure --dataset artifacts/datasets/fused-v1.1.0 \
 | `docs/` | Architecture, API contract, ML protocol, decisions, control log, user manual, validation |
 | `evidence/` | Measured metric and benchmark reports |
 
-Documentation index with current and design-history documents: [docs/README.md](docs/README.md).
+Documentation index: [docs/README.md](docs/README.md).

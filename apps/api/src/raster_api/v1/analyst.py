@@ -40,6 +40,7 @@ class Explanation(BaseModel):
     attribution_pct: list[float]
     whatif_factors: list[float] | None
     whatif: dict[str, list[float]] | None
+    saliency: list[tuple[str, float]] | None = None  # [unit_id, weight 0..1], strongest 40 cells
 
 
 class ModelCard(BaseModel):
@@ -131,6 +132,7 @@ def get_explanation(conn: Conn, unit_id: str, unit_type: UnitTypeQ = "cell") -> 
         attribution_pct=row["attribution"],
         whatif_factors=card["whatif_factors"] if row["whatif"] else None,
         whatif=row["whatif"],
+        saliency=row.get("saliency"),
     )
 
 

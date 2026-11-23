@@ -1,7 +1,8 @@
 """Initial PostGIS schema for published analytical results.
 
 WBS 3.1.4 / 3.3.2, HT-04 / HT-10 (RT-03, RD-03, RD-04). Implements the entities
-of docs/contracts/persistence-and-publication.md. Public geometry is stored in
+of the persistence model (docs/architecture/documento-de-arquitectura.md).
+Public geometry is stored in
 EPSG:4326 (the common SRID served as GeoJSON); analysis happens in EPSG:32718
 inside the batch pipeline and is recorded per spatial representation.
 

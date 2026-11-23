@@ -2,8 +2,8 @@
 
 Cada entrada indica si **aplica sin cambiar la línea base** (decisión de implementación) o si es una
 **solicitud de cambio** que el equipo debe aprobar mediante el control integrado de cambios (comunicación
-C-05 del plan, métrica M-15). Una IA no aprueba cambios en nombre del equipo: el estado
-"Pendiente de aprobación" se mantiene hasta que el Project Manager lo registre.
+C-05 del plan, métrica M-15). El estado "Pendiente de aprobación" se mantiene hasta que el Project Manager
+registra la aprobación del equipo.
 
 | ID | Fecha | Tipo | Estado |
 |---|---|---|---|
@@ -58,10 +58,10 @@ directa y se declara como limitación.
 ## D-02. Nombres de recursos de la API en inglés
 
 **Requisitos:** RT-02 (HT-03, HT-09). **Contexto:** el informe (Figura 5D) nombra `/periodos`, `/unidades`,
-`/riesgo`, `/comparaciones`, `/procedencia`. El usuario pidió nombres estándar en inglés.
+`/riesgo`, `/comparaciones`, `/procedencia`. El Product Owner solicitó nombres estándar en inglés.
 **Decisión:** `/api/v1/periods`, `/units`, `/risk`, `/comparisons`, `/provenance`, con correspondencia uno a
-uno documentada en `docs/api/contract.md`. El handoff ya indicaba que las rutas exactas no son requisito
-académico congelado; la obligación funcional y las pruebas se mantienen. **Impacto:** ninguno en requisitos; el
+uno documentada en `docs/api/contract.md`. El plan fija la función de cada recurso, no su ruta exacta; la
+obligación funcional y las pruebas se mantienen. **Impacto:** ninguno en requisitos; el
 frontend consume el contrato nuevo en el mismo PR.
 
 ## D-03. Malla de 1 km en EPSG:32718 recortada a los 43 distritos

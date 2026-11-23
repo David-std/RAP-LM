@@ -1,6 +1,6 @@
 """Five read-only resources of the API (Figure 5D, RT-02, HT-09).
 
-English resource names (decision D-02 in docs/DECISIONES_TECNICAS.md) map to
+English resource names (decision D-02 in docs/architecture/registro-de-decisiones.md) map to
 the report's names: /periods = /periodos, /units = /unidades, /risk = /riesgo,
 /comparisons = /comparaciones, /provenance = /procedencia.
 """

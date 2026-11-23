@@ -1,0 +1,26 @@
+@startuml 5B_contenedores
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title RAP-LM: contenedores (nivel 2)
+
+Person(analista, "Usuario especializado", "Analista de seguridad vial, GIS, ingeniero de tránsito o coordinador municipal")
+Person(backend, "Backend Developer & QA", "Ejecuta el pipeline por lotes y publica corridas")
+System_Ext(tiles, "Servicio de teselas", "CARTO / OpenStreetMap, solo fondo cartográfico")
+System_Ext(fuentes, "Fuentes públicas", "CENACOM, ONSV, INEI, WorldPop, MINAM, OpenStreetMap")
+
+System_Boundary(raplm, "RAP-LM (Docker Compose)") {
+  Container(web, "Aplicación web", "React, TypeScript, Leaflet, Nginx", "Mapa, corredores, comparación, análisis, modelo y metodología; proxy inverso hacia la API")
+  Container(api, "API de consulta", "Python, FastAPI, Pydantic, SQLAlchemy", "Solo lectura: periodos, unidades, riesgo, comparaciones, procedencia, series, corredores, explicaciones y ficha del modelo")
+  ContainerDb(db, "Base de datos espacial", "PostgreSQL + PostGIS", "Unidades, periodos, corridas, resultados, corredores, explicaciones y procedencia; roles lector y publicador separados")
+  Container(migrate, "Migración", "Alembic", "Contenedor de un solo uso que aplica el esquema versionado")
+  Container(pipeline, "Pipeline analítico por lotes", "Python, PyTorch, Shapely, PyProj", "Fusión de fuentes, malla y georreferenciación, tensores, entrenamiento CNN-RNN, evaluación, explicaciones y publicación atómica")
+}
+
+Rel(analista, web, "Consulta y compara", "HTTPS")
+Rel(web, api, "Solicita resultados", "JSON y GeoJSON sobre HTTPS")
+Rel(web, tiles, "Obtiene el fondo cartográfico", "HTTPS")
+Rel(api, db, "Lee resultados publicados", "SQL, rol de solo lectura")
+Rel(migrate, db, "Aplica migraciones", "SQL, rol propietario")
+Rel(backend, pipeline, "Ejecuta corridas")
+Rel(pipeline, fuentes, "Usa instantáneas registradas con hash")
+Rel(pipeline, db, "Publica corridas conciliadas", "SQL, rol publicador")
+@enduml
