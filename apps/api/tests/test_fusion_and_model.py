@@ -218,3 +218,47 @@ def test_vehicle_shares_sum_to_one_event():  # several vehicles split one event
     assert _split([]) == {"no_identificado": 1.0}
     shares = _split(["auto", "mototaxi", "auto"])
     assert abs(sum(shares.values()) - 1) < 1e-6 and shares["auto"] > shares["mototaxi"]
+
+
+def test_cenacom_factor_codes_follow_each_edition():  # D-12: AT109 list changed by edition
+    from pipelines.fusion.vehicles import CENACOM_FACTOR, _onsv_factor
+
+    assert sorted(CENACOM_FACTOR) == [12, 15, 18, 19]
+    for n, codes in CENACOM_FACTOR.items():
+        assert sorted(codes) == list(range(1, n + 1))
+        assert codes[1] == "velocidad"
+    assert "senalizacion" not in CENACOM_FACTOR[12].values()  # 2012 had no such code
+    assert CENACOM_FACTOR[15][12] == CENACOM_FACTOR[18][12] == "senalizacion"
+    assert CENACOM_FACTOR[18][18] == CENACOM_FACTOR[19][18] == "sin_causa"
+    assert _onsv_factor("EN PROCESO DE INVESTIGACION", "NO CUENTA CON CAUSA ESPECIFICA") == [
+        "sin_causa"
+    ]
+    assert _onsv_factor("IMPRUDENCIA DEL PEATON", "ESTADO DE EBRIEDAD Y/O DROGADICCION") == [
+        "peaton_alcohol"
+    ]
+
+
+def test_context_profile_percentiles():  # D-12: zone environment against the rest of Lima
+    import numpy as np
+
+    from pipelines.publication.context_profile import MIN_STREET_KM, _profiles
+
+    ids = ["a", "b", "c", "d"]
+    totals = {
+        "street_km": np.array([10.0, 10.0, 10.0, 0.1]),
+        "traffic_lights": np.array([1.0, 5.0, 10.0, 3.0]),
+        "osm_signals": np.zeros(4),
+        "pedestrian_crossings": np.zeros(4),
+        "osm_crossings": np.zeros(4),
+        "footway_km": np.zeros(4),
+        "arterial_km": np.zeros(4),
+        "poi_commerce": np.zeros(4),
+        "poi_education": np.zeros(4),
+        "poi_health": np.zeros(4),
+        "transit_stops": np.zeros(4),
+        "population": np.array([100.0, 200.0, 300.0, 400.0]),
+    }
+    out = _profiles(ids, totals, np.ones(4))
+    signals = {u: dict((k, (v, p)) for k, v, p in out[u]).get("signals_per_street_km") for u in ids}
+    assert signals["a"][1] < signals["b"][1] < signals["c"][1]
+    assert signals["d"] is None and MIN_STREET_KM > 0.1  # too little street for a per-km ratio

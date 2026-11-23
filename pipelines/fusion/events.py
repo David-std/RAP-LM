@@ -132,6 +132,7 @@ class FusedEvent:
     allocation: dict[str, float] = field(default_factory=dict)  # unit_id -> weight
     vehicles: dict[str, float] = field(default_factory=dict)  # vehicle class -> share (D-12)
     service: dict[str, float] = field(default_factory=dict)  # transport service -> share
+    factors: list[str] = field(default_factory=list)  # recorded contributing factors
 
 
 @dataclass

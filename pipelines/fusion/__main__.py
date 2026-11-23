@@ -38,7 +38,7 @@ from pipelines.fusion.vehicles import vehicle_profiles
 from pipelines.lineage import git_sha, tree_is_clean
 from pipelines.spatial.grid import build_grid, load_districts, write_districts, write_grid
 
-DATASET_VERSION = "fused-v1.2.0"  # v1.2: annual population, vehicle type and service (D-12)
+DATASET_VERSION = "fused-v1.3.0"  # v1.3: v1.2 + recorded contributing factors (D-12)
 
 
 def sha256(path: Path) -> str:
@@ -84,7 +84,9 @@ def main() -> None:
     profiles, vehicle_report = vehicle_profiles(args.raw, args.harmonized)
     unknown = {"no_identificado": 1.0}
     for e in events:
-        e.vehicles, e.service = profiles.get(e.event_id, (unknown, unknown))
+        e.vehicles, e.service, e.factors = profiles.get(
+            e.event_id, (unknown, unknown, ["sin_causa"])
+        )
     print(f"fused events: {len(events)}; vehicle linkage {vehicle_report}")
 
     with (out / "events.csv").open("w", encoding="utf-8", newline="") as handle:
@@ -107,6 +109,7 @@ def main() -> None:
                 "severity",
                 "vehicles",
                 "service",
+                "factors",
                 "allocation",
             ]
         )
@@ -129,6 +132,7 @@ def main() -> None:
                     e.severity,
                     json.dumps(e.vehicles, separators=(",", ":"), sort_keys=True),
                     json.dumps(e.service, separators=(",", ":"), sort_keys=True),
+                    "|".join(e.factors),
                     json.dumps(
                         {k: round(v, 6) for k, v in e.allocation.items()}, separators=(",", ":")
                     ),

@@ -288,3 +288,8 @@ details[open] summary { margin-bottom: 8px; }
 .data-table tbody tr { cursor: pointer; }
 .card header:has(> p.card-sub) { flex-direction: column; align-items: flex-start; gap: 2px; }
 .card header > p.card-sub { margin: 0; }
+
+/* ---------------------------------------------------------------- environment profile */
+.env-row { display: grid; grid-template-columns: 132px 1fr 150px; align-items: center; gap: 8px; padding: 3px 0; }
+.env-track { position: relative; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--line-2) 0 25%, var(--bg-2) 25% 75%, var(--line-2) 75% 100%); border: 1px solid var(--line-2); }
+.env-mark { position: absolute; top: -4px; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--accent); }

@@ -192,6 +192,17 @@ participó en cada atropello ni si era transporte público o particular, aunque 
 3. El vehículo y el servicio alimentan el desglose del registro histórico y las vías críticas, no la entrada de
    la red. La población anual sí entra a la red (iteración v3, enmienda A2 del protocolo).
 
-**Alcance:** la v3 reemplaza a la v2 solo si mejora el error de validación. **Impacto:** dataset nuevo, migración
-0006 (vehículos por calle) y campos opcionales en el desglose de la API.
+4. Dataset v1.3 = v1.2 más los factores que la policía registra en cada atropello (exceso de velocidad, ebriedad
+   del conductor o del peatón, conducta del conductor o del peatón, señalización defectuosa, falta de iluminación,
+   vía en mal estado, vehículo, clima). La lista de CENACOM cambia entre ediciones (12, 15, 18 y 19 códigos); en
+   ONSV se usa la causa específica. Son causas anotadas después del hecho: describen el registro y nunca entran a
+   la red, porque usarlas como predictor filtraría el resultado. El tensor de entrada de v1.3 es idéntico byte a
+   byte al de v1.2; la exportación lo verifica antes de usar v1.3 con un modelo entrenado en v1.2.
+5. Perfil del entorno de cada celda y distrito: semáforos y cruces por km de vía, veredas por km de vía, vías
+   arteriales, comercio, centros educativos y de salud, paraderos y población por km², con el percentil de la zona
+   en Lima. Son las mismas condiciones previas que lee la red, expresadas para el analista.
+
+**Alcance:** la v3 reemplaza a la v2 solo si mejora el error de validación. Los factores y el perfil describen;
+no generan recomendaciones de intervención (RG-03). **Impacto:** datasets nuevos, migraciones 0006 (vehículos y
+factores por calle) y 0007 (perfil del entorno), y campos opcionales en el desglose y la explicación de la API.
 

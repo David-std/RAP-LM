@@ -255,6 +255,7 @@ def test_explanation_cell_and_district(client):  # D-09, RM-02/RM-03 transparenc
     assert cell["years"] == [2023, 2024] and cell["expected_events"] == [1.5, 1.0]
     assert cell["whatif"] is None
     assert cell["saliency"] == [["F1-C1", 1.0], ["F1-C2", 0.4]]
+    assert cell["context_profile"][0] == ["signals_per_street_km", 0.3, 12.5]  # D-12
     dist = client.get(
         "/api/v1/explanations", params={"unit_type": "district", "unit_id": "150101"}
     ).json()

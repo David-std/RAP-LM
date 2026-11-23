@@ -112,6 +112,7 @@ class Breakdown(BaseModel):
     type: dict[str, float]
     vehicle: dict[str, float] | None = None
     service: dict[str, float] | None = None
+    factor: dict[str, float] | None = None  # events per recorded factor (multi-label)
 
 
 class RiskResult(BaseModel):

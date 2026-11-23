@@ -10,6 +10,7 @@ import { api } from "../api/client";
 import type { CorridorCollection, CorridorProps, Meta, UnitCollection } from "../api/types";
 import { useApi } from "../api/useApi";
 import { LineChart } from "../components/charts";
+import { FACTOR_LABEL } from "../components/ZonePanel";
 import { Notice } from "../components/Controls";
 import { addScopeMask, createBaseMap } from "../lib/basemap";
 import { exportCsv, type ExportColumn } from "../lib/export";
@@ -235,6 +236,19 @@ function CorridorDetail({ c, bands, onBack }: { c: CorridorProps; bands: ClassBa
                   .sort((a, b) => b[1] - a[1])
                   .map(([k, v]) => `${VEHICLE_NAME[k] ?? k} ${fmtCount(v)}`)
                   .join(", ")}
+              </dd>
+            </>
+          )}
+          {c.by_factor && (
+            <>
+              <dt>Factores</dt>
+              <dd>
+                {Object.entries(c.by_factor)
+                  .filter(([k, v]) => v > 0 && k !== "sin_causa")
+                  .sort((a, b) => b[1] - a[1])
+                  .slice(0, 5)
+                  .map(([k, v]) => `${(FACTOR_LABEL as Record<string, string>)[k]?.toLowerCase() ?? k} ${fmtCount(v)}`)
+                  .join(", ") || "sin causa registrada"}
               </dd>
             </>
           )}

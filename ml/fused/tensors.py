@@ -43,6 +43,21 @@ VEHICLE_CLASSES = (
     "no_identificado",
 )
 SERVICE_CLASSES = ("publico", "particular", "carga", "no_identificado")
+# Dataset v1.3: recorded contributing factors (multi-label, never a network input).
+FACTOR_CLASSES = (
+    "velocidad",
+    "conductor_alcohol",
+    "conductor_conducta",
+    "peaton_conducta",
+    "peaton_alcohol",
+    "senalizacion",
+    "iluminacion",
+    "via_mal_estado",
+    "vehiculo",
+    "clima",
+    "otro",
+    "sin_causa",
+)
 
 # v1.0 order; datasets declare their own order in dataset_manifest.json.
 CONTEXT_ORDER = (
@@ -86,6 +101,8 @@ class Tensors:
     service_dist: np.ndarray | None = None  # [T, K, 4, D] all events by transport service
     vehicle_cell: np.ndarray | None = None  # [T, K, 9, H, W] located events by vehicle class
     service_cell: np.ndarray | None = None
+    factor_dist: np.ndarray | None = None  # [T, K, 12, D] events with each factor
+    factor_cell: np.ndarray | None = None  # [T, K, 12, H, W]
 
 
 def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
@@ -136,6 +153,10 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
     service_cell = np.zeros((T, K, NS, H, W), dtype=np.float32)
     v_index = {v: i for i, v in enumerate(VEHICLE_CLASSES)}
     sv_index = {v: i for i, v in enumerate(SERVICE_CLASSES)}
+    NF = len(FACTOR_CLASSES)
+    factor_dist = np.zeros((T, K, NF, D), dtype=np.float32)
+    factor_cell = np.zeros((T, K, NF, H, W), dtype=np.float32)
+    f_index = {v: i for i, v in enumerate(FACTOR_CLASSES)}
     n_total = np.zeros((S, T), dtype=np.float64)
     n_located = np.zeros((S, T), dtype=np.float64)
 
@@ -163,6 +184,9 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
                 vehicle_dist[t, k, v_index[name], di] += share
             for name, share in svc.items():
                 service_dist[t, k, sv_index[name], di] += share
+            factors = [f for f in (e.get("factors") or "").split("|") if f] or ["sin_causa"]
+            for name in factors:
+                factor_dist[t, k, f_index[name], di] += 1
             allocation = json.loads(e["allocation"])
             if allocation:
                 n_located[s, t] += 1
@@ -175,6 +199,8 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
                         vehicle_cell[t, k, v_index[name], r, c] += w * share
                     for name, share in svc.items():
                         service_cell[t, k, sv_index[name], r, c] += w * share
+                    for name in factors:
+                        factor_cell[t, k, f_index[name], r, c] += w
                     injured[t, k, r, c] += w * inj
                     deceased[t, k, r, c] += w * dec
             else:
@@ -269,4 +295,6 @@ def load_dataset(dataset_dir: Path, years: list[int]) -> Tensors:
         service_dist=service_dist,
         vehicle_cell=vehicle_cell,
         service_cell=service_cell,
+        factor_dist=factor_dist,
+        factor_cell=factor_cell,
     )

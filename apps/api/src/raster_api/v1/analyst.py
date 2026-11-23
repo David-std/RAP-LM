@@ -41,6 +41,8 @@ class Explanation(BaseModel):
     whatif_factors: list[float] | None
     whatif: dict[str, list[float]] | None
     saliency: list[tuple[str, float]] | None = None  # [unit_id, weight 0..1], strongest 40 cells
+    # [indicator, value, percentile among units of the same view] (D-12)
+    context_profile: list[tuple[str, float, float]] | None = None
 
 
 class ModelCard(BaseModel):
@@ -83,7 +85,7 @@ def get_corridors(
               'cumulative_event_share', c.cumulative_event_share, 'injured', c.injured,
               'deceased', c.deceased, 'mean_risk_index', c.mean_risk_index,
               'by_family', c.by_family, 'by_year', c.by_year, 'by_subperiod', c.by_subperiod,
-              'located_via', c.located_via, 'by_vehicle', c.by_vehicle),
+              'located_via', c.located_via, 'by_vehicle', c.by_vehicle, 'by_factor', c.by_factor),
             'geometry', ST_AsGeoJSON(c.geom, 6)::json) ORDER BY c.events DESC), '[]'::json))::text
         FROM (SELECT * FROM corridor c WHERE c.run_id = :r AND c.events >= :m {where}
               ORDER BY c.events DESC LIMIT :lim) c
@@ -133,6 +135,7 @@ def get_explanation(conn: Conn, unit_id: str, unit_type: UnitTypeQ = "cell") -> 
         whatif_factors=card["whatif_factors"] if row["whatif"] else None,
         whatif=row["whatif"],
         saliency=row.get("saliency"),
+        context_profile=row.get("context_profile"),
     )
 
 

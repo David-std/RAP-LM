@@ -203,6 +203,9 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
         </section>
       )}
 
+      {explanation.data?.context_profile && explanation.data.context_profile.length > 0 && (
+        <EnvironmentCard profile={explanation.data.context_profile} view={q.unitType} />
+      )}
       {whatif?.whatif && whatif.whatif_factors && <WhatIfCard e={whatif} />}
 
       {districtId && (
@@ -356,6 +359,20 @@ const VEHICLE_LABEL = {
   bicicleta: "Bicicleta o triciclo",
   no_identificado: "No identificado",
 };
+export const FACTOR_LABEL = {
+  velocidad: "Exceso de velocidad",
+  conductor_alcohol: "Conductor ebrio",
+  conductor_conducta: "Conducta del conductor",
+  peaton_conducta: "Conducta del peatón",
+  peaton_alcohol: "Peatón ebrio",
+  senalizacion: "Señalización defectuosa",
+  iluminacion: "Falta de iluminación",
+  via_mal_estado: "Vía en mal estado",
+  vehiculo: "Falla o carga del vehículo",
+  clima: "Clima",
+  otro: "Otro",
+  sin_causa: "Sin causa registrada",
+};
 const SERVICE_LABEL = { publico: "Público", particular: "Particular", carga: "Carga", no_identificado: "No identificado" };
 
 function RecordCard({ result }: { result: RiskResult }) {
@@ -371,12 +388,23 @@ function RecordCard({ result }: { result: RiskResult }) {
         <span className="kpi-value" style={{ fontSize: 20 }}>{fmtCount(total)}</span>
       </header>
       {b ? (
-        <div className="grid cols-2" style={{ gap: 10 }}>
-          <Breakdown title="Por subtipo" data={b.type} labels={TYPE_LABEL} color="var(--chart-2)" />
-          <Breakdown title="Por severidad" data={b.severity} labels={SEVERITY_LABEL} color="#bf3a2e" />
-          {b.vehicle && <Breakdown title="Por vehículo involucrado" data={b.vehicle} labels={VEHICLE_LABEL} color="var(--chart-3)" />}
-          {b.service && <Breakdown title="Por servicio de transporte" data={b.service} labels={SERVICE_LABEL} color="var(--chart-1)" />}
-        </div>
+        <>
+          <div className="grid cols-2" style={{ gap: 10 }}>
+            <Breakdown title="Por subtipo" data={b.type} labels={TYPE_LABEL} color="var(--chart-2)" />
+            <Breakdown title="Por severidad" data={b.severity} labels={SEVERITY_LABEL} color="#bf3a2e" />
+            {b.vehicle && <Breakdown title="Por vehículo involucrado" data={b.vehicle} labels={VEHICLE_LABEL} color="var(--chart-3)" />}
+            {b.service && <Breakdown title="Por servicio de transporte" data={b.service} labels={SERVICE_LABEL} color="var(--chart-1)" />}
+          </div>
+          {b.factor && total > 0 && (
+            <div>
+              <Breakdown title="Factores registrados por la policía" data={b.factor} labels={FACTOR_LABEL} color="#5b6472" />
+              <p className="card-note">
+                Un atropello puede tener varios factores. Son causas anotadas después del hecho: describen el registro,
+                no entran a la estimación de la red.
+              </p>
+            </div>
+          )}
+        </>
       ) : (
         <p className="muted small">Desglose no disponible para esta corrida.</p>
       )}
@@ -404,6 +432,53 @@ function Breakdown<K extends string>({ title, data, labels, color }: { title: st
         </div>
       ))}
     </div>
+  );
+}
+
+const ENV_LABEL: Record<string, [string, string]> = {
+  signals_per_street_km: ["Semáforos", "por km de vía"],
+  crossings_per_street_km: ["Cruces peatonales", "por km de vía"],
+  footway_per_street_km: ["Veredas y vías peatonales", "km por km de vía"],
+  arterial_km_per_km2: ["Vías arteriales", "km por km²"],
+  commerce_per_km2: ["Comercio y servicios", "por km²"],
+  schools_per_km2: ["Centros educativos", "por km²"],
+  health_per_km2: ["Centros de salud", "por km²"],
+  transit_stops_per_km2: ["Paraderos", "por km²"],
+  population_per_km2: ["Población 2024", "hab. por km²"],
+};
+
+/** Pre-existing urban conditions of the zone against the rest of Lima (D-12). */
+function EnvironmentCard({ profile, view }: { profile: [string, number, number][]; view: string }) {
+  const tag = (p: number) => (p < 25 ? "bajo" : p > 75 ? "alto" : "medio");
+  return (
+    <section className="card">
+      <header>
+        <div>
+          <h3>Entorno de la zona</h3>
+          <p className="card-sub">
+            Condiciones previas que lee la red, frente a {view === "cell" ? "las 2.899 celdas" : "los 43 distritos"} de Lima
+          </p>
+        </div>
+      </header>
+      {profile.map(([id, value, pct]) => {
+        const [label, unit] = ENV_LABEL[id] ?? [id, ""];
+        return (
+          <div key={id} className="env-row">
+            <span className="small">{label}</span>
+            <span className="env-track" aria-hidden="true">
+              <span className="env-mark" style={{ left: `${pct}%` }} />
+            </span>
+            <span className="small num" title={`Percentil ${pct.toFixed(0)} en Lima`}>
+              {value >= 100 ? value.toFixed(0) : value.toFixed(2).replace(".", ",")} {unit}, <b>{tag(pct)}</b>
+            </span>
+          </div>
+        );
+      })}
+      <p className="card-note">
+        Bajo: en el cuarto inferior de Lima; alto: en el cuarto superior. Datos de OpenStreetMap, MINAM y WorldPop: describen el
+        entorno, no recomiendan intervenciones.
+      </p>
+    </section>
   );
 }
 

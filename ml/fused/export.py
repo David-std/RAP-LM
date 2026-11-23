@@ -60,11 +60,31 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=Path, required=True)
     parser.add_argument("--run", type=Path, required=True)
+    parser.add_argument(
+        "--training-dataset",
+        type=Path,
+        help=(
+            "dataset the run was trained on, when exporting with a later dataset that only adds "
+            "descriptive attributes; the network input tensors must be byte-identical"
+        ),
+    )
     args = parser.parse_args()
     manifest = json.loads((args.run / "run_manifest.json").read_text(encoding="utf-8"))
     cfg = manifest["config"]
     th = cfg["thresholds"]
     t = load_dataset(args.dataset, cfg["years"])
+    input_sha = hashlib.sha256(t.X.tobytes()).hexdigest()
+    trained_on = manifest.get("dataset_manifest_sha256")
+    current = hashlib.sha256((args.dataset / "dataset_manifest.json").read_bytes()).hexdigest()
+    if trained_on and trained_on != current:
+        # A later dataset may add historical attributes (D-12) but never change what the
+        # network saw: its input tensor must be identical to the training one.
+        if not args.training_dataset:
+            raise SystemExit("dataset differs from training: pass --training-dataset")
+        train_t = load_dataset(args.training_dataset, cfg["years"])
+        if hashlib.sha256(train_t.X.tobytes()).hexdigest() != input_sha:
+            raise SystemExit("network inputs differ from the training dataset; export refused")
+        del train_t
     est = np.load(args.run / "estimates.npz")
     lam, value, ref_cells, rho = est["lam"], est["indicator"], est["reference"], est["rho"]
     area_floor = cfg["area_floor_km2"]
@@ -110,6 +130,7 @@ def main() -> None:
         typ: np.ndarray | None,
         veh: np.ndarray | None = None,
         svc: np.ndarray | None = None,
+        fac: np.ndarray | None = None,
     ) -> str:
         """Historical record by severity, subtype, vehicle type and transport service."""
         if sev is None or typ is None:
@@ -121,6 +142,8 @@ def main() -> None:
         if veh is not None and svc is not None:
             out["vehicle"] = [round(float(v), 2) for v in veh]
             out["service"] = [round(float(v), 2) for v in svc]
+        if fac is not None:
+            out["factor"] = [round(float(v), 2) for v in fac]
         return json.dumps(out, separators=(",", ":"))
 
     def hist_cell(s: int, ti: int) -> np.ndarray | None:
@@ -201,6 +224,7 @@ def main() -> None:
                             None if t.type_cell is None else t.type_cell[ti, k, :, r, c],
                             None if t.vehicle_cell is None else t.vehicle_cell[ti, k, :, r, c],
                             None if t.service_cell is None else t.service_cell[ti, k, :, r, c],
+                            None if t.factor_cell is None else t.factor_cell[ti, k, :, r, c],
                         ),
                     ]
                 )
@@ -230,6 +254,7 @@ def main() -> None:
                             None if t.type_dist is None else t.type_dist[ti, k, :, di],
                             None if t.vehicle_dist is None else t.vehicle_dist[ti, k, :, di],
                             None if t.service_dist is None else t.service_dist[ti, k, :, di],
+                            None if t.factor_dist is None else t.factor_dist[ti, k, :, di],
                         ),
                     ]
                 )
@@ -282,6 +307,10 @@ def main() -> None:
         "periods": len(period_rows),
         "results_sha256": hashlib.sha256((out / "results.csv").read_bytes()).hexdigest(),
         "periods_sha256": hashlib.sha256((out / "periods.csv").read_bytes()).hexdigest(),
+        "dataset_version": json.loads(
+            (args.dataset / "dataset_manifest.json").read_text(encoding="utf-8")
+        )["dataset_version"],
+        "input_tensor_sha256": input_sha,
     }
     (out / "export_manifest.json").write_text(json.dumps(export, indent=2), encoding="utf-8")
     print(json.dumps(export, indent=2))

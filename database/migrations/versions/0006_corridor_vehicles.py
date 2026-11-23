@@ -1,4 +1,4 @@
-"""Vehicle types per street corridor (dataset v1.2, decision D-12).
+"""Vehicle types and recorded contributing factors per street corridor (D-12).
 
 Revision ID: 0006
 """
@@ -12,8 +12,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TABLE corridor ADD COLUMN by_vehicle jsonb;")
+    op.execute("ALTER TABLE corridor ADD COLUMN by_vehicle jsonb, ADD COLUMN by_factor jsonb;")
 
 
 def downgrade() -> None:
-    op.execute("ALTER TABLE corridor DROP COLUMN by_vehicle;")
+    op.execute("ALTER TABLE corridor DROP COLUMN by_vehicle, DROP COLUMN by_factor;")

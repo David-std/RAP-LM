@@ -1,4 +1,4 @@
-"""Vehicle type and transport service of each fused event (dataset v1.2, D-12).
+"""Vehicle type, transport service and recorded contributing factors of each event (D-12).
 
 Neither attribute is in the harmonized table, so both are read back from the
 raw sources and linked to the harmonized events:
@@ -15,6 +15,12 @@ raw sources and linked to the harmonized events:
 An event with several vehicles splits its unit weight equally among their
 classes, so class totals add up to the event count. Events that cannot be
 linked keep the class ``no_identificado`` rather than a guessed value.
+
+Contributing factors (dataset v1.3) are the causes the police record after the
+event: CENACOM AT109_k (12, 15, 18 or 19 codes depending on the edition) and the
+ONSV specific cause. An event may carry several factors, so factor counts are
+multi-label. They describe the record and are never network inputs: they only
+exist once the collision has happened, so using them would leak the outcome.
 """
 
 from __future__ import annotations
@@ -40,6 +46,46 @@ VEHICLE_CLASSES = (
     "no_identificado",
 )
 SERVICE_CLASSES = ("publico", "particular", "carga", "no_identificado")
+FACTOR_CLASSES = (
+    "velocidad",
+    "conductor_alcohol",
+    "conductor_conducta",
+    "peaton_conducta",
+    "peaton_alcohol",
+    "senalizacion",
+    "iluminacion",
+    "via_mal_estado",
+    "vehiculo",
+    "clima",
+    "otro",
+    "sin_causa",
+)
+_V, _CA, _CC = "velocidad", "conductor_alcohol", "conductor_conducta"
+_PC, _PA, _S = "peaton_conducta", "peaton_alcohol", "senalizacion"
+_I, _VM, _VE = "iluminacion", "via_mal_estado", "vehiculo"
+_CL, _O, _SC = "clima", "otro", "sin_causa"
+_BASE14 = [_V, _CC, _I, _VE, _CA, _CC, _VE, _VM, _PC, _PA, _CL, _S, _CC, _CC]
+CENACOM_FACTOR = {
+    # 2012: 3 falta de luces, 9 desacato del peatón, 12 otro; no señalización code.
+    12: dict(enumerate([_V, _CC, _I, _VE, _CA, _CC, _VE, _VM, _PC, _PA, _CL, _O], 1)),
+    # 2013-2015: adds señalización defectuosa, cansancio, celular; 15 otro.
+    15: dict(enumerate([*_BASE14, _O], 1)),
+    # 2016: adds impericia, deslizamiento; 17 otro, 18 no identifica.
+    18: dict(enumerate([*_BASE14, _CC, _CL, _O, _SC], 1)),
+    # 2017: adds desobediencia a la autoridad; 18 no identifica, 19 otro.
+    19: dict(enumerate([*_BASE14, _CC, _CL, _CC, _SC, _O], 1)),
+}
+ONSV_FACTOR = {
+    "EXCESO DE VELOCIDAD": _V,
+    "CONDUCIR EN ESTADO DE EBRIEDAD Y/O DROGADICCION": _CA,
+    "CRUCE INDEBIDO POR LA CALZADA": _PC,
+    "OTRO (IMPRUDENCIA DEL PEATON)": _PC,
+    "SENALIZACION DEFECTUOSA": _S,
+    "FACTOR AMBIENTAL": _CL,
+    "NO ENCENDER LAS LUCES": _VE,
+    "CONDUCIR CON FALLAS DE FRENOS": _VE,
+    "CONDUCIR CON FALLAS ELECTRICAS": _VE,
+}
 
 # CENACOM AT106_k -> class. The questionnaire changed between editions, so the
 # code list depends on how many AT106 fields the edition has (read from each
@@ -114,9 +160,9 @@ def _split(classes: list[str]) -> dict[str, float]:
     return {k: round(v / len(classes), 6) for k, v in counts.items()}
 
 
-def _cenacom(raw: Path) -> dict[tuple[str, int], tuple[list[str], list[str]]]:
-    """(source_id, 1-based record) -> (vehicle classes, service classes)."""
-    out: dict[tuple[str, int], tuple[list[str], list[str]]] = {}
+def _cenacom(raw: Path) -> dict[tuple[str, int], tuple[list[str], list[str], list[str]]]:
+    """(source_id, 1-based record) -> (vehicle classes, service classes, factors)."""
+    out: dict[tuple[str, int], tuple[list[str], list[str], list[str]]] = {}
     for year_dir in sorted((raw / "accidents" / "cenacom").glob("20*")):
         for archive in sorted(glob.glob(str(year_dir / "microdata" / "*.zip"))):
             with zipfile.ZipFile(archive) as z:
@@ -128,6 +174,8 @@ def _cenacom(raw: Path) -> dict[tuple[str, int], tuple[list[str], list[str]]]:
                         continue
                     n_codes = sum(1 for f in fields if f.startswith("AT106_") and f[6:].isdigit())
                     codes = CENACOM_VEHICLE[n_codes]
+                    n_fac = sum(1 for f in fields if f.startswith("AT109_") and f[6:].isdigit())
+                    factor_codes = CENACOM_FACTOR[n_fac]
                     for i, r in enumerate(rows, start=1):
                         veh = [c for k, c in codes.items() if _flagged(r.get(f"AT106_{k}", ""))]
                         svc = [
@@ -135,11 +183,35 @@ def _cenacom(raw: Path) -> dict[tuple[str, int], tuple[list[str], list[str]]]:
                             for k, c in CENACOM_SERVICE.items()
                             if _flagged(r.get(f"AT107_{k}", ""))
                         ]
-                        out[(f"cenacom_{year_dir.name}", i)] = (veh, svc)
+                        fac = sorted(
+                            {
+                                c
+                                for k, c in factor_codes.items()
+                                if _flagged(r.get(f"AT109_{k}", ""))
+                            }
+                        )
+                        out[(f"cenacom_{year_dir.name}", i)] = (veh, svc, fac)
     return out
 
 
-def _onsv(raw: Path) -> dict[tuple[str, str, str], list[tuple[str, list[str], list[str]]]]:
+def _onsv_factor(principal: str, specific: str) -> list[str]:
+    """Map the ONSV principal and specific cause to the common factor classes."""
+    if specific in ONSV_FACTOR:
+        return [ONSV_FACTOR[specific]]
+    if specific == "ESTADO DE EBRIEDAD Y/O DROGADICCION":
+        return [_PA if "PEATON" in principal else _CA]
+    if "INVESTIGACION" in principal or not principal or principal == "NAN":
+        return [_SC]
+    if "INFRAESTRUCTURA" in principal:
+        return [_VM]
+    if "PEATON" in principal:
+        return [_PC]
+    if "CONDUCTOR" in principal:
+        return [_CC]
+    return [_O]
+
+
+def _onsv(raw: Path) -> dict[tuple[str, str, str], list[tuple]]:
     """(date, HH:MM, district) -> [(crash class, vehicle classes, service classes)]."""
     import pandas as pd
 
@@ -160,15 +232,16 @@ def _onsv(raw: Path) -> dict[tuple[str, str, str], list[tuple[str, list[str], li
             continue
         key = (d.strftime("%Y-%m-%d"), str(c["HORA SINIESTRO"])[:5], _norm(c["DISTRITO"]))
         veh, svc = by_code.get(c["CODIGO SINIESTRO"], ([], []))
-        out[key].append((_norm(c["CLASE SINIESTRO"]), veh, svc))
+        fac = _onsv_factor(_norm(c["CAUSA FACTOR PRINCIPAL"]), _norm(c["CAUSA ESPECIFICA"]))
+        out[key].append((_norm(c["CLASE SINIESTRO"]), veh, svc, fac))
     return out
 
 
-def vehicle_profiles(raw: Path, harmonized_csv: Path) -> tuple[dict[str, tuple[dict, dict]], dict]:
-    """event_id -> (vehicle shares, service shares), plus a linkage report."""
+def vehicle_profiles(raw: Path, harmonized_csv: Path) -> tuple[dict[str, tuple], dict]:
+    """event_id -> (vehicle shares, service shares, factors), plus a linkage report."""
     cen = _cenacom(raw)
     onsv = _onsv(raw)
-    profiles: dict[str, tuple[dict, dict]] = {}
+    profiles: dict[str, tuple] = {}
     report: Counter = Counter()
     with harmonized_csv.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
@@ -185,14 +258,15 @@ def vehicle_profiles(raw: Path, harmonized_csv: Path) -> tuple[dict[str, tuple[d
                 cands = onsv.get(key, [])
                 if len(cands) > 1:
                     cands = [c for c in cands if c[0].startswith("ATROPELLO")] or cands
-                hit = (cands[0][1], cands[0][2]) if cands else None
+                hit = (cands[0][1], cands[0][2], cands[0][3]) if cands else None
                 family = "onsv"
             else:
                 continue
             report[f"{family}:linked" if hit else f"{family}:unlinked"] += 1
-            veh, svc = hit if hit else ([], [])
+            veh, svc, fac = hit if hit else ([], [], [])
             report[f"{family}:vehicle_identified"] += bool(veh) and veh != [
                 "no_identificado"
             ] * len(veh)
-            profiles[row["event_id"]] = (_split(veh), _split(svc))
+            report[f"{family}:factor_recorded"] += bool(fac) and fac != [_SC]
+            profiles[row["event_id"]] = (_split(veh), _split(svc), fac or [_SC])
     return profiles, dict(sorted(report.items()))

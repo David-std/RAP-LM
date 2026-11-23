@@ -166,17 +166,33 @@ VEHICLE_KEYS = (
     "no_identificado",
 )
 SERVICE_KEYS = ("publico", "particular", "carga", "no_identificado")
+FACTOR_KEYS = (
+    "velocidad",
+    "conductor_alcohol",
+    "conductor_conducta",
+    "peaton_conducta",
+    "peaton_alcohol",
+    "senalizacion",
+    "iluminacion",
+    "via_mal_estado",
+    "vehiculo",
+    "clima",
+    "otro",
+    "sin_causa",
+)
 
 
 def _breakdown(raw: Any) -> Breakdown | None:
     if not raw:
         return None
     vehicle, service = raw.get("vehicle"), raw.get("service")  # dataset v1.2 onwards (D-12)
+    factor = raw.get("factor")  # dataset v1.3 onwards
     return Breakdown(
         severity=dict(zip(SEVERITY_KEYS, raw["severity"], strict=True)),
         type=dict(zip(TYPE_KEYS, raw["type"], strict=True)),
         vehicle=dict(zip(VEHICLE_KEYS, vehicle, strict=True)) if vehicle else None,
         service=dict(zip(SERVICE_KEYS, service, strict=True)) if service else None,
+        factor=dict(zip(FACTOR_KEYS, factor, strict=True)) if factor else None,
     )
 
 

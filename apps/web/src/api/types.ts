@@ -98,7 +98,22 @@ export interface Breakdown {
   type: Record<"atropello" | "atropello_fuga" | "choque_y_atropello" | "otro", number>;
   vehicle?: Record<VehicleClass, number> | null;
   service?: Record<"publico" | "particular" | "carga" | "no_identificado", number> | null;
+  factor?: Record<FactorClass, number> | null;
 }
+
+export type FactorClass =
+  | "velocidad"
+  | "conductor_alcohol"
+  | "conductor_conducta"
+  | "peaton_conducta"
+  | "peaton_alcohol"
+  | "senalizacion"
+  | "iluminacion"
+  | "via_mal_estado"
+  | "vehiculo"
+  | "clima"
+  | "otro"
+  | "sin_causa";
 
 export type VehicleClass =
   | "auto"
@@ -282,6 +297,7 @@ export interface CorridorProps {
   by_subperiod: number[];
   located_via: Record<string, number>;
   by_vehicle?: Record<string, number> | null;
+  by_factor?: Record<string, number> | null;
 }
 
 export interface CorridorCollection {
@@ -304,6 +320,7 @@ export interface Explanation {
   whatif_factors: number[] | null;
   whatif: Record<string, number[]> | null;
   saliency: [string, number][] | null;
+  context_profile?: [string, number, number][] | null;
 }
 
 export interface TrainingPoint {

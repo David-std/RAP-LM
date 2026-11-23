@@ -21,6 +21,8 @@ from pathlib import Path
 import psycopg
 from psycopg.types.json import Jsonb
 
+from pipelines.publication import context_profile
+
 
 def publish_extras(url: str, dataset: Path, run: Path) -> dict:
     run_id = json.loads((run / "run_manifest.json").read_text(encoding="utf-8"))["run_id"]
@@ -32,6 +34,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
     corridors = json.loads((dataset / "corridors.geojson").read_text(encoding="utf-8"))
     sal_path = ex / "saliency.json"
     saliency = json.loads(sal_path.read_text(encoding="utf-8")) if sal_path.exists() else {}
+    profiles = context_profile.build(dataset)
 
     with psycopg.connect(url) as conn, conn.cursor() as cur:
         cur.execute("SELECT status FROM model_run WHERE run_id = %s", (run_id,))
@@ -59,7 +62,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
             for unit_id, s in series[key].items():
                 sal = saliency.get(key, {}).get(unit_id)
                 cur.execute(
-                    "INSERT INTO unit_explanation VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO unit_explanation VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (
                         run_id,
                         rep,
@@ -69,6 +72,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                         Jsonb(attribution[key][unit_id]),
                         Jsonb(whatif["district"].get(unit_id)) if key == "district" else None,
                         Jsonb(sal) if sal else None,
+                        Jsonb(profiles[key].get(unit_id)) if profiles[key].get(unit_id) else None,
                     ),
                 )
                 n_units += 1
@@ -78,8 +82,9 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                 """INSERT INTO corridor (run_id, corridor_id, district_id, street, length_km,
                    events, events_per_km, rank, cumulative_event_share, injured, deceased,
                    mean_risk_index, by_family, by_year, by_subperiod, located_via, by_vehicle,
+                   by_factor,
                    geom)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                    ST_Multi(ST_CollectionExtract(ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326), 2)))""",
                 (
                     run_id,
@@ -99,6 +104,7 @@ def publish_extras(url: str, dataset: Path, run: Path) -> dict:
                     Jsonb(p["by_subperiod"]),
                     Jsonb(p["located_via"]),
                     Jsonb(p["by_vehicle"]) if p.get("by_vehicle") else None,
+                    Jsonb(p["by_factor"]) if p.get("by_factor") else None,
                     json.dumps(f["geometry"]),
                 ),
             )
