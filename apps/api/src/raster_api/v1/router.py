@@ -8,6 +8,8 @@ the report's names: /periods = /periodos, /units = /unidades, /risk = /riesgo,
 from __future__ import annotations
 
 import re
+from collections import OrderedDict
+from threading import Lock
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Response
@@ -86,6 +88,34 @@ def get_units(
     )
 
 
+class _LruCache:
+    """Small thread-safe LRU cache of response bodies (per worker process)."""
+
+    def __init__(self, size: int):
+        self.size = size
+        self._data: OrderedDict[tuple, bytes] = OrderedDict()
+        self._lock = Lock()
+
+    def get(self, key: tuple) -> bytes | None:
+        with self._lock:
+            if key in self._data:
+                self._data.move_to_end(key)
+                return self._data[key]
+            return None
+
+    def put(self, key: tuple, value: bytes) -> None:
+        if self.size <= 0:
+            return
+        with self._lock:
+            self._data[key] = value
+            self._data.move_to_end(key)
+            while len(self._data) > self.size:
+                self._data.popitem(last=False)
+
+
+_RISK_CACHE = _LruCache(get_settings().risk_cache_entries)
+
+
 @router.get(
     "/risk", response_model=RiskList, summary="Indicator, level and context (RF-01..RF-04, RF-07)"
 )
@@ -103,9 +133,23 @@ def get_risk(
             422, "INVALID_PARAMETERS", "levels accepts low, medium, high.", {"parameter": "levels"}
         )
     ctx = service.Context(conn)
-    return service.list_risk(
-        ctx, period_id, unit_type, unit_id, _csv(district_ids, "district_ids", UBIGEO), level_list
+    districts = _csv(district_ids, "district_ids", UBIGEO)
+    # Published results are immutable: the active run id is part of the key, so a new
+    # publication never serves a stale answer. The cached value is the serialised body.
+    key = (
+        ctx.run_id,
+        period_id,
+        unit_type,
+        unit_id,
+        tuple(districts or ()),
+        tuple(level_list or ()),
     )
+    body = _RISK_CACHE.get(key)
+    if body is None:
+        result = service.list_risk(ctx, period_id, unit_type, unit_id, districts, level_list)
+        body = result.model_dump_json().encode()
+        _RISK_CACHE.put(key, body)
+    return Response(body, media_type="application/json")
 
 
 @router.get(

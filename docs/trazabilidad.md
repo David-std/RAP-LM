@@ -21,6 +21,7 @@ outside the repository (Sprint Review, change control). Measured values are in
 | 3.2.4 | Explicabilidad del modelo | `ml/fused/explain.py` (atribución, qué pasaría si), `ml/fused/saliency.py` (Grad-CAM, variante HiResCAM), test `test_gradcam_is_non_negative_and_localised`; vistas Modelo y capa Grad-CAM | Implemented |
 | 3.2.5 | Pronóstico un paso adelante (D-11) | `ml/fused/forecast.py`, migración 0005, `GET /api/v1/forecast`, vista Pronóstico; test `test_forecast_next_year`, E2E-12 | Implemented |
 | 3.2.6 | Registro enriquecido y entorno (D-12) | `pipelines/fusion/vehicles.py` (vehículo, servicio y factores por edición), `pipelines/publication/context_profile.py`, migraciones 0006 y 0007; tests `test_cenacom_vehicle_codes_follow_each_edition`, `test_cenacom_factor_codes_follow_each_edition`, `test_context_profile_percentiles` | Implemented |
+| 3.2.8 | Política espacial de eventos por comisaría (D-14) | `pipelines/fusion/events.py`, dataset v1.4, brazo de sensibilidad `v4-sens-exclude-station`; test `test_station_proxy_events_never_reach_a_cell` | Implemented, measured |
 | 3.2.7 | Entrenamiento en GPU (recurso del plan) | `ml/fused/train.py` (dispositivo), `requirements-gpu.txt`, `tools/reports/device_comparison.py`, `evidence/benchmarking/device_comparison.json` | Implemented, measured |
 | 3.3.1 | Read API | `apps/api`, contract tests against PostGIS | Implemented |
 | 3.3.2 | Spatial database | PostGIS, GiST indexes, separated roles | Implemented |

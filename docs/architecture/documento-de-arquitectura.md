@@ -125,7 +125,10 @@ Para la demostración en clase y las sesiones con especialistas se activa el rec
 
 En ambos entornos los datos solo cambian mediante una publicación atómica con el rol publicador
 (`tools/deploy/remote_setup.py` en la nube); un despliegue de código nunca altera los resultados. El
-entrenamiento puede ejecutarse en CPU o en GPU (`requirements-gpu.txt`); la corrida publicada se entrena en CPU.
+entrenamiento puede ejecutarse en CPU o en GPU (`requirements-gpu.txt`). La corrida publicada (v4) se
+entrena en GPU, después de comprobar que una repetición en GPU reproduce pesos y estimaciones byte a byte; su
+reproducibilidad (M-04) se mide reentrenando en el mismo dispositivo. La API corre con varios procesos
+(`WEB_CONCURRENCY`, 4 en Docker Compose) para sostener consultas simultáneas.
 
 ## 5. Patrones de diseño
 

@@ -46,45 +46,47 @@ pip install -e ".[dev,pipeline]"                    # torch CPU: --index-url htt
 
 D=../RAP-LM-DATA-LOCAL
 H=$D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv
-# 1. Fused dataset v1.3 (grid, street geocoding, annual population, context, vehicle, service and recorded
-#    factors; manifest with SHA-256). v3 was trained on v1.2 (commit eeb9083), whose network inputs are
-#    byte-identical to v1.3; with v1.3 the commands below reproduce it.
-python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --out artifacts/datasets/fused-v1.3.0
-# 2. v3 (published, protocol v2 with amendment A2): validation search, 5-seed ensemble, single test evaluation
-R=artifacts/runs/fused-cnnlstm-2026.11-v3
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-main.json --out $R
-python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.3.0 --run $R
-#    benchmark arms: all-severity backtest and context ablation (not published)
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-backtest-2017.json \
-  --out artifacts/runs/fused-cnnlstm-backtest-2017-v3
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-ablation-no-context.json \
-  --out artifacts/runs/fused-cnnlstm-2026.11-v3-nocontext
-# 3. Export (with --training-dataset when the run was trained on another dataset version: inputs must be
-#    byte-identical), explanations, Grad-CAM, forecast, street corridors
-python -m ml.fused.export --dataset artifacts/datasets/fused-v1.3.0 --run $R
-python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.3.0 --run $R
-python -m ml.fused.saliency --dataset artifacts/datasets/fused-v1.3.0 --run $R
-python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.3.0 --run $R
-python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.3.0 --harmonized $H \
+# 1. Fused dataset v1.4 (grid, street geocoding, annual population, context, vehicle, service and recorded
+#    factors; events known only by the police station district stay at district level). Manifest with SHA-256.
+python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --out artifacts/datasets/fused-v1.4.0
+python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --station-proxy exclude \
+  --out artifacts/datasets/fused-v1.4.0-exclude-station                              # sensitivity arm
+# 2. v4 (published, protocol v2 with amendment A3), trained on the GPU (CUDA environment, see below)
+R=artifacts/runs/fused-cnnlstm-2026.11-v4
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-main.json --out $R
+python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.4.0 --run $R
+#    benchmark arms: all-severity backtest and station sensitivity (not published)
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-backtest-2017.json \
+  --out artifacts/runs/fused-cnnlstm-backtest-2017-v4
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0-exclude-station \
+  --config ml/configs/v4-sens-exclude-station.json --out artifacts/runs/fused-cnnlstm-2026.11-v4-exclude-station
+# 3. Export, explanations and Grad-CAM (forward passes on the GPU), forecast, street corridors
+python -m ml.fused.export --dataset artifacts/datasets/fused-v1.4.0 --run $R
+python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
+python -m ml.fused.saliency --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
+python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.4.0 --run $R
+python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.4.0 --harmonized $H \
   --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
 # 4. Publish into PostGIS with the publisher role (atomic), then the analyst layers
 export RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.0.0.1:5433/raplm
-python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.3.0 --run $R
-python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.3.0 --run $R
-# 5. Reproducibility (M-04): retrain into a new folder and compare
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.3.0 --config ml/configs/v3-main.json \
-  --out artifacts/runs/fused-cnnlstm-2026.11-v3-repro
+python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.4.0 --run $R
+python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.4.0 --run $R
+# 5. Reproducibility (M-04): retrain into a new folder on the same device and compare
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-main.json \
+  --out artifacts/runs/fused-cnnlstm-2026.11-v4-repro
 ```
 
-Earlier iterations (v1 on dataset v1.0, v2 on v1.1) keep their configs in `ml/configs/` and their evidence in
-`evidence/benchmarking/`. Explanations and Grad-CAM accept `--device cuda` for their forward passes.
+Earlier iterations (v1 on dataset v1.0, v2 on v1.1, v3 on v1.2 and v1.3) keep their configs in `ml/configs/`
+and their evidence in `evidence/benchmarking/`.
 
 The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
 
 ### Training on the GPU
 
-The published runs train on CPU (8 threads, about 30 minutes per iteration). The same code trains on an NVIDIA GPU
-when the run config sets `"device": "cuda"`; prediction, export and explanations stay on CPU. Install the CUDA
+The code trains on CPU (8 threads, about 33 minutes per iteration) or, when the run config sets
+`"device": "cuda"`, on an NVIDIA GPU (about 5 minutes). A repeated GPU run reproduced weights and estimates byte
+for byte, so the published v4 trains on the GPU and M-04 is measured by retraining there. Prediction and export
+run on CPU; explanations and Grad-CAM accept `--device cuda`. Install the CUDA
 environment from `requirements-gpu.txt` (outside the repository) and run the same commands with its interpreter.
 Each run manifest records the device type (`cpu` or `cuda`), the PyTorch version and the training time.
 
@@ -99,7 +101,7 @@ publication.
 
    ```bash
    RAPLM_REMOTE_OWNER_URL="<external URL of raplm-db>" python -m tools.deploy.remote_setup \
-     --dataset artifacts/datasets/fused-v1.3.0 --run artifacts/runs/fused-cnnlstm-2026.11-v3
+     --dataset artifacts/datasets/fused-v1.4.0 --run artifacts/runs/fused-cnnlstm-2026.11-v4
    ```
 
    It creates the reader and publisher roles, applies the migrations and publishes the run.
@@ -115,8 +117,8 @@ docker compose up -d db
 RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/raplm pytest   # unit + PostGIS contract
 ruff check .
 cd apps/web && npm test && npm run typecheck && npm run build
-python -m tools.metrics.measure --api http://127.0.0.1:8088 --dataset artifacts/datasets/fused-v1.3.0 \
-  --run artifacts/runs/fused-cnnlstm-2026.11-v3 --rerun artifacts/runs/fused-cnnlstm-2026.11-v3-repro \
+python -m tools.metrics.measure --api http://127.0.0.1:8088 --dataset artifacts/datasets/fused-v1.4.0 \
+  --run artifacts/runs/fused-cnnlstm-2026.11-v4 --rerun artifacts/runs/fused-cnnlstm-2026.11-v4-repro \
   --harmonized $H --out evidence/metrics                                                    # M-01..M-05, M-08, M-09
 cd apps/web && npx playwright test                                                          # M-07, 12 journeys
 python -m tools.reports.test_report && python -m tools.reports.benchmark                    # docs/pruebas, docs/benchmarking

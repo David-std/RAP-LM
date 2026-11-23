@@ -411,6 +411,11 @@
       "limitation_id": "L08-no-recommendation",
       "dimension": "Uso",
       "description": "Referencia analítica para especialistas. No prescribe intervenciones ni es una predicción en tiempo real (RG-02, RG-03)."
+    },
+    {
+      "limitation_id": "L11-station-district",
+      "dimension": "Ubicación",
+      "description": "Unos 8.000 registros de CENACOM solo indican el distrito de la comisaría. En 2016 y 2017, donde también consta el distrito de ocurrencia, ambos coinciden en el 93,2 % de 5.378 eventos. Esos registros cuentan a nivel distrito y no se ubican en calles ni celdas, por lo que el mapa por celda y las vías críticas de 2011 a 2017 reflejan solo los eventos con ubicación sustentada."
     }
   ]
 }

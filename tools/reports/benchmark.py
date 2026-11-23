@@ -68,21 +68,111 @@ def model_table(metrics: dict, high: list | None, title: str) -> list[str]:
             f"{t0['relative_improvement_pct']:+.2f} % | {num(t0['model']['cell_deviance'], 4)} | "
             f"{pct(t0['model']['capture_top10'])} |"
         )
-    if high:
-        h = high[0]
+    tests = [r for r in (high or []) if r.get("partition") != "validation"]
+    if tests:
+        h = tests[0]
         lines += [
             "",
             f"Nivel alto ({h['units']} celdas × franjas, {h['reference_high']} altas observadas):",
             "",
-            "| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |",
-            "|---|---|---|---|---|---|",
+            "| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |",
+            "|---|---|---|---|---|---|---|",
         ]
         for who, c in (("Modelo", h["model"]), ("Promedio histórico", h.get("baseline"))):
             if c:
                 lines.append(
-                    f"| {who} | {c['tp']} | {c['fn']} | {c['fp']} | {pct(c['recall'])} | {pct(c['precision'])} |"
+                    f"| {who} | {c['tp']} | {c['fn']} | {c['fp']} | {pct(c['recall'])} | "
+                    f"{pct(c['precision'])} | {num(c['f1'])} |"
                 )
+        lines += ranking_table(h)
     return lines + [""]
+
+
+def ranking_table(h: dict) -> list[str]:
+    """Prioritisation measures with the same budget for model and baseline (P1-05)."""
+    m, b = h.get("model_ranking"), h.get("baseline_ranking") or {}
+    if not m:
+        return []
+    rows = [
+        (
+            f"Precisión con presupuesto igual a los positivos ({m['k']}), celda × franja",
+            pct(m["precision_at_k"]),
+            pct(b.get("precision_at_k")),
+            pct(h.get("base_rate")),
+        ),
+        (
+            "Precisión promedio, celda × franja",
+            num(m["average_precision"]),
+            num(b.get("average_precision")),
+            num(h.get("base_rate")),
+        ),
+    ]
+    at, bt = m.get("at_validation_threshold"), b.get("at_validation_threshold")
+    if at:
+        th = (h.get("validation_thresholds") or {}).get("model")
+        rows.append(
+            (
+                f"Umbral elegido en validación (índice {th}): precisión, recall, F1",
+                f"{pct(at['precision'])}, {pct(at['recall'])}, {num(at['f1'])}",
+                f"{pct(bt['precision'])}, {pct(bt['recall'])}, {num(bt['f1'])}" if bt else "n/a",
+                "",
+            )
+        )
+    an = h.get("annual_cell")
+    if an:
+        chance = an["positives"] / an["cells"]
+        rows += [
+            (
+                f"Celdas en el año: precisión con presupuesto ({an['positives']} celdas con eventos)",
+                pct(an["model"]["precision_at_k"]),
+                pct((an.get("baseline") or {}).get("precision_at_k")),
+                pct(chance),
+            ),
+            (
+                "Celdas en el año: precisión promedio",
+                num(an["model"]["average_precision"]),
+                num((an.get("baseline") or {}).get("average_precision")),
+                num(chance),
+            ),
+            (
+                "Celdas en el año: celdas con eventos dentro del 10 % priorizado",
+                pct(an["model"]["capture_top10"]),
+                pct((an.get("baseline") or {}).get("capture_top10")),
+                "10.0 %",
+            ),
+        ]
+    return [
+        "",
+        "Priorización con el mismo presupuesto (el nivel alto es un percentil de una escala continua; frente a "
+        "una referencia rara su precisión está acotada por positivos sobre marcadas):",
+        "",
+        "| Medida | Modelo | Promedio histórico | Azar |",
+        "|---|---|---|---|",
+        *(f"| {a} | {x} | {y} | {z} |" for a, x, y, z in rows),
+    ]
+
+
+def station_table(policy: dict, excluded: dict) -> list[str]:
+    """Sensitivity of v4 to the station-proxy events (amendment A3)."""
+    rows = []
+    for label, part in (("Validación", "validation"), ("Prueba", "test")):
+        a, b = policy[part][0], excluded[part][0]
+        rows.append(
+            f"| {label} {a['family'].upper()} {a['year']} | {num(a['model']['district_mae'])} | "
+            f"{num(b['model']['district_mae'])} | {pct(a['model']['capture_top10'])} | "
+            f"{pct(b['model']['capture_top10'])} | {num(a['model']['cell_deviance'], 4)} | "
+            f"{num(b['model']['cell_deviance'], 4)} |"
+        )
+    return [
+        "**Sensibilidad a los eventos ubicados solo por la comisaría (v4).** Política publicada: esos eventos "
+        "cuentan a nivel distrito y no se ubican en calles ni celdas. Variante: se excluyen por completo.",
+        "",
+        "| Partición | E política | E sin esos eventos | Captura política | Captura sin ellos | "
+        "Devianza política | Devianza sin ellos |",
+        "|---|---|---|---|---|---|---|",
+        *rows,
+        "",
+    ]
 
 
 def ablation_table(full: dict, ablated: dict) -> list[str]:
@@ -130,8 +220,9 @@ def device_section(devices: dict | None) -> list[str]:
         f"{_es(devices['index_p95_abs_diff'])}); correlación de rangos {_es(devices['index_spearman'], 3)}. "
         "La aritmética de punto flotante difiere entre dispositivos, y cuando dos configuraciones empatan casi en "
         "validación la búsqueda puede elegir una distinta en cada uno.",
-        "La reproducibilidad (M-04) se midió en CPU, el dispositivo de la corrida publicada; en GPU la ejecución "
-        "está configurada como determinista, pero su repetición no se midió.",
+        "Una repetición de la corrida en GPU con la misma configuración produjo pesos y estimaciones idénticos "
+        "byte a byte (evidence/benchmarking/gpu_determinism.json); por eso la v4 se entrena en GPU y su "
+        "reproducibilidad (M-04) se mide reentrenando en GPU.",
         "",
     ]
 
@@ -152,10 +243,14 @@ def main() -> None:
     v3 = load("fused-cnnlstm-2026.11-v3.metrics.json")
     v3b = load("fused-cnnlstm-backtest-2017-v3.metrics.json")
     v3n = load("fused-cnnlstm-2026.11-v3-nocontext.metrics.json")
+    v4 = load("fused-cnnlstm-2026.11-v4.metrics.json")
+    v4b = load("fused-cnnlstm-backtest-2017-v4.metrics.json")
+    v4x = load("fused-cnnlstm-2026.11-v4-exclude-station.metrics.json")
     devices = load("device_comparison.json")
     spatial = load("spatial_units.json")
     dataset = (
-        load("fused-v1.3.0.dataset_manifest.json")
+        load("fused-v1.4.0.dataset_manifest.json")
+        or load("fused-v1.3.0.dataset_manifest.json")
         or load("fused-v1.1.0.dataset_manifest.json")
         or load("fused-v1.0.0.dataset_manifest.json")
     )
@@ -241,7 +336,7 @@ def main() -> None:
         L += model_table(
             v3,
             load("fused-cnnlstm-2026.11-v3.high_level.json"),
-            "Iteración v3 (dataset v1.2, población anual; publicada), corrida principal",
+            "Iteración v3 (dataset v1.2, población anual), corrida principal",
         )
     if v3b:
         L += model_table(
@@ -251,6 +346,20 @@ def main() -> None:
         )
     if v3 and v3n:
         L += ablation_table(v3, v3n)
+    if v4:
+        L += model_table(
+            v4,
+            load("fused-cnnlstm-2026.11-v4.high_level.json"),
+            "Iteración v4 (dataset v1.4, eventos de comisaría solo a nivel distrito; publicada), corrida principal",
+        )
+    if v4b:
+        L += model_table(
+            v4b,
+            load("fused-cnnlstm-backtest-2017-v4.high_level.json"),
+            "Iteración v4, backtest de todas las severidades",
+        )
+    if v4 and v4x:
+        L += station_table(v4, v4x)
     L += [
         f"Reproducibilidad (M-04), corrida {m04['run_id']} reentrenada desde cero: "
         f"{_es_int(m04['numerator'])}/{_es_int(m04['denominator'])} valores dentro de la tolerancia "

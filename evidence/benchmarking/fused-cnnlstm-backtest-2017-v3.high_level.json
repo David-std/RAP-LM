@@ -13,6 +13,21 @@
       "recall": 0.9643788010425717,
       "f1": 0.4876441515650742
     },
+    "base_rate": 0.09925836495343222,
+    "model_ranking": {
+      "k": 2302,
+      "precision_at_k": 0.5616854908774979,
+      "average_precision": 0.5767696467569629,
+      "at_validation_threshold": {
+        "tp": 1634,
+        "fp": 1787,
+        "fn": 668,
+        "tn": 19103,
+        "precision": 0.47763811750950014,
+        "recall": 0.7098175499565595,
+        "f1": 0.5710291804997379
+      }
+    },
     "baseline": {
       "tp": 2071,
       "fp": 3106,
@@ -21,6 +36,60 @@
       "precision": 0.4000386324125942,
       "recall": 0.8996524761077324,
       "f1": 0.5538173552613985
+    },
+    "baseline_ranking": {
+      "k": 2302,
+      "precision_at_k": 0.5603822762814944,
+      "average_precision": 0.5609730478300634,
+      "at_validation_threshold": {
+        "tp": 1744,
+        "fp": 2053,
+        "fn": 558,
+        "tn": 18837,
+        "precision": 0.45930998156439296,
+        "recall": 0.7576020851433536,
+        "f1": 0.571897032300377
+      }
+    },
+    "validation_thresholds": {
+      "model": 85.1,
+      "baseline": 80.0
     }
+  },
+  {
+    "family": "cenacom",
+    "year": 2016,
+    "units": 23192,
+    "reference_high": 2602,
+    "model": {
+      "tp": 2533,
+      "fp": 4275,
+      "fn": 69,
+      "tn": 16315,
+      "precision": 0.3720622796709753,
+      "recall": 0.9734819369715604,
+      "f1": 0.5383634431455898
+    },
+    "base_rate": 0.11219385995170748,
+    "model_ranking": {
+      "k": 2602,
+      "precision_at_k": 0.6264411990776326,
+      "average_precision": 0.6663540100928195
+    },
+    "baseline": {
+      "tp": 2341,
+      "fp": 2668,
+      "fn": 261,
+      "tn": 17922,
+      "precision": 0.4673587542423637,
+      "recall": 0.8996925441967717,
+      "f1": 0.6151622651425568
+    },
+    "baseline_ranking": {
+      "k": 2602,
+      "precision_at_k": 0.6137586471944658,
+      "average_precision": 0.6266629052742972
+    },
+    "partition": "validation"
   }
 ]

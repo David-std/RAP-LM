@@ -46,13 +46,13 @@ export function ModelPage() {
 
         <div className="grid cols-4">
           <Kpi label="Parámetros entrenables" value={card.parameters.toLocaleString("es-PE")} foot={`${card.members} modelo(s)`} />
-          <Kpi label="Mejora frente al promedio histórico (M-05)" value={main?.relative_improvement_pct == null ? "n/a" : `${main.relative_improvement_pct > 0 ? "+" : ""}${main.relative_improvement_pct.toFixed(1)} %`} foot={main ? `prueba ${FAMILY_LABEL[main.family]} ${main.year}` : ""} />
+          <Kpi label="Mejora frente al promedio histórico (M-05)" value={main?.relative_improvement_pct == null ? "n/a" : `${main.relative_improvement_pct > 0 ? "+" : ""}${main.relative_improvement_pct.toFixed(1).replace(".", ",")} %`} foot={main ? `prueba ${FAMILY_LABEL[main.family]} ${main.year}` : ""} />
           <Kpi
             label="Priorización de celdas, precisión promedio"
             value={num(testRow?.annual_cell?.model.average_precision)}
             foot={`histórico ${num(testRow?.annual_cell?.baseline?.average_precision)}; azar ${num(testRow?.annual_cell ? testRow.annual_cell.positives / testRow.annual_cell.cells : null)}`}
           />
-          <Kpi label="Tiempo de entrenamiento" value={`${Math.round(card.elapsed_seconds / 60)} min`} foot={`CPU, ${card.config.threads} hilos, PyTorch ${card.torch}`} />
+          <Kpi label="Tiempo de entrenamiento" value={`${Math.round(card.elapsed_seconds / 60)} min`} foot={String(card.config.device ?? "cpu").startsWith("cuda") ? `GPU, PyTorch ${card.torch}; búsqueda y ensamble` : `CPU, ${card.config.threads} hilos, PyTorch ${card.torch}`} />
         </div>
 
         <section className="card">
@@ -67,7 +67,7 @@ export function ModelPage() {
             La parte convolucional mira, en cada año, un vecindario de 5 × 5 km alrededor de cada celda; la parte recurrente
             recorre los años en orden y solo usa información anterior al año estimado. La salida es la intensidad esperada
             de atropellos por celda, año, tipo de día y franja; cada fuente se vincula a ella con su factor de registro
-            (ONSV/CENACOM = {card.reporting_factor.onsv?.toFixed(3)}) y su cobertura.
+            (ONSV/CENACOM = {card.reporting_factor.onsv?.toFixed(3).replace(".", ",")}) y su cobertura.
           </p>
         </section>
 
@@ -93,7 +93,7 @@ export function ModelPage() {
           {test.map((row) => (
             <BenchmarkBlock key={`${row.family}-${row.year}`} row={row} model={model.data!} />
           ))}
-          <p className="card-note">Selección: {benchmark.selection_rule}. La prueba se evalúa una sola vez para todas las alternativas.</p>
+          <p className="card-note">Selección: menor error E de validación (distrito × franja), con ensamble de 5 semillas. La prueba se evalúa una sola vez para todas las alternativas.</p>
         </section>
 
         {card.high_level && (
@@ -246,9 +246,9 @@ function BenchmarkBlock({ row, model }: { row: EvaluationRow; model: ModelCardDt
     <div style={{ marginBottom: 14 }}>
       <p className="field-label">
         {FAMILY_LABEL[row.family]} {row.year}: {row.observed_events.toFixed(0)} eventos, M-05 ={" "}
-        {row.relative_improvement_pct === null ? "no calculable" : `${row.relative_improvement_pct.toFixed(2)} %`}
+        {row.relative_improvement_pct === null ? "no calculable" : `${row.relative_improvement_pct > 0 ? "+" : ""}${row.relative_improvement_pct.toFixed(2).replace(".", ",")} %`}
       </p>
-      <CompareBars bars={bars} reference={row.baseline?.district_mae} referenceLabel="Promedio histórico" format={(v) => v.toFixed(3)} />
+      <CompareBars bars={bars} reference={row.baseline?.district_mae} referenceLabel="Promedio histórico" format={(v) => v.toFixed(3).replace(".", ",")} />
     </div>
   );
 }
@@ -266,7 +266,7 @@ function TrainingCurves({ card }: { card: ModelCardDto["card"] }) {
         ]}
         xLabel="época"
         xFormat={(v) => String(Math.round(v))}
-        yFormat={(v) => v.toFixed(2)}
+        yFormat={(v) => v.toFixed(2).replace(".", ",")}
       />
       <p className="card-note">{name.replace("ensemble_seed_", "Semilla ")}. Se conserva el modelo de la época con menor pérdida de validación (detención temprana).</p>
     </>

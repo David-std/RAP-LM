@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://raplm_reader:raplm_reader_dev@127.0.0.1:5433/raplm"
     max_compare_units: int = 4
     max_compare_periods: int = 24  # all published years of one band
+    # Serialised /risk responses kept per worker (about 4.4 MB each for the full 1 km map).
+    risk_cache_entries: int = 16
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

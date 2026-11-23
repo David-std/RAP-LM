@@ -30,6 +30,11 @@ services:
         value: "8000"
       - key: APP_ENV
         value: demo
+      # API worker processes; 2 fit the free plan's memory (4 by default in Docker Compose).
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: RISK_CACHE_ENTRIES
+        value: "8"
       # Read-only role URL printed by tools/deploy/remote_setup.py; set it in the dashboard.
       - key: DATABASE_URL
         sync: false

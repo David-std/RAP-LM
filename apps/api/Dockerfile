@@ -13,4 +13,5 @@ COPY database database
 RUN useradd --system --uid 10001 api
 USER api
 EXPOSE 8000
-CMD ["uvicorn", "raster_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# WEB_CONCURRENCY sets the number of worker processes (stateless API; 4 by default).
+CMD ["sh", "-c", "exec uvicorn raster_api.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WEB_CONCURRENCY:-4}"]

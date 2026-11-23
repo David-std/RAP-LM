@@ -1,12 +1,12 @@
 # Informe de pruebas
 
-Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm-2026.11-v3`, según el [plan de pruebas](plan-de-pruebas.md). Las métricas se miden contra la aplicación desplegada con Docker Compose (API, base de datos y web).
+Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm-2026.11-v4`, según el [plan de pruebas](plan-de-pruebas.md). Las métricas se miden contra la aplicación desplegada con Docker Compose (API, base de datos y web).
 
 ## 1. Pruebas automatizadas
 
 | Conjunto | Alcance | Casos | Fallidos |
 |---|---|---|---|
-| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 120 | 0 |
+| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 122 | 0 |
 | Vitest | Leyenda, colores por umbral, cliente de API | 7 | 0 |
 | Playwright | Recorridos críticos sobre la aplicación desplegada | 12 | 0 |
 
@@ -31,14 +31,14 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 
 | Métrica | Descripción | Resultado | Meta |
 |---|---|---|---|
-| M-01 | Correspondencia espacial | 817/817 = 100,0 % | >= 95 % |
-| M-02 | Completitud del contexto de cada resultado | 258.896/258.896 = 100,0 % | >= 95 % |
-| M-03 | Trazabilidad de fuente y versión | 200/200 = 100,0 % | >= 95 % |
+| M-01 | Correspondencia espacial (eventos ONSV con coordenadas verificables) | 817/817 = 100,0 % | >= 95 % |
+| M-02 | Completitud del contexto de cada resultado publicado (campos obligatorios) | 258.896/258.896 = 100,0 % | >= 95 % |
+| M-03 | Trazabilidad de fuente y versión (muestra de 200 resultados, semilla fija) | 200/200 = 100,0 % | >= 95 % |
 | M-04 | Reproducibilidad del pipeline | 258.896/258.896 = 100,0 % | >= 95 % dentro de tolerancia; 100 % unidad, periodo y nivel |
-| M-05 | Mejora relativa frente al promedio histórico | prueba ONSV 2024: +7,19 % | > 0 % |
+| M-05 | Mejora relativa frente al promedio histórico | prueba ONSV 2024 (fatales): +6,29 %; backtest CENACOM 2017 (todas las severidades): -3,28 % | > 0 % |
 | M-07 | Escenarios críticos de extremo a extremo | 12/12 escenarios aprobados | 100 % y cero bloqueantes |
 | M-08 | Exactitud de consultas, filtros y comparaciones | 188/188 = 100,0 % | >= 95 % global, 100 % críticos |
-| M-09 | Tiempo de respuesta p95 de la API | p95 0,41 s (200 peticiones, 0 errores) | <= 2 s |
+| M-09 | Tiempo de respuesta p95 de la API | p95 0,48 s secuencial y 1,95 s con 10 clientes simultáneos (200 peticiones cada una, 0 errores) | <= 2 s |
 
 M-06 (requisitos funcionales aceptados) se determina en la revisión de sprint con el plan de pruebas por requisito. M-10 a M-12 se miden en las sesiones con especialistas (paquete 4.5) con los instrumentos de `docs/validacion/`. M-13 a M-15 corresponden a la gestión del proyecto.
 

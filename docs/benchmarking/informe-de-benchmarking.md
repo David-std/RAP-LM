@@ -53,10 +53,10 @@ Protocolo: partición cronológica; la selección usa solo el conjunto de valida
 
 Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 175 | 41 | 4064 | 81.0 % | 4.1 % |
-| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 175 | 41 | 4064 | 81.0 % | 4.1 % | 0.079 |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % | 0.092 |
 
 **Iteración v1, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
 
@@ -71,10 +71,10 @@ Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
 Nivel alto (23192 celdas × franjas, 2306 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 2219 | 87 | 4566 | 96.2 % | 32.7 % |
-| Promedio histórico | 2081 | 225 | 3126 | 90.2 % | 40.0 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 2219 | 87 | 4566 | 96.2 % | 32.7 % | 0.488 |
+| Promedio histórico | 2081 | 225 | 3126 | 90.2 % | 40.0 % | 0.554 |
 
 **Iteración v2 (dataset v1.1, búsqueda y ensamble), corrida principal** (prueba ONSV 2024, 233 eventos)
 
@@ -85,10 +85,10 @@ Nivel alto (23192 celdas × franjas, 2306 altas observadas):
 
 Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 186 | 30 | 4227 | 86.1 % | 4.2 % |
-| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 186 | 30 | 4227 | 86.1 % | 4.2 % | 0.080 |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % | 0.092 |
 
 **Iteración v2, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
 
@@ -99,12 +99,12 @@ Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
 Nivel alto (23192 celdas × franjas, 2299 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 2210 | 89 | 4557 | 96.1 % | 32.7 % |
-| Promedio histórico | 2051 | 248 | 3056 | 89.2 % | 40.2 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 2210 | 89 | 4557 | 96.1 % | 32.7 % | 0.488 |
+| Promedio histórico | 2051 | 248 | 3056 | 89.2 % | 40.2 % | 0.554 |
 
-**Iteración v3 (dataset v1.2, población anual; publicada), corrida principal** (prueba ONSV 2024, 233 eventos)
+**Iteración v3 (dataset v1.2, población anual), corrida principal** (prueba ONSV 2024, 233 eventos)
 
 | Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
 |---|---|---|---|---|
@@ -113,10 +113,21 @@ Nivel alto (23192 celdas × franjas, 2299 altas observadas):
 
 Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 184 | 32 | 3777 | 85.2 % | 4.6 % |
-| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 184 | 32 | 3777 | 85.2 % | 4.6 % | 0.088 |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % | 0.092 |
+
+Priorización con el mismo presupuesto (el nivel alto es un percentil de una escala continua; frente a una referencia rara su precisión está acotada por positivos sobre marcadas):
+
+| Medida | Modelo | Promedio histórico | Azar |
+|---|---|---|---|
+| Precisión con presupuesto igual a los positivos (216), celda × franja | 6.0 % | 4.2 % | 0.9 % |
+| Precisión promedio, celda × franja | 0.059 | 0.021 | 0.009 |
+| Umbral elegido en validación (índice 82.4): precisión, recall, F1 | 6.6 %, 25.5 %, 0.105 | 5.0 %, 5.6 %, 0.053 |  |
+| Celdas en el año: precisión con presupuesto (165 celdas con eventos) | 37.0 % | 37.6 % | 5.7 % |
+| Celdas en el año: precisión promedio | 0.348 | 0.308 | 0.057 |
+| Celdas en el año: celdas con eventos dentro del 10 % priorizado | 62.4 % | 57.0 % | 10.0 % |
 
 **Iteración v3, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
 
@@ -127,10 +138,18 @@ Nivel alto (23192 celdas × franjas, 216 altas observadas):
 
 Nivel alto (23192 celdas × franjas, 2302 altas observadas):
 
-| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión |
-|---|---|---|---|---|---|
-| Modelo | 2220 | 82 | 4583 | 96.4 % | 32.6 % |
-| Promedio histórico | 2071 | 231 | 3106 | 90.0 % | 40.0 % |
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 2220 | 82 | 4583 | 96.4 % | 32.6 % | 0.488 |
+| Promedio histórico | 2071 | 231 | 3106 | 90.0 % | 40.0 % | 0.554 |
+
+Priorización con el mismo presupuesto (el nivel alto es un percentil de una escala continua; frente a una referencia rara su precisión está acotada por positivos sobre marcadas):
+
+| Medida | Modelo | Promedio histórico | Azar |
+|---|---|---|---|
+| Precisión con presupuesto igual a los positivos (2302), celda × franja | 56.2 % | 56.0 % | 9.9 % |
+| Precisión promedio, celda × franja | 0.577 | 0.561 | 0.099 |
+| Umbral elegido en validación (índice 85.1): precisión, recall, F1 | 47.8 %, 71.0 %, 0.571 | 45.9 %, 75.8 %, 0.572 |  |
 
 **Ablación de contexto (v3).** Mismo protocolo, datos y semillas, con todas las variables de exposición, entorno y tránsito fijadas en su media; la red solo ve el historial de atropellos. Responde si esas variables (Guo et al., 2024; Hu et al., 2024) mejoran la precisión.
 
@@ -139,7 +158,64 @@ Nivel alto (23192 celdas × franjas, 2302 altas observadas):
 | Validación ONSV 2023 | 0.581 | 0.591 | 70.4 % | 63.3 % | 0.0637 | 0.0642 |
 | Prueba ONSV 2024 | 0.563 | 0.580 | 67.0 % | 62.5 % | 0.0648 | 0.0638 |
 
-Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v3 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
+**Iteración v4 (dataset v1.4, eventos de comisaría solo a nivel distrito; publicada), corrida principal** (prueba ONSV 2024, 233 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 0.607 | (referencia) | 0.1156 | 62.1 % |
+| CNN-RNN: ConvLSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.003) | 0.568 | +6.29 % | 0.0651 | 67.4 % |
+
+Nivel alto (23192 celdas × franjas, 216 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 167 | 49 | 3057 | 77.3 % | 5.2 % | 0.097 |
+| Promedio histórico | 34 | 182 | 491 | 15.7 % | 6.5 % | 0.092 |
+
+Priorización con el mismo presupuesto (el nivel alto es un percentil de una escala continua; frente a una referencia rara su precisión está acotada por positivos sobre marcadas):
+
+| Medida | Modelo | Promedio histórico | Azar |
+|---|---|---|---|
+| Precisión con presupuesto igual a los positivos (216), celda × franja | 6.9 % | 4.2 % | 0.9 % |
+| Precisión promedio, celda × franja | 0.062 | 0.021 | 0.009 |
+| Umbral elegido en validación (índice 81.7): precisión, recall, F1 | 6.3 %, 21.8 %, 0.098 | 5.0 %, 5.6 %, 0.053 |  |
+| Celdas en el año: precisión con presupuesto (165 celdas con eventos) | 40.0 % | 37.6 % | 5.7 % |
+| Celdas en el año: precisión promedio | 0.360 | 0.308 | 0.057 |
+| Celdas en el año: celdas con eventos dentro del 10 % priorizado | 63.0 % | 57.0 % | 10.0 % |
+
+**Iteración v4, backtest de todas las severidades** (prueba CENACOM 2017, 1629 eventos)
+
+| Alternativa | E prueba (MAE distrito × franja) | M-05 frente a B0 | Devianza por celda | Captura 10 % de celdas |
+|---|---|---|---|---|
+| Promedio histórico (B0) | 2.380 | (referencia) | 0.1819 | 78.3 % |
+| CNN-RNN: CNN-LSTM, ensamble de 5 (h=32, dropout=0.1, lr=0.003) | 2.458 | -3.28 % | 0.0947 | 77.6 % |
+
+Nivel alto (23192 celdas × franjas, 2240 altas observadas):
+
+| Enfoque | Detectadas | Falsos negativos | Falsos positivos | Recall | Precisión | F1 |
+|---|---|---|---|---|---|---|
+| Modelo | 2012 | 228 | 4561 | 89.8 % | 30.6 % | 0.457 |
+| Promedio histórico | 1365 | 875 | 1274 | 60.9 % | 51.7 % | 0.560 |
+
+Priorización con el mismo presupuesto (el nivel alto es un percentil de una escala continua; frente a una referencia rara su precisión está acotada por positivos sobre marcadas):
+
+| Medida | Modelo | Promedio histórico | Azar |
+|---|---|---|---|
+| Precisión con presupuesto igual a los positivos (2240), celda × franja | 55.8 % | 54.0 % | 9.7 % |
+| Precisión promedio, celda × franja | 0.561 | 0.489 | 0.097 |
+| Umbral elegido en validación (índice 85.6): precisión, recall, F1 | 48.2 %, 66.6 %, 0.559 | 48.0 %, 76.2 %, 0.589 |  |
+| Celdas en el año: precisión con presupuesto (398 celdas con eventos) | 79.6 % | 78.9 % | 13.7 % |
+| Celdas en el año: precisión promedio | 0.875 | 0.887 | 0.137 |
+| Celdas en el año: celdas con eventos dentro del 10 % priorizado | 65.1 % | 65.1 % | 10.0 % |
+
+**Sensibilidad a los eventos ubicados solo por la comisaría (v4).** Política publicada: esos eventos cuentan a nivel distrito y no se ubican en calles ni celdas. Variante: se excluyen por completo.
+
+| Partición | E política | E sin esos eventos | Captura política | Captura sin ellos | Devianza política | Devianza sin ellos |
+|---|---|---|---|---|---|---|
+| Validación ONSV 2023 | 0.575 | 0.569 | 66.4 % | 67.7 % | 0.0642 | 0.0644 |
+| Prueba ONSV 2024 | 0.568 | 0.570 | 67.4 % | 68.3 % | 0.0651 | 0.0660 |
+
+Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v4 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
 
 **Entrenamiento en CPU y en GPU.** Mismo protocolo, datos y semillas en ambos dispositivos (búsqueda de 16 configuraciones y ensamble de 5).
 
@@ -149,7 +225,7 @@ Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v3 reentrenada desde cero
 | CUDA | 3,9 min | convlstm, h=32, lr=0.01 | 0.5945 |
 
 Concordancia de los resultados: nivel de riesgo igual en 89,6 % de las unidad-periodo; diferencia media del índice 5,1 puntos (percentil 95: 16,5); correlación de rangos 0,962. La aritmética de punto flotante difiere entre dispositivos, y cuando dos configuraciones empatan casi en validación la búsqueda puede elegir una distinta en cada uno.
-La reproducibilidad (M-04) se midió en CPU, el dispositivo de la corrida publicada; en GPU la ejecución está configurada como determinista, pero su repetición no se midió.
+Una repetición de la corrida en GPU con la misma configuración produjo pesos y estimaciones idénticos byte a byte (evidence/benchmarking/gpu_determinism.json); por eso la v4 se entrena en GPU y su reproducibilidad (M-04) se mide reentrenando en GPU.
 
 ### 3.4. Análisis de alternativas
 
@@ -196,7 +272,7 @@ Propuestas: (a) usar solo eventos con coordenadas (ONSV), (b) asignar todo al di
 |---|---|---|---|---|
 | (a) Solo coordenadas ONSV | 817 de 14158 (5.8 %) | punto | sí | 0 |
 | (b) Solo distrito | 0 (14158 a distrito) | distrito | sí | 0 |
-| (c) Reglas con calles OSM (seleccionada) | 9028 de 14158 (63.8 %): 1024 cruces, 7187 tramos, 817 puntos | cruce o tramo | sí | 0 |
+| (c) Reglas con calles OSM (seleccionada) | 3887 de 14158 (27.5 %): 370 cruces, 2700 tramos, 817 puntos | cruce o tramo | sí | 0 |
 | (d) Geocodificador en línea | no ejecutado | variable | no (servicio externo, límites de uso) | posibles |
 
 Registros leídos de las fuentes: 14362. Las exclusiones (cohorte no comparable, año incompleto, fecha u hora inválida) se registran con su motivo.

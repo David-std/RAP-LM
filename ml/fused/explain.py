@@ -251,7 +251,8 @@ def main() -> None:
                 "seed",
                 "threads",
             )
-        },
+        }
+        | {"device": cfg.get("device", "cpu")},
         "split": split,
         "weights_sha256": manifest["weights_sha256"],
         "code_commit_sha": manifest["code_commit_sha"],

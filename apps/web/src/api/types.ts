@@ -351,7 +351,7 @@ export interface ModelCardDto {
     layers: string[];
     input_channels: string[];
     tensor_shapes: Record<string, number[]>;
-    config: Record<string, number>;
+    config: Record<string, number | string>;
     split: Record<string, Record<string, number[]>>;
     weights_sha256: string;
     code_commit_sha: string;
