@@ -54,9 +54,8 @@ def fit_arm(t, cfg, arm, seed):
     val_mask = year_mask(t, cfg["split"]["validation"]).to(device)
 
     def with_factor():
-        cover = base_cover.clone()
-        cover[0] = cover[0] * torch.exp(log_year * mask)[:, None]
-        d["cover"] = cover
+        first = base_cover[0] * torch.exp(log_year * mask)[:, None]
+        d["cover"] = torch.cat([first[None], base_cover[1:]], dim=0)
 
     best = (float("inf"), None, None, 0)
     for epoch in range(cfg["max_epochs"]):
