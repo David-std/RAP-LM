@@ -67,3 +67,9 @@ References:
 - PyTorch ReduceLROnPlateau, https://docs.pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html
 - Road crash excess zeros/dispersion: https://www.sciencedirect.com/science/article/pii/S0001457524002860
 - Existing docs/ml/benchmark-protocol-v2.md and v4 run manifests.
+
+## Follow-up: isolate effects (fixed after first screen, before new runs)
+
+The ten first-stage fits did not pass the two-fold E0 gate. E1/E2 selected epoch 1 in the ONSV fold and stopped prematurely; E3/E4 did not improve both MAE and spatial capture. This follow-up is development-only and does not inspect either test fold.
+
+Use the identical E0 seeds, splits, train-only normalisation, NLL, early stopping and training budget. R0 = historical residual offset only; R1 = day/band lag channels only; R2 = both. No new dropout or MAE scheduler. Compare against E0 and the historical average, with the original two-fold gate unchanged. Do not select by test results or deploy automatically. The first-stage results remain preserved.
