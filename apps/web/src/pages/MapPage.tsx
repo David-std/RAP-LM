@@ -67,6 +67,17 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     [periodId, q.unitType, q.districtIds.join(), q.levels.join()],
     !!periodId,
   );
+  // Same period one year earlier: the tooltip shows how the network's estimate moved.
+  const prevPeriodId = q.periodId({ ...q.active, year: q.active.year - 1 });
+  const prevRisk = useApi(
+    (s) => api.risk({ periodId: prevPeriodId!, unitType: q.unitType }, s),
+    [prevPeriodId, q.unitType],
+    !!prevPeriodId && layer === "risk",
+  );
+  const prevIndex = useMemo(
+    () => new Map((prevRisk.data?.data ?? []).map((r) => [r.unit.unit_id, r.risk_index] as [string, number | null])),
+    [prevRisk.data],
+  );
   // The selected unit is fetched on its own so it stays visible even when filtered out (HU-08).
   const selected = useApi(
     (s) => api.risk({ periodId: periodId!, unitType: q.unitType, unitId: q.selectedUnitId! }, s),
@@ -91,12 +102,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     [activeExplanation],
   );
   const influenceStatus = !q.selectedUnitId
-    ? "Seleccione una zona para ver su explicación."
+    ? "Seleccione una zona: el mapa muestra qué celdas pesaron en su estimación."
     : explanation.loading
       ? "Cargando explicación…"
       : influence.size > 0
-        ? "Grad-CAM: celdas con mayor influencia en la estimación anual de " + q.selectedUnitId + " (2024, todas las franjas)."
-        : "Sin explicación disponible para esta zona. Disponible en los 43 distritos y las 400 celdas de mayor riesgo de 2024.";
+        ? `Celdas que más pesaron en la estimación de ${q.selectedUnitId} para 2024, todas las franjas.`
+        : "Sin explicación para esta zona. Disponible en los 43 distritos y las 400 celdas de mayor riesgo de 2024.";
+  const influenceRank = useMemo(
+    () => new Map([...influence.entries()].sort((a, b) => b[1] - a[1]).map(([u], i) => [u, i + 1] as [string, number])),
+    [influence],
+  );
   const maxDensity = useMemo(
     () => Math.max(...(risk.data?.data ?? []).map((r) => (r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1)), 0.0001),
     [risk.data],
@@ -269,19 +284,22 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           <div className="map-tip" role="tooltip">
             <strong>{hovered.unit.unit_type === "cell" ? `Celda ${hovered.unit.unit_id}` : hovered.unit.display_name}</strong>
             <span className="muted">{hovered.unit.district_name}</span>
-            <span>
-              {layer === "record" ? (
-                hovered.observed.events === null ? "Sin registro disponible" : <><b>{fmtCount(hovered.observed.events)}</b> registros, {fmtValue(hovered.observed.events / Math.max(hovered.unit.area_km2, 0.1), 2)} por km²</>
-              ) : layer === "influence" ? (
-                influence.has(hovered.unit.unit_id) ? <><b>{fmtValue(influence.get(hovered.unit.unit_id)! * 100, 1)} %</b> de la influencia máxima</> : "Sin atribución mostrada"
-              ) : hovered.risk_level ? (
-                <>
-                  <b>{fmtIndex(hovered.risk_index)}</b> {LEVEL_LABEL[hovered.risk_level]}
-                </>
+            {layer === "record" ? (
+              <RecordTip r={hovered} />
+            ) : layer === "influence" ? (
+              influence.has(hovered.unit.unit_id) ? (
+                <dl className="tip-kv">
+                  <dt>Influencia</dt><dd><b>{fmtValue(influence.get(hovered.unit.unit_id)! * 100, 0)} %</b> de la máxima</dd>
+                  <dt>Posición</dt><dd>{influenceRank.get(hovered.unit.unit_id)} de {influence.size} celdas</dd>
+                </dl>
               ) : (
-                "Sin resultado"
-              )}
-            </span>
+                <span>Fuera de las celdas de mayor influencia</span>
+              )
+            ) : hovered.risk_level ? (
+              <RiskTip r={hovered} prev={prevIndex.get(hovered.unit.unit_id) ?? null} prevYear={q.active.year - 1} />
+            ) : (
+              <span>Sin resultado</span>
+            )}
             <span className="muted small">{layer === "influence" ? "Explicación anual 2024" : periodLabel(hovered.period)}</span>
           </div>
         )}
@@ -304,8 +322,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <p className="legend-sub">
                 {influenceStatus}
               </p>
+              <details className="legend-how">
+                <summary>Cómo leerlo</summary>
+                <p>
+                  La red estima el riesgo de la zona elegida. Grad-CAM recorre la red hacia atrás y mide, celda por celda,
+                  cuánto aumentó esa estimación lo que la red leyó allí en 2024 y en los años previos. Las celdas oscuras son
+                  las que más la elevaron. Muestra en qué se apoyó el modelo, no las causas de los atropellos.
+                </p>
+              </details>
               <ul className="legend-classes">
-                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin atribución mostrada</li>
+                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Fuera de las 40 de mayor influencia</li>
                 {INFLUENCE_RAMP.map((c, i) => (
                   <li key={c}><span className="swatch" style={{ background: c }} /> {i * 20} a {(i + 1) * 20} % de la máxima</li>
                 ))}
@@ -348,5 +374,52 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
         onOpenCorridors={goCorridors}
       />
     </div>
+  );
+}
+
+function RiskTip({ r, prev, prevYear }: { r: RiskResult; prev: number | null; prevYear: number }) {
+  const hist = r.historical_average;
+  const vsHist = hist && r.indicator_value !== null ? ((r.indicator_value - hist) / hist) * 100 : null;
+  const diff = prev !== null && r.risk_index !== null ? r.risk_index - prev : null;
+  return (
+    <dl className="tip-kv">
+      <dt>Índice</dt>
+      <dd><b>{fmtIndex(r.risk_index)}</b> {r.risk_level ? LEVEL_LABEL[r.risk_level].toLowerCase() : ""}</dd>
+      <dt>Esperado</dt>
+      <dd>{fmtValue(r.indicator_value, 3)} atropellos por km² al año</dd>
+      {diff !== null && (
+        <>
+          <dt>Frente a {prevYear}</dt>
+          <dd className={Math.abs(diff) < 2 ? "" : diff > 0 ? "delta-up" : "delta-down"}>
+            {Math.abs(diff) < 2 ? "estable" : `${diff > 0 ? "▲ sube" : "▼ baja"} ${fmtValue(Math.abs(diff), 0)} puntos`}
+          </dd>
+        </>
+      )}
+      {vsHist !== null && (
+        <>
+          <dt>Frente al histórico</dt>
+          <dd className={vsHist > 0 ? "delta-up" : "delta-down"}>{vsHist > 0 ? "+" : "−"}{fmtValue(Math.abs(vsHist), 0)} %</dd>
+        </>
+      )}
+    </dl>
+  );
+}
+
+function RecordTip({ r }: { r: RiskResult }) {
+  if (r.observed.events === null) return <span>Sin registro disponible para este periodo</span>;
+  const sev = r.breakdown?.severity;
+  return (
+    <dl className="tip-kv">
+      <dt>Registrados</dt>
+      <dd><b>{fmtCount(r.observed.events)}</b>, {fmtValue(r.observed.events / Math.max(r.unit.area_km2, 0.1), 2)} por km²</dd>
+      {sev && r.observed.events > 0 && (
+        <>
+          <dt>Con fallecido</dt><dd>{fmtCount(sev.fatal)}</dd>
+          <dt>Con lesionados</dt><dd>{fmtCount(sev.nonfatal)}</dd>
+        </>
+      )}
+      <dt>Peatones</dt>
+      <dd>{fmtCount(r.observed.pedestrians_deceased)} {r.observed.pedestrians_deceased === 1 ? "fallecido" : "fallecidos"}, {fmtCount(r.observed.pedestrians_injured)} {r.observed.pedestrians_injured === 1 ? "lesionado" : "lesionados"}</dd>
+    </dl>
   );
 }

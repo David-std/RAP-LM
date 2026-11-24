@@ -218,6 +218,41 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
           },
         ]
       : []),
+    {
+      id: "explicaciones",
+      title: "Cómo se explica la red",
+      body: (
+        <>
+          <p>
+            Cada zona del mapa trae tres explicaciones, calculadas fuera de línea con el modelo publicado. Las tres describen
+            en qué se apoya la red; ninguna identifica causas de los atropellos.
+          </p>
+          <dl className="doc-defs">
+            <dt>Grad-CAM</dt>
+            <dd>
+              Para la zona elegida, se toma su riesgo estimado en 2024 y se recorre la red hacia atrás hasta sus estados
+              internos. En cada celda se multiplica la activación por el gradiente, es decir, cuánto cambiaría la
+              estimación si esa activación cambiara, y se suman los aportes positivos de todos los años que la memoria
+              recorre. Se usa la variante HiResCAM (Draelos y Carin, 2020), que conserva el gradiente de cada celda en
+              lugar de promediarlo sobre todo el mapa como el Grad-CAM original (Selvaraju et al., 2017). Así solo se
+              resaltan celdas que la red realmente puede leer desde la zona. El resultado se promedia sobre las cinco redes
+              y se escala para que la celda más influyente valga 100 %.
+            </dd>
+            <dt>Qué impulsa la estimación</dt>
+            <dd>
+              Se reemplaza un grupo de variables a la vez por un valor neutro, el promedio de Lima para el contexto o
+              ningún evento previo para el historial, y se mide cuánto cambia la estimación de la zona en porcentaje. Un
+              valor positivo indica que el valor real de ese grupo eleva el riesgo estimado frente al neutro.
+            </dd>
+            <dt>Simulación de contexto</dt>
+            <dd>
+              Se multiplica una variable en las celdas del distrito, manteniendo las demás, y se registra la respuesta de
+              la red. Muestra la sensibilidad del modelo, no el efecto de una intervención real.
+            </dd>
+          </dl>
+        </>
+      ),
+    },
     ...(card.search?.length
       ? [
           {
