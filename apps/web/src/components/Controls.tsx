@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import type { DayType } from "../api/types";
-import { BANDS, DAY_LABEL } from "../lib/format";
+import { BANDS, DAY_LABEL, fmtNumber } from "../lib/format";
 import type { PeriodKey } from "../state/QueryContext";
 
 interface SegmentedProps<T extends string | number> {
@@ -125,7 +125,7 @@ export function FilterChips<T extends string>({
             <button key={it.value} type="button" className={`filter-chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => onToggle(it.value)}>
               {it.swatch}
               <span>{it.label}</span>
-              {it.count !== undefined && <span className="chip-count">{it.count.toLocaleString("es-PE")}</span>}
+              {it.count !== undefined && <span className="chip-count">{fmtNumber(it.count)}</span>}
             </button>
           );
         })}

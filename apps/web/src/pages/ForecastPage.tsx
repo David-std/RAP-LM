@@ -9,7 +9,7 @@ import { Notice, Segmented } from "../components/Controls";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
 import { exportCsv, type ExportColumn } from "../lib/export";
-import { BANDS, DAY_LABEL } from "../lib/format";
+import { BANDS, DAY_LABEL, fmtValue } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
 
 interface Props {
@@ -20,6 +20,8 @@ interface Props {
 
 const EMPTY = new Map<string, RiskResult>();
 const pct = (v: number | null | undefined) => (v == null ? "n/a" : `${(v * 100).toFixed(0)} %`);
+const signedPct = (v: number | null | undefined) =>
+  v == null ? "n/a" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmtValue(Math.abs(v), 1)} %`;
 
 function Change({ row }: { row: ForecastRow }) {
   const d = row.risk_index - row.previous_index;
@@ -47,7 +49,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
   const previous = horizon == null ? last : horizon - 1;
   const chained = horizon != null && last != null && horizon > last + 1;
   const test = model.data?.benchmark.test?.[0];
-  const high = model.data?.card.high_level?.[0];
+  const prio = model.data?.card.prioritisation?.find((r) => r.fold === "onsv");
   const totalExpected = rows.reduce((s, r) => s + (r.expected_events ?? 0), 0);
 
   const columns: ExportColumn<ForecastRow>[] = [
@@ -68,8 +70,11 @@ export function ForecastPage({ units, districts, legend }: Props) {
     <div className="workspace">
       <aside className="rail" aria-label="Opciones de pronóstico">
         <div>
-          <p className="eyebrow">Pronóstico</p>
           <h2 className="rail-title">{horizon ? `Riesgo esperado en ${horizon}` : "Riesgo esperado el próximo año"}</h2>
+          <p className="rail-lead">
+            Índice de riesgo estimado por la red entrenada con registros hasta {last ?? "el último año observado"}, en la
+            misma escala que el mapa de riesgo.
+          </p>
         </div>
         <Segmented<UnitType>
           label="Vista"
@@ -107,15 +112,14 @@ export function ForecastPage({ units, districts, legend }: Props) {
           onChange={setDayType}
         />
         <Segmented label="Franja horaria" value={band} options={BANDS.map((b, i) => ({ value: i, label: b }))} onChange={setBand} />
-        <section className="card how">
-          <h3>Cómo se obtiene</h3>
-          <ol>
-            <li>La red CNN-RNN recibe el historial de atropellos hasta {last ?? "el último año"} y el contexto urbano de cada celda, congelado a ese año (población {last ?? ""}).</li>
-            <li>La parte convolucional (CNN) lee el vecindario de cada celda; la recurrente (RNN) arrastra la memoria de los años previos.</li>
-            <li>{chained ? "Encadena las proyecciones anuales sin incorporar nuevos registros." : "Proyecta el año siguiente sin incorporar sus registros."}</li>
-            <li>El rango muestra el desacuerdo entre los cinco modelos, no un intervalo de confianza.</li>
-          </ol>
-        </section>
+        <details className="rail-details">
+          <summary>Cómo se obtiene</summary>
+          <p>
+            La red recibe el historial de atropellos y el contexto urbano de cada celda, con la población fijada en{" "}
+            {last ?? "el último año"}. Cada año proyectado sirve de entrada al siguiente, sin registros nuevos. El rango es
+            el desacuerdo entre las cinco redes del ensamble, no un intervalo de confianza.
+          </p>
+        </details>
         {current && (
           <button type="button" className="btn" onClick={() => exportCsv(`pronostico-${horizon}-${unitType}.csv`, rows, columns, current.meta, `forecast ${horizon}, ${dayType}, band ${BANDS[band]}`)}>
             Exportar CSV
@@ -147,7 +151,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
             </span>
             <span className="muted small">
               {previous}: {focus.previous_index.toFixed(0)}
-              {focus.expected_events != null && `; ${focus.expected_events.toFixed(1)} atropellos esperados en la franja`}
+              {focus.expected_events != null && `; ${fmtValue(focus.expected_events, 1)} atropellos esperados en la franja`}
             </span>
           </div>
         )}
@@ -159,33 +163,40 @@ export function ForecastPage({ units, districts, legend }: Props) {
       <aside className="zone-panel" aria-label="Detalle del pronóstico">
         <section className="card">
           <header>
-            <h2>¿Es confiable?</h2>
-            <p className="card-sub">Evaluación a un año sobre ONSV {test?.year ?? 2024} (siniestros fatales); no valida 2025–2027.</p>
+            <h2>Fiabilidad</h2>
           </header>
-          <div className="kpi-row two">
-            <div className="kpi">
-              <span className="kpi-value">{pct(high?.model.recall)}</span>
-              <span className="kpi-foot">de las zonas de nivel alto anticipadas (promedio histórico: {pct(high?.baseline?.recall)})</span>
-            </div>
-            <div className="kpi">
-              <span className="kpi-value">{test?.relative_improvement_pct == null ? "n/a" : `${test.relative_improvement_pct > 0 ? "+" : ""}${test.relative_improvement_pct.toFixed(1)} %`}</span>
-              <span className="kpi-foot">menos error que repetir el promedio histórico</span>
-            </div>
-          </div>
+          <p className="panel-text">
+            Probado sobre {prio?.test_year ?? test?.year ?? 2024} sin usar sus registros, con los siniestros fatales con
+            peatón del ONSV. Es una evaluación a un año: 2026 y 2027 no tienen con qué contrastarse.
+          </p>
+          <table className="panel-table static">
+            <thead>
+              <tr><th scope="col">Medida</th><th scope="col" className="num">Red</th><th scope="col" className="num">Histórico</th></tr>
+            </thead>
+            <tbody>
+              {prio && (
+                <>
+                  <tr><td>Siniestros en el 20 % de celdas priorizadas</td><td className="num strong">{pct(prio.cell_year.model.capture_top20)}</td><td className="num">{pct(prio.cell_year.historical_average.capture_top20)}</td></tr>
+                  <tr><td>Área bajo la curva ROC</td><td className="num strong">{fmtValue(prio.cell_year.model.auc, 2)}</td><td className="num">{fmtValue(prio.cell_year.historical_average.auc, 2)}</td></tr>
+                </>
+              )}
+              <tr><td>Error por distrito frente al histórico</td><td className="num strong">{signedPct(test?.relative_improvement_pct == null ? null : -test.relative_improvement_pct)}</td><td className="num">referencia</td></tr>
+            </tbody>
+          </table>
         </section>
 
         <section className="card">
           <header>
             <h2>Mayor riesgo esperado</h2>
-            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{totalExpected.toFixed(0)} atropellos estimados en la franja, 43 distritos (escala de referencia)</p>}
+            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{fmtValue(totalExpected, 0)} atropellos estimados en la franja para los 43 distritos</p>}
           </header>
-          <table className="data-table">
+          <table className="panel-table">
             <thead>
               <tr>
-                <th>{unitType === "cell" ? "Celda" : "Distrito"}</th>
-                <th className="num">{horizon}</th>
-                <th>Rango</th>
-                <th>vs {previous}</th>
+                <th scope="col">{unitType === "cell" ? "Celda" : "Distrito"}</th>
+                <th scope="col" className="num">{horizon}</th>
+                <th scope="col" className="num">Rango</th>
+                <th scope="col">vs {previous}</th>
               </tr>
             </thead>
             <tbody>
@@ -195,8 +206,8 @@ export function ForecastPage({ units, districts, legend }: Props) {
                     <span className="swatch" style={{ background: colorFor(r.risk_index, bands)! }} aria-hidden="true" /> {unitType === "cell" ? `${r.unit_id}, ${r.district_name}` : r.display_name}
                   </td>
                   <td className="num">{r.risk_index.toFixed(0)}</td>
-                  <td className="muted small">
-                    {r.index_low.toFixed(0)} a {r.index_high.toFixed(0)}
+                  <td className="num muted">
+                    {r.index_low.toFixed(0)}–{r.index_high.toFixed(0)}
                   </td>
                   <td>
                     <Change row={r} />

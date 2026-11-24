@@ -342,7 +342,7 @@ function YearCard({ e, year, onYear }: { e: Explanation; year: number; onYear: (
       <p className="card-note">
         Cada año la parte recurrente de la red solo ve los años anteriores y el contexto. 2011-2017 se compara con el censo de comisarías (todas
         las severidades); 2021-2024, con el ONSV (fatales), escalado por su factor de registro. Error medio absoluto en
-        esta zona: {err.toFixed(2)} eventos por año.
+        esta zona: {fmtValue(err, 2)} eventos por año.
       </p>
     </>
   );
@@ -511,7 +511,7 @@ function WhatIfCard({ e }: { e: Explanation }) {
         Riesgo estimado del distrito:{" "}
         <b className={change > 0 ? "delta-up" : change < 0 ? "delta-down" : ""}>
           {change > 0 ? "+" : ""}
-          {change.toFixed(1)} %
+          {fmtValue(change, 1)} %
         </b>
       </p>
       <LineChart
@@ -535,7 +535,7 @@ function CorridorList({ data }: { data: CorridorCollection | null }) {
         <li key={f.id}>
           <span>
             <b>{f.properties.street}</b>
-            <span className="muted small"> {f.properties.length_km.toFixed(1)} km</span>
+            <span className="muted small"> {fmtValue(f.properties.length_km, 1)} km</span>
           </span>
           <span className="num">{fmtCount(f.properties.events)} eventos</span>
         </li>

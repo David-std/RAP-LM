@@ -363,6 +363,8 @@ export interface ModelCardDto {
     selection_rule?: string;
     high_level: HighLevelRow[] | null;
     reproducibility: Record<string, unknown> | null;
+    prioritisation?: PrioritisationRow[] | null;
+    noise_ceiling?: NoiseCeilingRow[] | null;
   };
   benchmark: BenchmarkMetrics & { search?: SearchRow[]; selected_config?: SearchRow };
   corridor_summary: {
@@ -372,6 +374,39 @@ export interface ModelCardDto {
     total_length_km: number;
     concentration: Record<string, number>;
   } | null;
+}
+
+export interface RankingScores {
+  auc: number;
+  average_precision: number;
+  capture_top5?: number;
+  capture_top10: number;
+  capture_top20?: number;
+  lift_top10: number;
+}
+
+export interface PrioritisationRow {
+  fold: string;
+  test_year: number;
+  cells: number;
+  positive_cells: number;
+  cell_year: { model: RankingScores; historical_average: RankingScores; random_expected: RankingScores };
+  district_year: {
+    model_spearman: number;
+    baseline_spearman: number;
+    model_top10_overlap: number;
+    baseline_top10_overlap: number;
+  };
+}
+
+export interface NoiseCeilingRow {
+  fold: string;
+  year: number;
+  baseline_mean: number;
+  model_mean: number;
+  noise_floor: number;
+  max_improvement_pct: number;
+  achieved_improvement_pct: number;
 }
 
 export interface Confusion {

@@ -7,7 +7,7 @@ import { api } from "./api/client";
 import type { Meta, UnitCollection } from "./api/types";
 import { useApi } from "./api/useApi";
 import { Notice } from "./components/Controls";
-import { BANDS, DAY_LABEL } from "./lib/format";
+import { BANDS, DAY_LABEL, fmtNumber } from "./lib/format";
 import { classBands } from "./lib/levels";
 import { AnalysisPage } from "./pages/AnalysisPage";
 import { ComparePage } from "./pages/ComparePage";
@@ -134,7 +134,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
           </b>
         </span>
         <span>
-          Malla: <b>1 km, {cells.features.length.toLocaleString("es-PE")} celdas, {districts.features.length} distritos</b>
+          Malla: <b>1 km, {fmtNumber(cells.features.length)} celdas, {districts.features.length} distritos</b>
         </span>
         <span className="grow" />
         <span className={meta.run.is_demo ? "status-demo" : "status-run"} title={meta.scope_notice}>

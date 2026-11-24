@@ -13,7 +13,7 @@ import { HeatMap } from "../components/HeatMap";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
 import { ZonePanel } from "../components/ZonePanel";
-import { BANDS, DAY_LABEL, fmtIndex, periodLabel } from "../lib/format";
+import { BANDS, DAY_LABEL, fmtCount, fmtIndex, fmtNumber, fmtValue, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
 import { heatLegend } from "../lib/heatSurface";
 import { ALL_LEVELS, useQuery } from "../state/QueryContext";
@@ -162,7 +162,6 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     <div className="workspace">
       <aside className="rail" aria-label="Consulta">
         <div>
-          <p className="eyebrow">Explorar</p>
           <h2 className="rail-title">Riesgo por zona y periodo</h2>
         </div>
         <Segmented<MapView>
@@ -223,7 +222,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           ) : (
             counts && (
               <p className="rail-summary">
-                {(counts.high + counts.medium + counts.low).toLocaleString("es-PE")} {q.unitType === "cell" ? "celdas" : "distritos"} con resultado
+                {fmtNumber(counts.high + counts.medium + counts.low)} {q.unitType === "cell" ? "celdas" : "distritos"} con resultado
                 {counts.no_result > 0 && `, ${counts.no_result} sin resultado`}
               </p>
             )
@@ -272,9 +271,9 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             <span className="muted">{hovered.unit.district_name}</span>
             <span>
               {layer === "record" ? (
-                hovered.observed.events === null ? "Sin registro disponible" : <><b>{hovered.observed.events}</b> registros · {(hovered.observed.events / Math.max(hovered.unit.area_km2, 0.1)).toFixed(2)} /km²</>
+                hovered.observed.events === null ? "Sin registro disponible" : <><b>{fmtCount(hovered.observed.events)}</b> registros, {fmtValue(hovered.observed.events / Math.max(hovered.unit.area_km2, 0.1), 2)} por km²</>
               ) : layer === "influence" ? (
-                influence.has(hovered.unit.unit_id) ? <><b>{(influence.get(hovered.unit.unit_id)! * 100).toFixed(1)}%</b> de la influencia máxima</> : "Sin atribución mostrada"
+                influence.has(hovered.unit.unit_id) ? <><b>{fmtValue(influence.get(hovered.unit.unit_id)! * 100, 1)} %</b> de la influencia máxima</> : "Sin atribución mostrada"
               ) : hovered.risk_level ? (
                 <>
                   <b>{fmtIndex(hovered.risk_index)}</b> {LEVEL_LABEL[hovered.risk_level]}
@@ -294,7 +293,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <ul className="legend-classes">
                 <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin eventos registrados</li>
                 {DENSITY_RAMP.map((c, i) => (
-                  <li key={c}><span className="swatch" style={{ background: c }} /> {i === 0 ? "≤" : ">"} {densityCuts[Math.max(0, i - 1)]?.toFixed(2) ?? "0"}</li>
+                  <li key={c}><span className="swatch" style={{ background: c }} /> {i === 0 ? "≤" : ">"} {fmtValue(densityCuts[Math.max(0, i - 1)] ?? 0, 2)}</li>
                 ))}
               </ul>
             </section>
@@ -319,7 +318,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <p className="legend-sub">{layer === "risk" ? "Índice de riesgo estimado (0 a 100)" : layer === "record" ? "Atropellos registrados por km²" : "Influencia Grad-CAM"}</p>
               <div style={{ height: 12, borderRadius: 6, background: heatLegend(HEAT_GRADIENT[layer]) }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span>Bajo</span><span>Alto</span></div>
-              {layer === "record" && <p className="legend-sub">Escala relativa a la densidad máxima visible: {maxDensity > 0.0001 ? maxDensity.toFixed(2) : "0"} eventos/km². La ausencia de color no demuestra ausencia de atropellos.</p>}
+              {layer === "record" && <p className="legend-sub">Escala relativa a la densidad máxima visible: {maxDensity > 0.0001 ? fmtValue(maxDensity, 2) : "0"} eventos/km². La ausencia de color no demuestra ausencia de atropellos.</p>}
               {layer === "influence" && <p className="legend-sub">{influenceStatus} Se muestran hasta las 40 celdas de mayor influencia, respecto a la máxima.</p>}
               <p className="legend-sub">Superficie interpolada de la malla de 1 km. Consulte la celda para su valor exacto.</p>
             </section>

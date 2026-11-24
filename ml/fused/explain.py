@@ -265,6 +265,9 @@ def main() -> None:
         "selection_rule": metrics.get("selection_rule"),
         "high_level": _optional_json(args.run / "high_level.json"),
         "reproducibility": _optional_json(args.run / "reproducibility.json"),
+        # Scale-free prioritisation and noise ceiling of the test years (optional).
+        "prioritisation": _optional_json(args.run / "prioritisation.json"),
+        "noise_ceiling": _optional_json(args.run / "noise_ceiling.json"),
     }
     (out / "card.json").write_text(json.dumps(card), encoding="utf-8")
     print("explanations written to", out)
