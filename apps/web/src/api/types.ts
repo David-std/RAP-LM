@@ -425,6 +425,7 @@ export interface ForecastDto {
   unit_type: UnitType;
   horizon_year: number;
   last_observed_year: number;
+  horizon_years: number[];
   day_type: DayType;
   band: number;
   data: ForecastRow[];

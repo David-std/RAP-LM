@@ -6,9 +6,9 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 
 | Conjunto | Alcance | Casos | Fallidos |
 |---|---|---|---|
-| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 122 | 0 |
+| pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 124 | 0 |
 | Vitest | Leyenda, colores por umbral, cliente de API | 7 | 0 |
-| Playwright | Recorridos críticos sobre la aplicación desplegada | 12 | 0 |
+| Playwright | Recorridos críticos sobre la aplicación desplegada | 13 | 0 |
 
 ## 2. Escenarios críticos de extremo a extremo (M-07)
 
@@ -26,6 +26,7 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 | E2E-10 | Vías críticas: ranking de calles y detalle de una calle (D-09) | Aprobado |
 | E2E-11 | Densidad registrada, vista de calor continua y capa Grad-CAM (D-09) | Aprobado |
 | E2E-12 | Pronóstico del año siguiente con ranking, rango del ensamble y validación 2024 (D-11) | Aprobado |
+| E2E-13 | Selección 2025–2027, comparación con año anterior y aviso de incertidumbre (D-16) | Aprobado |
 
 ## 3. Métricas de calidad del producto
 
@@ -36,7 +37,7 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 | M-03 | Trazabilidad de fuente y versión (muestra de 200 resultados, semilla fija) | 200/200 = 100,0 % | >= 95 % |
 | M-04 | Reproducibilidad del pipeline | 258.896/258.896 = 100,0 % | >= 95 % dentro de tolerancia; 100 % unidad, periodo y nivel |
 | M-05 | Mejora relativa frente al promedio histórico | prueba ONSV 2024 (fatales): +6,29 %; backtest CENACOM 2017 (todas las severidades): -3,28 % | > 0 % |
-| M-07 | Escenarios críticos de extremo a extremo | 12/12 escenarios aprobados | 100 % y cero bloqueantes |
+| M-07 | Escenarios críticos de extremo a extremo | 13/13 escenarios aprobados | 100 % y cero bloqueantes |
 | M-08 | Exactitud de consultas, filtros y comparaciones | 188/188 = 100,0 % | >= 95 % global, 100 % críticos |
 | M-09 | Tiempo de respuesta p95 de la API (secuencial y 10 clientes simultáneos) | p95 0,48 s secuencial y 1,95 s con 10 clientes simultáneos (200 peticiones cada una, 0 errores) | <= 2,5 s |
 

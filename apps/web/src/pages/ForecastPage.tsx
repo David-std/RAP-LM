@@ -1,7 +1,4 @@
-// Forecast view (D-11): what the network expects for the year after the last
-// observed one. Inputs are the last observed year only (causal network), the
-// range is the spread of the five ensemble members, and the validation card
-// shows how the same procedure did on 2024, which it never saw in training.
+// Annual forecast view (D-11, D-16). Later horizons use model-generated lags.
 
 import { useMemo, useState } from "react";
 
@@ -37,14 +34,18 @@ export function ForecastPage({ units, districts, legend }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const bands = useMemo(() => classBands(legend), [legend]);
-  const fc = useApi((s) => api.forecast(unitType, dayType, band, s), [unitType, dayType, band]);
+  const [year, setYear] = useState<number | null>(null);
+  const fc = useApi((s) => api.forecast(unitType, dayType, band, year, s), [unitType, dayType, band, year]);
   const model = useApi((s) => api.model(s), []);
-  const rows = useMemo(() => fc.data?.data ?? [], [fc.data]);
+  const current = fc.data && fc.data.unit_type === unitType && fc.data.day_type === dayType && fc.data.band === band && (year === null || fc.data.horizon_year === year) ? fc.data : null;
+  const rows = useMemo(() => current?.data ?? [], [current]);
   const byId = useMemo(() => new Map(rows.map((r) => [r.unit_id, r])), [rows]);
   const rising = useMemo(() => [...rows].sort((a, b) => b.risk_index - b.previous_index - (a.risk_index - a.previous_index)).slice(0, 5), [rows]);
   const focus = byId.get(hover ?? selected ?? "") ?? null;
-  const horizon = fc.data?.horizon_year;
+  const horizon = current?.horizon_year ?? year ?? fc.data?.horizon_year;
   const last = fc.data?.last_observed_year;
+  const previous = horizon == null ? last : horizon - 1;
+  const chained = horizon != null && last != null && horizon > last + 1;
   const test = model.data?.benchmark.test?.[0];
   const high = model.data?.card.high_level?.[0];
   const totalExpected = rows.reduce((s, r) => s + (r.expected_events ?? 0), 0);
@@ -82,6 +83,20 @@ export function ForecastPage({ units, districts, legend }: Props) {
             setSelected(null);
           }}
         />
+        {fc.data?.horizon_years && fc.data.horizon_years.length > 1 && (
+          <Segmented<number>
+            label="Año pronosticado"
+            value={year ?? fc.data.horizon_year}
+            options={fc.data.horizon_years.map((y) => ({ value: y, label: String(y) }))}
+            onChange={(y) => { setYear(y); setHover(null); }}
+          />
+        )}
+        {chained && (
+          <Notice tone="warn">
+            Proyección a {horizon! - last!} años desde {last}. Usa estimaciones de años anteriores como entrada;
+            el error puede acumularse. No se ha validado este horizonte con registros reales.
+          </Notice>
+        )}
         <Segmented<DayType>
           label="Tipo de día"
           value={dayType}
@@ -97,18 +112,19 @@ export function ForecastPage({ units, districts, legend }: Props) {
           <ol>
             <li>La red CNN-RNN recibe el historial de atropellos hasta {last ?? "el último año"} y el contexto urbano de cada celda, congelado a ese año (población {last ?? ""}).</li>
             <li>La parte convolucional (CNN) lee el vecindario de cada celda; la recurrente (RNN) arrastra la memoria de los años previos.</li>
-            <li>Proyecta un paso adelante, {horizon ?? "el año siguiente"}, solo con la información disponible al cierre de {last ?? "el último año"}. Como {horizon ?? "ese año"} ya pasó, es un pronóstico retrospectivo: sirve para contrastarlo cuando se publiquen sus registros.</li>
-            <li>El rango es el desacuerdo entre los 5 modelos del ensamble.</li>
+            <li>{chained ? "Encadena las proyecciones anuales sin incorporar nuevos registros." : "Proyecta el año siguiente sin incorporar sus registros."}</li>
+            <li>El rango muestra el desacuerdo entre los cinco modelos, no un intervalo de confianza.</li>
           </ol>
         </section>
-        {fc.data && (
-          <button type="button" className="btn" onClick={() => exportCsv(`pronostico-${horizon}-${unitType}.csv`, rows, columns, fc.data!.meta, `forecast ${horizon}, ${dayType}, band ${BANDS[band]}`)}>
+        {current && (
+          <button type="button" className="btn" onClick={() => exportCsv(`pronostico-${horizon}-${unitType}.csv`, rows, columns, current.meta, `forecast ${horizon}, ${dayType}, band ${BANDS[band]}`)}>
             Exportar CSV
           </button>
         )}
       </aside>
 
       <main className="map-area" aria-label="Mapa del pronóstico">
+        {fc.loading && <Notice>Cargando pronóstico…</Notice>}
         {fc.error && <Notice tone="warn">La corrida publicada no tiene pronóstico ({fc.error.message}).</Notice>}
         <RiskMap
           units={unitType === "cell" ? units : districts}
@@ -130,7 +146,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
               Índice {horizon}: <b>{focus.risk_index.toFixed(0)}</b> {LEVEL_LABEL[focus.risk_level]} (rango {focus.index_low.toFixed(0)} a {focus.index_high.toFixed(0)})
             </span>
             <span className="muted small">
-              {last}: {focus.previous_index.toFixed(0)}
+              {previous}: {focus.previous_index.toFixed(0)}
               {focus.expected_events != null && `; ${focus.expected_events.toFixed(1)} atropellos esperados en la franja`}
             </span>
           </div>
@@ -144,7 +160,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
         <section className="card">
           <header>
             <h2>¿Es confiable?</h2>
-            <p className="card-sub">la misma red pronosticó {test?.year ?? 2024} sin haberlo visto</p>
+            <p className="card-sub">Evaluación a un año sobre ONSV {test?.year ?? 2024} (siniestros fatales); no valida 2025–2027.</p>
           </header>
           <div className="kpi-row two">
             <div className="kpi">
@@ -161,7 +177,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
         <section className="card">
           <header>
             <h2>Mayor riesgo esperado</h2>
-            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{totalExpected.toFixed(0)} atropellos esperados en la franja, 43 distritos</p>}
+            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{totalExpected.toFixed(0)} atropellos estimados en la franja, 43 distritos (escala de referencia)</p>}
           </header>
           <table className="data-table">
             <thead>
@@ -169,7 +185,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
                 <th>{unitType === "cell" ? "Celda" : "Distrito"}</th>
                 <th className="num">{horizon}</th>
                 <th>Rango</th>
-                <th>vs {last}</th>
+                <th>vs {previous}</th>
               </tr>
             </thead>
             <tbody>
@@ -193,7 +209,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
 
         <section className="card">
           <header>
-            <h2>Mayor aumento frente a {last}</h2>
+            <h2>Mayor aumento frente a {previous}</h2>
           </header>
           <ul className="plain-list">
             {rising.map((r) => (

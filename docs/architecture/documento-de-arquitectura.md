@@ -165,8 +165,7 @@ reproducibilidad (M-04) se mide reentrenando en el mismo dispositivo. La API cor
   `risk_result` con frecuencia, severidad, exposición y desglose (subtipo, severidad, vehículo, servicio y
   factores registrados).
 - **Capas de análisis:** `corridor` (vías críticas, con vehículos y factores), `unit_explanation` (serie,
-  atribución, simulación, Grad-CAM y perfil del entorno), `model_card` y `forecast` (pronóstico un paso
-  adelante).
+  atribución, simulación, Grad-CAM y perfil del entorno), `model_card` y `forecast` (pronóstico anual encadenado de hasta tres pasos).
 - **Publicación:** `publication_pointer` y `publication_log`.
 
 Las migraciones están en `database/migrations`.

@@ -1,15 +1,11 @@
-// Continuous heat map of the selected layer (estimated risk, recorded density or
-// Grad-CAM). Each 1 km cell becomes one pixel of a small raster coloured with
-// the layer ramp; the raster is upsampled with bilinear smoothing and a light
-// blur, so the surface is continuous but every colour still maps to the
-// legend (no kernel sums that saturate dense areas). Hovering any point
-// identifies the cell under the cursor; a click opens it in the zone panel.
-
+// Continuous scalar interpolation of the 1 km cell values. Colour and opacity
+// are applied after interpolation to retain defined hotspots and readable maps.
 import L from "leaflet";
 import { useEffect, useMemo, useRef } from "react";
 
 import type { UnitCollection } from "../api/types";
 import { addScopeMask, createBaseMap } from "../lib/basemap";
+import { heatPalette, sampleHeat } from "../lib/heatSurface";
 
 interface CellBox {
   id: string;
@@ -30,7 +26,8 @@ interface Props {
   onHover: (unitId: string | null) => void;
 }
 
-const UPSCALE = 12;
+const UPSCALE = 24;
+const PALETTE_STEPS = 1024;
 
 function boxes(cells: UnitCollection): CellBox[] {
   return cells.features.map((f) => {
@@ -40,25 +37,6 @@ function boxes(cells: UnitCollection): CellBox[] {
 }
 
 const median = (v: number[]) => [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)];
-
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
-/** Linear interpolation over the gradient stops. */
-function rampColor(stops: [number, [number, number, number]][], w: number): [number, number, number] {
-  if (w <= stops[0][0]) return stops[0][1];
-  for (let i = 1; i < stops.length; i++) {
-    const [p1, c1] = stops[i];
-    const [p0, c0] = stops[i - 1];
-    if (w <= p1) {
-      const t = (w - p0) / (p1 - p0);
-      return [0, 1, 2].map((k) => Math.round(c0[k] + t * (c1[k] - c0[k]))) as [number, number, number];
-    }
-  }
-  return stops[stops.length - 1][1];
-}
 
 export function HeatMap(p: Props) {
   const host = useRef<HTMLDivElement>(null);
@@ -109,33 +87,52 @@ export function HeatMap(p: Props) {
   useEffect(() => {
     const m = map.current;
     if (!m) return;
-    const stops = Object.entries(p.gradient)
-      .map(([k, v]) => [Number(k), hexToRgb(v)] as [number, [number, number, number]])
-      .sort((a, b) => a[0] - b[0]);
-    const small = document.createElement("canvas");
-    small.width = grid.cols;
-    small.height = grid.rows;
-    const sctx = small.getContext("2d")!;
-    const img = sctx.createImageData(grid.cols, grid.rows);
+    const field = new Float32Array(grid.cols * grid.rows);
     for (const c of grid.pos) {
       const w = p.weight(c.id);
-      if (!(w > 0)) continue;
-      const [r, g, b] = rampColor(stops, Math.min(1, w));
-      img.data.set([r, g, b, 225], (c.y * grid.cols + c.x) * 4);
+      if (Number.isFinite(w) && w > 0) field[c.y * grid.cols + c.x] = Math.min(1, w);
     }
-    sctx.putImageData(img, 0, 0);
-    const big = document.createElement("canvas");
-    big.width = grid.cols * UPSCALE;
-    big.height = grid.rows * UPSCALE;
-    const bctx = big.getContext("2d")!;
-    bctx.imageSmoothingEnabled = true;
-    bctx.imageSmoothingQuality = "high";
-    bctx.filter = `blur(${UPSCALE * 0.45}px)`;
-    bctx.drawImage(small, 0, 0, big.width, big.height);
+    const palette = heatPalette(p.gradient, PALETTE_STEPS);
+    const canvas = document.createElement("canvas");
+    canvas.width = grid.cols * UPSCALE;
+    canvas.height = grid.rows * UPSCALE;
+    const ctx = canvas.getContext("2d")!;
+    const img = ctx.createImageData(canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y++) {
+      const gy = (y + 0.5) / UPSCALE - 0.5;
+      for (let x = 0; x < canvas.width; x++) {
+        const w = sampleHeat(field, grid.cols, grid.rows, (x + 0.5) / UPSCALE - 0.5, gy);
+        const index = Math.round(w * PALETTE_STEPS) * 4;
+        const pixel = (y * canvas.width + x) * 4;
+        img.data[pixel] = palette[index];
+        img.data[pixel + 1] = palette[index + 1];
+        img.data[pixel + 2] = palette[index + 2];
+        img.data[pixel + 3] = palette[index + 3];
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.beginPath();
+    const bounds = grid.bounds;
+    for (const feature of p.scope.features) {
+      const polygons = feature.geometry.type === "Polygon" ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+      for (const polygon of polygons) {
+        for (const ring of polygon) {
+          ring.forEach(([lng, lat], i) => {
+            const x = (lng - bounds.getWest()) / (bounds.getEast() - bounds.getWest()) * canvas.width;
+            const y = (bounds.getNorth() - lat) / (bounds.getNorth() - bounds.getSouth()) * canvas.height;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.closePath();
+        }
+      }
+    }
+    ctx.fillStyle = "#fff";
+    ctx.fill("evenodd");
     overlay.current?.remove();
-    overlay.current = L.imageOverlay(big.toDataURL("image/png"), grid.bounds, { opacity: 0.9, interactive: false }).addTo(m);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.version, grid]);
+    overlay.current = L.imageOverlay(canvas.toDataURL("image/png"), grid.bounds, { opacity: 1, interactive: false }).addTo(m);
+  }, [p.version, p.weight, p.gradient, p.scope, grid]);
 
   useEffect(() => {
     const m = map.current;
