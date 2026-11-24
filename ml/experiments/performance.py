@@ -1,4 +1,5 @@
 """Isolated, validation-only performance screening. See docs/ml/performance-v5.md."""
+
 from __future__ import annotations
 
 import argparse
@@ -13,7 +14,6 @@ from torch.nn import functional as F
 from ml.fused.model import SpatioTemporalModel
 from ml.fused.tensors import load_dataset
 from ml.fused.train import evaluate, fit, poisson_nll, predict, set_determinism, to_torch, year_mask
-
 
 ARMS = ("E0", "E1", "E2", "E3", "E4")
 
@@ -33,12 +33,14 @@ def add_band_history(t):
             den = t.events_total[s, i - 1] / np.maximum(cov, 1e-6)[:, None] / area[None]
             spread = np.einsum("kd,dhw->khw", den, t.frac)
             offset = s * bands * 2
-            extra[i, offset:offset + bands] = np.log1p(cell) * t.valid
-            extra[i, offset + bands:offset + 2 * bands] = np.log1p(spread) * t.valid
+            extra[i, offset : offset + bands] = np.log1p(cell) * t.valid
+            extra[i, offset + bands : offset + 2 * bands] = np.log1p(spread) * t.valid
     t.X = np.concatenate([t.X, extra], axis=1)
     t.channels.extend(
         f"band_history_{s}_{kind}_{k}"
-        for s in range(s_count) for kind in ("cell", "district") for k in range(bands)
+        for s in range(s_count)
+        for kind in ("cell", "district")
+        for k in range(bands)
     )
     return t
 
@@ -51,7 +53,7 @@ def historical_prior(t):
     weights /= np.maximum(weights.sum(axis=(1, 2), keepdims=True), 1e-6)
     rates = []
     for i in range(years):
-        prior[i] = (np.mean(rates, axis=0) + .002 if rates else .02) * t.valid
+        prior[i] = (np.mean(rates, axis=0) + 0.002 if rates else 0.02) * t.valid
         cov = t.cover[0, i]
         if np.all(cov > 0):
             unlocated = np.einsum("kd,dhw->khw", t.y_dist[0, i], weights)
@@ -61,8 +63,14 @@ def historical_prior(t):
 
 class Candidate(SpatioTemporalModel):
     def __init__(self, t, residual):
-        super().__init__(t.X.shape[1], t.y_cell.shape[2], t.y_cell.shape[0],
-                         hidden=32, dropout=0., variant="convlstm")
+        super().__init__(
+            t.X.shape[1],
+            t.y_cell.shape[2],
+            t.y_cell.shape[0],
+            hidden=32,
+            dropout=0.0,
+            variant="convlstm",
+        )
         offset = historical_prior(t) if residual else np.ones_like(t.y_cell[0])
         self.register_buffer("offset", torch.from_numpy(np.log(np.maximum(offset, 1e-8))))
         if residual:
@@ -73,8 +81,8 @@ class Candidate(SpatioTemporalModel):
         z = self.encoder(x)
         if self.training:
             # One channel mask shared across years and spatial positions.
-            keep = (torch.rand((1, z.shape[1], 1, 1), device=z.device) >= .1)
-            z = z * keep / .9
+            keep = torch.rand((1, z.shape[1], 1, 1), device=z.device) >= 0.1
+            z = z * keep / 0.9
         return self.head(z) + self.offset
 
 
@@ -89,7 +97,9 @@ def district_mae(model, d, mask):
     pred = district_prediction(model, d, model(d["X"]))
     truth = d["events_total"]
     m = mask[:, :, None, None]
-    return ((pred - truth).abs() * m).sum() / (m.sum() * truth.shape[2] * truth.shape[3]).clamp_min(1)
+    return ((pred - truth).abs() * m).sum() / (m.sum() * truth.shape[2] * truth.shape[3]).clamp_min(
+        1
+    )
 
 
 def train_candidate(t, cfg, arm):
@@ -104,7 +114,7 @@ def train_candidate(t, cfg, arm):
     val = year_mask(t, cfg["split"]["validation"]).to(device)
     model = Candidate(t, arm == "E4").to(device)
     opt = torch.optim.Adam(model.parameters(), lr=cfg["lr"], weight_decay=cfg["weight_decay"])
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=.5, patience=12)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.5, patience=12)
     best_score, best_state, best_epoch = float("inf"), None, 0
     history = []
     for epoch in range(cfg["max_epochs"]):
@@ -113,10 +123,11 @@ def train_candidate(t, cfg, arm):
         loss = poisson_nll(model, d, train)
         if arm in ("E3", "E4"):
             pred = district_prediction(model, d, model(d["X"]))
-            err = F.smooth_l1_loss(pred, d["events_total"], beta=.5, reduction="none")
+            err = F.smooth_l1_loss(pred, d["events_total"], beta=0.5, reduction="none")
             mask = train[:, :, None, None]
             loss = loss + 2 * (err * mask).sum() / (
-                mask.sum() * err.shape[2] * err.shape[3]).clamp_min(1)
+                mask.sum() * err.shape[2] * err.shape[3]
+            ).clamp_min(1)
         loss.backward()
         opt.step()
         model.eval()
@@ -147,8 +158,15 @@ def main():
         cfg = json.loads((Path("ml/configs") / filename).read_text(encoding="utf-8"))
         train_years = sorted({y for years in cfg["split"]["train"].values() for y in years})
         max_val = max(y for ys in cfg["split"]["validation"].values() for y in ys)
-        cfg.update(hidden=32, lr=.003, dropout=.1, max_epochs=200, patience=35,
-                   seed=20261122, device="cuda")
+        cfg.update(
+            hidden=32,
+            lr=0.003,
+            dropout=0.1,
+            max_epochs=200,
+            patience=35,
+            seed=20261122,
+            device="cuda",
+        )
         years = [y for y in cfg["years"] if y <= max_val]
         for arm in ARMS:
             start = time.perf_counter()
@@ -157,9 +175,14 @@ def main():
                 add_band_history(t)
             model, hist, best_epoch = train_candidate(t, cfg, arm)
             row = evaluate(t, predict(model, t), cfg["split"]["validation"])[0]
-            result = dict(fold=fold, arm=arm, best_epoch=best_epoch,
-                          epochs=len(hist), elapsed=round(time.perf_counter()-start, 2),
-                          metrics=row)
+            result = dict(
+                fold=fold,
+                arm=arm,
+                best_epoch=best_epoch,
+                epochs=len(hist),
+                elapsed=round(time.perf_counter() - start, 2),
+                metrics=row,
+            )
             records.append(result)
             (args.out / "screening.json").write_text(json.dumps(records, indent=2))
             (args.out / f"{fold}-{arm}-history.json").write_text(json.dumps(hist))

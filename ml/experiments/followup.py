@@ -1,4 +1,5 @@
 """Second validation-only screen: isolate residual and band-history effects."""
+
 from __future__ import annotations
 
 import argparse
@@ -61,8 +62,15 @@ def main():
         cfg = json.loads((Path("ml/configs") / fname).read_text(encoding="utf-8"))
         train_years = sorted({y for years in cfg["split"]["train"].values() for y in years})
         max_val = max(y for ys in cfg["split"]["validation"].values() for y in ys)
-        cfg.update(hidden=32, lr=.003, dropout=.1, max_epochs=200, patience=35,
-                   seed=20261122, device="cuda")
+        cfg.update(
+            hidden=32,
+            lr=0.003,
+            dropout=0.1,
+            max_epochs=200,
+            patience=35,
+            seed=20261122,
+            device="cuda",
+        )
         years = [y for y in cfg["years"] if y <= max_val]
         for arm in ("R0", "R1", "R2"):
             start = time.perf_counter()
@@ -75,9 +83,14 @@ def main():
                 model, info = fit(t, cfg, "convlstm")
                 hist, best_epoch = info["history"], info["best_epoch"]
             row = evaluate(t, predict(model, t), cfg["split"]["validation"])[0]
-            result = dict(fold=fold, arm=arm, best_epoch=best_epoch,
-                          epochs=len(hist), elapsed=round(time.perf_counter()-start, 2),
-                          metrics=row)
+            result = dict(
+                fold=fold,
+                arm=arm,
+                best_epoch=best_epoch,
+                epochs=len(hist),
+                elapsed=round(time.perf_counter() - start, 2),
+                metrics=row,
+            )
             records.append(result)
             (args.out / "screening.json").write_text(json.dumps(records, indent=2))
             (args.out / f"{fold}-{arm}-history.json").write_text(json.dumps(hist))
