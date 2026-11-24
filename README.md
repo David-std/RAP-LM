@@ -2,7 +2,7 @@
 
 Web application based on CNN-RNN neural networks for the spatiotemporal analysis of **pedestrian
 collision risk** (all severities) in the 43 districts of the province of Lima (Callao excluded).
-Academic project SI727, UPC, Group 06. Baseline: integrated project plan v1.6.
+Academic project SI727, UPC, Group 06.
 
 Specialists can query, filter, compare and export a relative risk index per 1 km cell, district and street
 corridor, per period (year × day type × 6-hour band), with three components (frequency, expected severity and
