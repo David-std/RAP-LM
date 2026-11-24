@@ -46,7 +46,7 @@ p { margin: 0; }
 .topbar { flex: none; height: 52px; display: flex; align-items: center; gap: 22px; padding: 0 18px; background: var(--ink); color: #f3f2ee; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
 .brand-mark { flex: none; width: 32px; height: 32px; border-radius: 6px;
-  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20fill%3D%22%23e0664d%22%20d%3D%22M16%200h8v8h-8zM0%208h8v8h-8zM24%2016h8v8h-8zM8%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23f8cbb8%22%20d%3D%22M8%200h8v8h-8zM24%208h8v8h-8zM0%2016h8v8h-8zM16%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23bf3a2e%22%20d%3D%22M24%200h8v8h-8zM8%208h8v8h-8zM16%2016h8v8h-8zM0%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23f09a80%22%20d%3D%22M0%200h8v8h-8zM16%208h8v8h-8zM8%2016h8v8h-8zM24%2024h8v8h-8z%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat; }
+  background: url("/favicon.svg") center/100% 100% no-repeat; }
 .brand small { font-weight: 400; color: #a9aab0; }
 .topbar nav { display: flex; flex: 1; min-width: 0; justify-content: flex-start; padding-inline-start: clamp(0px, calc(12vw - 125px), 100px); gap: 2px; height: 100%; overflow-x: auto; }
 .tab { flex: none; border: 0; background: none; padding: 0 12px; cursor: pointer; color: #c4c5ca; height: 100%; border-bottom: 2px solid transparent; white-space: nowrap; }
