@@ -1,0 +1,90 @@
+[
+  {
+    "fold": "onsv",
+    "test_year": 2024,
+    "cells": 2899,
+    "positive_cells": 165,
+    "cell_year": {
+      "model": {
+        "auc": 0.9271884906120459,
+        "average_precision": 0.35981184431649077,
+        "capture_top5": 0.3973214328289032,
+        "capture_top10": 0.6741071343421936,
+        "capture_top20": 0.9241071343421936,
+        "lift_top10": 6.741071343421936
+      },
+      "historical_average": {
+        "auc": 0.7850701602713307,
+        "average_precision": 0.30758267106632947,
+        "capture_top5": 0.375,
+        "capture_top10": 0.6205357313156128,
+        "capture_top20": 0.6875,
+        "lift_top10": 6.205357313156128
+      },
+      "random_expected": {
+        "auc": 0.5,
+        "average_precision": 0.05691617799241118,
+        "capture_top10": 0.1,
+        "lift_top10": 1.0,
+        "seeded_draw": {
+          "auc": 0.4789873866684401,
+          "average_precision": 0.05609850757316035,
+          "capture_top5": 0.0491071417927742,
+          "capture_top10": 0.0892857164144516,
+          "capture_top20": 0.1741071492433548,
+          "lift_top10": 0.892857164144516
+        }
+      }
+    },
+    "district_year": {
+      "model_spearman": 0.8126152241299543,
+      "baseline_spearman": 0.8347106411908098,
+      "model_top10_overlap": 7,
+      "baseline_top10_overlap": 7
+    }
+  },
+  {
+    "fold": "cenacom",
+    "test_year": 2017,
+    "cells": 2899,
+    "positive_cells": 398,
+    "cell_year": {
+      "model": {
+        "auc": 0.9750391300766126,
+        "average_precision": 0.875107976104615,
+        "capture_top5": 0.5299608111381531,
+        "capture_top10": 0.7756761908531189,
+        "capture_top20": 0.9411612749099731,
+        "lift_top10": 7.756761908531189
+      },
+      "historical_average": {
+        "auc": 0.9759272170528773,
+        "average_precision": 0.8870731534684287,
+        "capture_top5": 0.5500324368476868,
+        "capture_top10": 0.783425509929657,
+        "capture_top20": 0.9477092027664185,
+        "lift_top10": 7.83425509929657
+      },
+      "random_expected": {
+        "auc": 0.5,
+        "average_precision": 0.1372887202483615,
+        "capture_top10": 0.1,
+        "lift_top10": 1.0,
+        "seeded_draw": {
+          "auc": 0.4928852579571187,
+          "average_precision": 0.13782213398206838,
+          "capture_top5": 0.048141248524188995,
+          "capture_top10": 0.10703153163194656,
+          "capture_top20": 0.20418059825897217,
+          "lift_top10": 1.0703153163194656
+        }
+      }
+    },
+    "district_year": {
+      "model_spearman": 0.9447362979172667,
+      "baseline_spearman": 0.9352171636879524,
+      "model_top10_overlap": 8,
+      "baseline_top10_overlap": 7
+    }
+  }
+]
