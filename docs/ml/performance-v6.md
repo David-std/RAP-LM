@@ -27,3 +27,21 @@ Regularisation .03 on mean squared district and band effects. All arms select
 checkpoint on validation likelihood. Compare same original district and cell MAE,
 Poisson deviance and annual top-10%-cell capture. Do not compare likelihoods across
 different objectives as the main metric. Run all ten fits; preserve negative results.
+
+## Quality-aware follow-up Q (fixed before execution)
+
+The data audit identifies exactly 8,005 CENACOM records in 2011-2014 whose only
+district reference is the station. 2015-2017 instead use occurrence districts.
+Removing these records would lose all-severity temporal information. Model them
+with a mixture of district likelihood and city-total likelihood, retaining their
+counts without asserting street/cell positions. Station flags are metadata, not
+derived from validation labels. The CENACOM 2016 and ONSV 2023 validation labels
+use actual occurrence district. Q1 uses district weight .25, city weight .75;
+Q2 uses city-only proxy loss and removes spatial station-lag variation (retain
+a city-average feature); Q3 uses Q1 weighting plus proxy-lag suppression and
+causal multi-year history pooled by source, band, and exposure, excluding
+station years from spatial history; Q4 uses original district likelihood but
+the Q3 feature representation to isolate input changes. No future-year outcomes,
+no test evaluation; same seed, E0 architecture, NLL checkpoint rule, budget and
+research gate. Historical averages and metrics remain unchanged. Note that
+earlier true location history is short; new features may therefore not help.
