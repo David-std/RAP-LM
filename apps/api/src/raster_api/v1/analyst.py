@@ -173,21 +173,31 @@ class Forecast(BaseModel):
     last_observed_year: int
     day_type: str
     band: int
+    horizon_years: list[int]
     data: list[ForecastRow]
 
 
 @router.get(
     "/forecast",
     response_model=Forecast,
-    summary="One-step-ahead forecast of the network for the year after the last observed one",
+    summary="Annual forecast of the published network, including chained horizons",
 )
 def get_forecast(
     conn: Conn,
     unit_type: UnitTypeQ = "district",
     day_type: Annotated[str, Query(pattern="^(weekday|weekend)$")] = "weekday",
     band: Annotated[int, Query(ge=0, le=3)] = 0,
+    horizon_year: Annotated[int | None, Query(ge=2000, le=2100)] = None,
 ) -> Forecast:
     ctx = Context(conn)
+    years = [
+        r[0]
+        for r in conn.execute(
+            text("SELECT DISTINCT horizon_year FROM forecast WHERE run_id = :r ORDER BY 1"),
+            {"r": ctx.run_id},
+        )
+    ]
+    year = horizon_year if horizon_year is not None else (years[0] if years else None)
     rows = (
         conn.execute(
             text("""
@@ -198,21 +208,32 @@ def get_forecast(
                 JOIN spatial_unit u USING (representation_id, unit_id)
                 JOIN district d ON d.district_id = u.district_id
                 WHERE f.run_id = :r AND f.representation_id = :rep
-                  AND f.day_type = :dt AND f.band = :b
+                  AND f.day_type = :dt AND f.band = :b AND f.horizon_year = :y
                 ORDER BY f.risk_index DESC, f.unit_id"""),
-            {"r": ctx.run_id, "rep": repo.REPRESENTATION[unit_type], "dt": day_type, "b": band},
+            {
+                "r": ctx.run_id,
+                "rep": repo.REPRESENTATION[unit_type],
+                "dt": day_type,
+                "b": band,
+                "y": year,
+            },
         )
         .mappings()
         .all()
     )
     if not rows:
-        raise ApiError(404, "NO_FORECAST", "The published run has no forecast.")
+        raise ApiError(
+            404,
+            "NO_FORECAST",
+            "No forecast for the requested year and subperiod in the published run.",
+        )
     horizon = rows[0]["horizon_year"]
     return Forecast(
         meta=ctx.meta(),
         unit_type=unit_type,
         horizon_year=horizon,
-        last_observed_year=horizon - 1,
+        last_observed_year=years[0] - 1,
+        horizon_years=years,
         day_type=day_type,
         band=band,
         data=[ForecastRow(**{k: v for k, v in r.items() if k != "horizon_year"}) for r in rows],

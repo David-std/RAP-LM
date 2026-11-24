@@ -281,3 +281,15 @@ def test_forecast_next_year(client):  # D-11: one-step-ahead forecast, ranked, w
     assert cell["data"][0]["expected_events"] is None
     assert client.get("/api/v1/forecast", params={"band": 0}).status_code == 404
     assert client.get("/api/v1/forecast", params={"band": 7}).status_code == 422
+
+def test_forecast_chained_horizons(client):
+    endpoint = "/api/v1/forecast"
+    for year, previous in [(2025, 75), (2026, 80), (2027, 82)]:
+        response = client.get(endpoint, params={"band": 3, "horizon_year": year})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["horizon_year"] == year
+        assert body["last_observed_year"] == 2024
+        assert body["horizon_years"] == [2025, 2026, 2027]
+        assert body["data"][0]["previous_index"] == previous
+    assert client.get(endpoint, params={"band": 3, "horizon_year": 2028}).status_code == 404

@@ -65,8 +65,8 @@ Recorded factors describe the record; they are never inputs of the network.
 
 ### `GET /api/v1/forecast`
 
-Pronóstico un paso adelante de la red publicada (D-11). Parámetros: `unit_type` (`district` por defecto o `cell`),
-`day_type` (`weekday` o `weekend`), `band` (0 a 3). Devuelve `horizon_year`, `last_observed_year` y, ordenadas por
+Pronóstico anual de la red publicada, con horizontes encadenados (D-11, D-16). Parámetros: `unit_type` (`district` por defecto o `cell`),
+`day_type` (`weekday` o `weekend`), `band` (0 a 3), `horizon_year` (opcional; por defecto el primer horizonte disponible). Devuelve `horizon_year`, `horizon_years`, `last_observed_year` y, ordenadas por
 índice descendente, filas con `risk_index`, `risk_level`, `index_low`, `index_high` (rango del ensamble),
-`previous_index` y `expected_events` (solo distritos). `404 NO_FORECAST` si la corrida no tiene pronóstico.
+`previous_index` (año inmediatamente anterior al horizonte) y `expected_events` (solo distritos). `404 NO_FORECAST` si no hay datos para el horizonte y subperiodo solicitados. El rango del ensamble no es un intervalo de predicción calibrado.
 

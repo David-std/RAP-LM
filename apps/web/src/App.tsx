@@ -83,7 +83,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             </button>
           ))}
         </nav>
-        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `corrida ${meta.run.run_id}`}</span>
+        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `Run ${meta.run.run_id}`}</span>
       </header>
 
       {meta.run.is_demo && <div className="demo-banner">{meta.scope_notice}</div>}

@@ -45,14 +45,14 @@ p { margin: 0; }
 .boot { display: grid; place-items: center; height: 100%; padding: 24px; color: var(--muted); }
 .topbar { flex: none; height: 52px; display: flex; align-items: center; gap: 22px; padding: 0 18px; background: var(--ink); color: #f3f2ee; }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
-.brand-mark { width: 18px; height: 18px; border-radius: 4px;
-  background: conic-gradient(from 90deg, #e0664d 25%, #f8cbb8 0 50%, #bf3a2e 0 75%, #f09a80 0) 0 0/9px 9px; }
+.brand-mark { flex: none; width: 32px; height: 32px; border-radius: 6px;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20shape-rendering%3D%22crispEdges%22%3E%3Cpath%20fill%3D%22%23e0664d%22%20d%3D%22M16%200h8v8h-8zM0%208h8v8h-8zM24%2016h8v8h-8zM8%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23f8cbb8%22%20d%3D%22M8%200h8v8h-8zM24%208h8v8h-8zM0%2016h8v8h-8zM16%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23bf3a2e%22%20d%3D%22M24%200h8v8h-8zM8%208h8v8h-8zM16%2016h8v8h-8zM0%2024h8v8h-8z%22%2F%3E%3Cpath%20fill%3D%22%23f09a80%22%20d%3D%22M0%200h8v8h-8zM16%208h8v8h-8zM8%2016h8v8h-8zM24%2024h8v8h-8z%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat; }
 .brand small { font-weight: 400; color: #a9aab0; }
-.topbar nav { display: flex; gap: 2px; height: 100%; overflow-x: auto; }
-.tab { border: 0; background: none; padding: 0 12px; cursor: pointer; color: #c4c5ca; height: 100%; border-bottom: 2px solid transparent; white-space: nowrap; }
+.topbar nav { display: flex; flex: 1; min-width: 0; justify-content: flex-start; padding-inline-start: clamp(0px, calc(12vw - 125px), 100px); gap: 2px; height: 100%; overflow-x: auto; }
+.tab { flex: none; border: 0; background: none; padding: 0 12px; cursor: pointer; color: #c4c5ca; height: 100%; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tab:hover { color: #fff; }
 .tab.on { color: #fff; border-bottom-color: #4fb8ab; }
-.topbar-run { margin-left: auto; font: 11px var(--mono); color: #a9aab0; white-space: nowrap; }
+.topbar-run { flex: none; margin-left: 0; font: 11px var(--mono); color: #a9aab0; white-space: nowrap; }
 .demo-banner { background: var(--warn-bg); color: var(--warn); padding: 6px 18px; border-bottom: 1px solid #f0d9b5; }
 .views { flex: 1; min-height: 0; overflow: hidden; }
 .statusbar { flex: none; height: 26px; display: flex; gap: 18px; align-items: center; padding: 0 18px; border-top: 1px solid var(--line);
@@ -296,11 +296,10 @@ details[open] summary { margin-bottom: 8px; }
 
 /* ---------------------------------------------------------------- brand and segmented controls */
 .topbar { min-height: 60px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; }
-.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-.brand-name { font-size: 22px; font-weight: 800; letter-spacing: .5px; }
-.brand-accent { color: #E0664D; }
-.brand-accent2 { color: #F09A80; }
+.brand { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; margin-right: 12px; }
+.brand-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; line-height: 1.1; letter-spacing: 0; }
+.brand-name { font-size: 17px; font-weight: 650; letter-spacing: .15px; color: #f8cbb8; }
+.brand-accent, .brand-accent2 { color: inherit; }
 .brand-text small { font-size: 12px; opacity: .8; font-weight: 400; }
 .seg-row { display: flex; flex-wrap: wrap; gap: 4px; }
 .seg-row button { flex: 1 1 auto; white-space: nowrap; padding: 6px 12px; min-width: max-content; }
