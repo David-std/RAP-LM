@@ -7,7 +7,7 @@ Resultados de la verificación del MVP sobre la corrida publicada `fused-cnnlstm
 | Conjunto | Alcance | Casos | Fallidos |
 |---|---|---|---|
 | pytest | Pipeline, modelo (forma, causalidad, campo receptivo), contrato de la API contra PostGIS, roles de base de datos | 124 | 0 |
-| Vitest | Leyenda, colores por umbral, cliente de API | 7 | 0 |
+| Vitest | Leyenda, colores por umbral, cliente de API | 10 | 0 |
 | Playwright | Recorridos críticos sobre la aplicación desplegada | 13 | 0 |
 
 ## 2. Escenarios críticos de extremo a extremo (M-07)
