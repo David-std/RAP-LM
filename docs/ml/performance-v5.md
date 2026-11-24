@@ -73,3 +73,7 @@ References:
 The ten first-stage fits did not pass the two-fold E0 gate. E1/E2 selected epoch 1 in the ONSV fold and stopped prematurely; E3/E4 did not improve both MAE and spatial capture. This follow-up is development-only and does not inspect either test fold.
 
 Use the identical E0 seeds, splits, train-only normalisation, NLL, early stopping and training budget. R0 = historical residual offset only; R1 = day/band lag channels only; R2 = both. No new dropout or MAE scheduler. Compare against E0 and the historical average, with the original two-fold gate unchanged. Do not select by test results or deploy automatically. The first-stage results remain preserved.
+
+## Final bounded sensitivity arm N0 (fixed before execution)
+
+R0/R1/R2 did not pass the gate. Training-only CENACOM district-total Pearson dispersion under constant within-district/band exposure-adjusted rates: 1.4357 (7 years) in main fold, 1.1977 (5 years) in backtest fold. These are exploratory diagnostics; ONSV has only two training years in main and none in the backtest. Test NB2 for integer district-only CENACOM observations only, estimating a pooled alpha from training counts with the coverage and unlocated-share offsets, clipped to [0,2]; keep Poisson for fractional cell observations and ONSV. Same E0 architecture, seed, learning rate, early stopping criterion (validation likelihood), splits and budget. Report the original metrics, not NB likelihood as a replacement of the registered primary error. No new test evaluations.
