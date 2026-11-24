@@ -50,7 +50,7 @@
     "shard": null,
     "updateSnapshots": "missing",
     "version": "1.49.1",
-    "workers": 2,
+    "workers": 1,
     "webServer": null
   },
   "suites": [
@@ -75,12 +75,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 3100,
+                  "duration": 1508,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:49.646Z",
+                  "startTime": "2026-11-24T00:27:14.952Z",
                   "attachments": []
                 }
               ],
@@ -107,12 +107,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 965,
+                  "duration": 955,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:52.970Z",
+                  "startTime": "2026-11-24T00:27:16.550Z",
                   "attachments": []
                 }
               ],
@@ -139,12 +139,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1613,
+                  "duration": 1725,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:53.947Z",
+                  "startTime": "2026-11-24T00:27:17.512Z",
                   "attachments": []
                 }
               ],
@@ -171,12 +171,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1249,
+                  "duration": 1480,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:55.577Z",
+                  "startTime": "2026-11-24T00:27:19.247Z",
                   "attachments": []
                 }
               ],
@@ -203,12 +203,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1479,
+                  "duration": 1432,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:56.836Z",
+                  "startTime": "2026-11-24T00:27:20.737Z",
                   "attachments": []
                 }
               ],
@@ -217,7 +217,7 @@
           ],
           "id": "fb826a1077208bd6107d-2a40ec51d8b575144f2b",
           "file": "critical.spec.ts",
-          "line": 56,
+          "line": 62,
           "column": 1
         },
         {
@@ -235,12 +235,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 2119,
+                  "duration": 1948,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:53:58.325Z",
+                  "startTime": "2026-11-24T00:27:22.175Z",
                   "attachments": []
                 }
               ],
@@ -249,7 +249,7 @@
           ],
           "id": "fb826a1077208bd6107d-27d3ccbe38255ecfce06",
           "file": "critical.spec.ts",
-          "line": 67,
+          "line": 73,
           "column": 1
         },
         {
@@ -267,12 +267,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1257,
+                  "duration": 1193,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:00.456Z",
+                  "startTime": "2026-11-24T00:27:24.131Z",
                   "attachments": []
                 }
               ],
@@ -281,7 +281,7 @@
           ],
           "id": "fb826a1077208bd6107d-a0f504fcfd2ce90a4823",
           "file": "critical.spec.ts",
-          "line": 77,
+          "line": 83,
           "column": 1
         },
         {
@@ -299,12 +299,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1181,
+                  "duration": 1162,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:01.722Z",
+                  "startTime": "2026-11-24T00:27:25.335Z",
                   "attachments": []
                 }
               ],
@@ -313,7 +313,7 @@
           ],
           "id": "fb826a1077208bd6107d-fc07c9613b633ffed355",
           "file": "critical.spec.ts",
-          "line": 85,
+          "line": 91,
           "column": 1
         },
         {
@@ -331,12 +331,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1341,
+                  "duration": 1419,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:02.913Z",
+                  "startTime": "2026-11-24T00:27:26.507Z",
                   "attachments": []
                 }
               ],
@@ -345,7 +345,7 @@
           ],
           "id": "fb826a1077208bd6107d-b4f7d0260875619884f4",
           "file": "critical.spec.ts",
-          "line": 94,
+          "line": 100,
           "column": 1
         },
         {
@@ -363,12 +363,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1756,
+                  "duration": 1954,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:04.265Z",
+                  "startTime": "2026-11-24T00:27:27.940Z",
                   "attachments": []
                 }
               ],
@@ -377,7 +377,7 @@
           ],
           "id": "fb826a1077208bd6107d-7caafe1750337ce22cc6",
           "file": "critical.spec.ts",
-          "line": 103,
+          "line": 109,
           "column": 1
         },
         {
@@ -395,12 +395,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 3474,
+                  "duration": 3195,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:06.031Z",
+                  "startTime": "2026-11-24T00:27:29.905Z",
                   "attachments": []
                 }
               ],
@@ -409,7 +409,7 @@
           ],
           "id": "fb826a1077208bd6107d-bd252255adb017fc7fc6",
           "file": "critical.spec.ts",
-          "line": 115,
+          "line": 121,
           "column": 1
         },
         {
@@ -427,12 +427,12 @@
                 {
                   "workerIndex": 0,
                   "status": "passed",
-                  "duration": 1251,
+                  "duration": 1553,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-11-23T22:54:09.515Z",
+                  "startTime": "2026-11-24T00:27:33.111Z",
                   "attachments": []
                 }
               ],
@@ -441,7 +441,39 @@
           ],
           "id": "fb826a1077208bd6107d-902a0653349d3889bbca",
           "file": "critical.spec.ts",
-          "line": 127,
+          "line": 133,
+          "column": 1
+        },
+        {
+          "title": "E2E-13 D-16: switch chained forecast years and compare with preceding year",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "passed",
+                  "duration": 1762,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-24T00:27:34.673Z",
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fb826a1077208bd6107d-e5cd06937a50df054e78",
+          "file": "critical.spec.ts",
+          "line": 145,
           "column": 1
         }
       ]
@@ -449,9 +481,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-11-23T22:53:48.948Z",
-    "duration": 23547.665999999997,
-    "expected": 12,
+    "startTime": "2026-11-24T00:27:14.301Z",
+    "duration": 23943.234,
+    "expected": 13,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

@@ -15,18 +15,19 @@ import { RiskMap } from "../components/RiskMap";
 import { ZonePanel } from "../components/ZonePanel";
 import { BANDS, DAY_LABEL, fmtIndex, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
+import { heatLegend } from "../lib/heatSurface";
 import { ALL_LEVELS, useQuery } from "../state/QueryContext";
 
 type MapLayer = "risk" | "record" | "influence";
 type MapView = "cells" | "districts" | "heat";
 const DENSITY_RAMP = ["#F6DFC4", "#EDB97F", "#D9822B", "#A8561A", "#6B3410"];
+const HOT_RAMP = { 0: "#493BC5", 0.2: "#344BE3", 0.35: "#10C8F0", 0.5: "#17E653", 0.65: "#F5ED21", 0.76: "#FF8C12", 0.88: "#F02010", 1: "#B91008" };
+const INFLUENCE_RAMP = ["#A3DED8", "#65C9C0", "#27A99D", "#087D74", "#064C45"];
 const HEAT_GRADIENT: Record<MapLayer, Record<number, string>> = {
-  // Same breaks as the risk legend (0-19, 20-39, 40-54, 55-69, 70-84, 85-100).
-  risk: { 0: "#FDEEE8", 0.2: "#F8CBB8", 0.4: "#F09A80", 0.55: "#E0664D", 0.7: "#BF3A2E", 0.85: "#7E1F22", 1: "#7E1F22" },
-  record: { 0.2: "#F6DFC4", 0.45: "#EDB97F", 0.65: "#D9822B", 0.85: "#A8561A", 1: "#6B3410" },
-  influence: { 0.2: "#D7EFEB", 0.45: "#9FD6CD", 0.65: "#4FB3A5", 0.85: "#0B7F73", 1: "#064C45" },
+  risk: HOT_RAMP,
+  record: HOT_RAMP,
+  influence: { 0: "#E6F6F4", 0.2: INFLUENCE_RAMP[0], 0.4: INFLUENCE_RAMP[1], 0.6: INFLUENCE_RAMP[2], 0.8: INFLUENCE_RAMP[3], 1: INFLUENCE_RAMP[4] },
 };
-const INFLUENCE_RAMP = ["#D7EFEB", "#9FD6CD", "#4FB3A5", "#0B7F73", "#064C45"];
 
 /** Quantile cut points of the non-zero recorded density (events per km2) of the period. */
 function quantileCuts(rows: RiskResult[]): number[] {
@@ -83,10 +84,19 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
   const visible = useMemo(() => new Set(results.keys()), [results]);
   const filtersOn = q.levels.length > 0 || q.districtIds.length > 0;
   const densityCuts = useMemo(() => quantileCuts(risk.data?.data ?? []), [risk.data]);
+  const activeExplanation = explanation.data?.unit_id === q.selectedUnitId && explanation.data?.unit_type === q.unitType
+    ? explanation.data : null;
   const influence = useMemo(
-    () => new Map((explanation.data?.saliency ?? []).map(([u, w]) => [u, w] as [string, number])),
-    [explanation.data],
+    () => new Map((activeExplanation?.saliency ?? []).map(([u, w]) => [u, w] as [string, number])),
+    [activeExplanation],
   );
+  const influenceStatus = !q.selectedUnitId
+    ? "Seleccione una zona para ver su explicación."
+    : explanation.loading
+      ? "Cargando explicación…"
+      : influence.size > 0
+        ? "Grad-CAM: celdas con mayor influencia en la estimación anual de " + q.selectedUnitId + " (2024, todas las franjas)."
+        : "Sin explicación disponible para esta zona. Disponible en los 43 distritos y las 400 celdas de mayor riesgo de 2024.";
   const maxDensity = useMemo(
     () => Math.max(...(risk.data?.data ?? []).map((r) => (r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1)), 0.0001),
     [risk.data],
@@ -261,7 +271,11 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             <strong>{hovered.unit.unit_type === "cell" ? `Celda ${hovered.unit.unit_id}` : hovered.unit.display_name}</strong>
             <span className="muted">{hovered.unit.district_name}</span>
             <span>
-              {hovered.risk_level ? (
+              {layer === "record" ? (
+                hovered.observed.events === null ? "Sin registro disponible" : <><b>{hovered.observed.events}</b> registros · {(hovered.observed.events / Math.max(hovered.unit.area_km2, 0.1)).toFixed(2)} /km²</>
+              ) : layer === "influence" ? (
+                influence.has(hovered.unit.unit_id) ? <><b>{(influence.get(hovered.unit.unit_id)! * 100).toFixed(1)}%</b> de la influencia máxima</> : "Sin atribución mostrada"
+              ) : hovered.risk_level ? (
                 <>
                   <b>{fmtIndex(hovered.risk_index)}</b> {LEVEL_LABEL[hovered.risk_level]}
                 </>
@@ -269,11 +283,11 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
                 "Sin resultado"
               )}
             </span>
-            <span className="muted small">{periodLabel(hovered.period)}</span>
+            <span className="muted small">{layer === "influence" ? "Explicación anual 2024" : periodLabel(hovered.period)}</span>
           </div>
         )}
         <div className="legend-dock">
-          {layer === "record" && (
+          {view !== "heat" && layer === "record" && (
             <section className="legend">
               <strong>Atropellos registrados por km²</strong>
               <p className="legend-sub">{q.active.year}, {DAY_LABEL[q.active.dayType].toLowerCase()}, {BANDS[q.active.band]}. Registro de las fuentes, no estimación.</p>
@@ -285,24 +299,32 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               </ul>
             </section>
           )}
-          {layer === "influence" && (
+          {view !== "heat" && layer === "influence" && (
             <section className="legend">
               <strong>Influencia en la estimación (Grad-CAM)</strong>
               <p className="legend-sub">
-                {q.selectedUnitId
-                  ? explanation.data?.saliency
-                    ? `Grad-CAM: celdas cuyas características internas de la red más pesan en la estimación de ${q.selectedUnitId}.`
-                    : "Disponible para distritos y para las celdas de mayor riesgo de 2024."
-                  : "Seleccione una zona en el mapa."}
+                {influenceStatus}
               </p>
               <ul className="legend-classes">
+                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin atribución mostrada</li>
                 {INFLUENCE_RAMP.map((c, i) => (
                   <li key={c}><span className="swatch" style={{ background: c }} /> {i * 20} a {(i + 1) * 20} % de la máxima</li>
                 ))}
               </ul>
             </section>
           )}
-          {layer === "risk" && <Legend
+          {view === "heat" && (
+            <section className="legend">
+              <strong>Mapa de calor</strong>
+              <p className="legend-sub">{layer === "risk" ? "Índice de riesgo estimado (0 a 100)" : layer === "record" ? "Atropellos registrados por km²" : "Influencia Grad-CAM"}</p>
+              <div style={{ height: 12, borderRadius: 6, background: heatLegend(HEAT_GRADIENT[layer]) }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span>Bajo</span><span>Alto</span></div>
+              {layer === "record" && <p className="legend-sub">Escala relativa a la densidad máxima visible: {maxDensity > 0.0001 ? maxDensity.toFixed(2) : "0"} eventos/km². La ausencia de color no demuestra ausencia de atropellos.</p>}
+              {layer === "influence" && <p className="legend-sub">{influenceStatus} Se muestran hasta las 40 celdas de mayor influencia, respecto a la máxima.</p>}
+              <p className="legend-sub">Superficie interpolada de la malla de 1 km. Consulte la celda para su valor exacto.</p>
+            </section>
+          )}
+          {view !== "heat" && layer === "risk" && <Legend
             legend={legend}
             bands={bands}
             title={`Riesgo por ${q.unitType === "cell" ? "celda de 1 km" : "distrito"}`}

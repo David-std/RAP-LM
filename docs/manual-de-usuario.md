@@ -62,11 +62,12 @@ Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
 
 ## 3. Pronóstico
 
-La vista *Pronóstico* muestra el riesgo que la red espera para el año siguiente al último observado, por distrito o
-por celda, en el tipo de día y la franja elegidos. El pronóstico usa solo el historial hasta el último año; el rango
-indica el desacuerdo entre los cinco modelos del ensamble (un rango amplio pide cautela). La tabla ordena las zonas
-por índice esperado y compara con el último año observado; la tarjeta *¿Es confiable?* muestra cómo le fue al mismo
-procedimiento al pronosticar 2024 sin haberlo visto. Es un insumo de planificación, no una alerta en tiempo real.
+La vista *Pronóstico* permite elegir 2025, 2026 o 2027, por distrito o celda, tipo de día y franja.
+Los pesos y el contexto de 2024 se mantienen fijos; 2026 y 2027 usan las proyecciones previas como entrada.
+La tabla compara cada horizonte con el año inmediatamente anterior, no siempre con 2024. El rango muestra
+el mínimo y máximo entre los cinco miembros del ensamble, no un intervalo de confianza. El error puede
+acumularse y no hay validación observada de los horizontes proyectados. La evaluación independiente
+de un año en ONSV 2024 (fatales) se muestra por separado. Es un insumo de planificación, no una alerta en tiempo real.
 
 ## 4. Vías críticas
 

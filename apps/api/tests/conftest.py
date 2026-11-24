@@ -100,7 +100,9 @@ INSERT INTO corridor VALUES ('demo-run', '150101:ABANCAY', '150101', 'Abancay', 
 INSERT INTO forecast VALUES
  ('demo-run', 'district-43', '150101', 2025, 'weekday', 3, 80, 'high', 72, 88, 75, 3.2),
  ('demo-run', 'district-43', '150131', 2025, 'weekday', 3, 30, 'low', 25, 36, 20, 0.8),
- ('demo-run', 'grid-1km', 'F1-C1', 2025, 'weekday', 3, 55, 'medium', 50, 61, 60, NULL);
+ ('demo-run', 'grid-1km', 'F1-C1', 2025, 'weekday', 3, 55, 'medium', 50, 61, 60, NULL),
+ ('demo-run', 'district-43', '150101', 2026, 'weekday', 3, 82, 'high', 70, 91, 80, 3.4),
+ ('demo-run', 'district-43', '150101', 2027, 'weekday', 3, 83, 'high', 69, 94, 82, 3.5);
 """
 
 

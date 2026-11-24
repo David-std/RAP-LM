@@ -65,7 +65,10 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
       <header className="topbar">
         <span className="brand" aria-label="RAP-LM">
           <span className="brand-mark" aria-hidden="true" />
-          RAP-LM <small>Riesgo de atropello peatonal, Lima</small>
+          <span className="brand-text">
+            <span className="brand-name"><span className="brand-accent">RAP</span>-<span className="brand-accent2">LM</span></span>
+            <small>Riesgo de atropello peatonal, Lima Metropolitana</small>
+          </span>
         </span>
         <nav aria-label="Vistas">
           {tabs.map((t) => (
@@ -80,7 +83,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             </button>
           ))}
         </nav>
-        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `corrida ${meta.run.run_id}`}</span>
+        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `Run ${meta.run.run_id}`}</span>
       </header>
 
       {meta.run.is_demo && <div className="demo-banner">{meta.scope_notice}</div>}

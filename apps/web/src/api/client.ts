@@ -130,8 +130,8 @@ export const api = {
     get<Explanation>("/explanations", { unit_type: unitType, unit_id: unitId }, signal),
 
   model: (signal?: AbortSignal) => get<ModelCardDto>("/model", {}, signal),
-  forecast: (unitType: UnitType, dayType: DayType, band: number, signal?: AbortSignal) =>
-    get<ForecastDto>("/forecast", { unit_type: unitType, day_type: dayType, band }, signal),
+  forecast: (unitType: UnitType, dayType: DayType, band: number, year: number | null, signal?: AbortSignal) =>
+    get<ForecastDto>("/forecast", { unit_type: unitType, day_type: dayType, band, horizon_year: year ?? undefined }, signal),
 
   provenance: (
     args: { unitType?: UnitType; unitId?: string; periodId?: string },

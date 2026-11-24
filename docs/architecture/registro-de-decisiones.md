@@ -22,6 +22,7 @@ registra la aprobación del equipo.
 | D-13 | 2026-11-23 | Activación de recursos condicionales (GPU y despliegue web de demostración) | Aprobada por el PM (2026-11-23) |
 | D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aprobada por el PM (2026-11-23) |
 | D-15 | 2026-11-23 | Solicitud de cambio (meta de M-09: p95 ≤ 2,5 s bajo carga concurrente) | Aprobada por el PM (2026-11-23) |
+| D-16 | 2026-11-23 | Pronóstico anual encadenado 2025–2027 | Aprobada por el PM (2026-11-23) |
 
 ---
 
@@ -246,3 +247,13 @@ aun con 4 procesos de API y caché de respuestas. **Decisión propuesta:** meta 
 condiciones (secuencial y 10 clientes). **Impacto:** cambia el umbral de una métrica de calidad de la línea base;
 requiere aprobación en el control de cambios (M-15). Mientras no se apruebe, los informes muestran ambos umbrales.
 
+
+## D-16. Pronóstico anual encadenado 2025–2027
+
+**Decisión:** extender D-11 a tres horizontes con los pesos publicados de la v4 y covariables congeladas en 2024.
+La media del ensamble, en la escala de observación ONSV, alimenta los canales de historial del paso siguiente.
+Los datos observados y la escala de referencia permanecen intactos. Se conserva el pronóstico original de 2025.
+La tabla existente admite varios horizontes; la API selecciona uno y la vista permite cambiar de año.
+**Limitación:** la validación de 2024 corresponde a un paso y a siniestros fatales. No demuestra exactitud a
+dos o tres años; el desacuerdo entre miembros no es un intervalo de predicción calibrado ni representa toda
+la incertidumbre acumulada. No se introducen datos futuros observados ni inferencia en tiempo real.

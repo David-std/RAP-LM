@@ -7,7 +7,7 @@ Academic project SI727, UPC, Group 06. Baseline: integrated project plan v1.6.
 Specialists can query, filter, compare and export a relative risk index per 1 km cell, district and street
 corridor, per period (year × day type × 6-hour band), with three components (frequency, expected severity and
 exposure-adjusted ratio), its level (low, medium, high), the historical record by subtype and severity, an
-explanation of how the network reached it and its provenance, plus a one-year-ahead forecast. The recurrent part of the network is an LSTM, the RNN
+explanation of how the network reached it and its provenance, plus annual forecasts for 2025–2027. The recurrent part of the network is an LSTM, the RNN
 type with long-term memory; the published model is a ConvLSTM (LSTM with convolutional gates). It is an
 analytical reference: no real-time prediction and no intervention recommendations.
 
@@ -20,7 +20,7 @@ analytical reference: no real-time prediction and no intervention recommendation
 - **Zone panel**: risk index with its value, expected severity, ratio to the urban context, year-by-year network
   estimate, historical record (subtype, severity, vehicle, transport service, recorded factors) and environment
   profile against the rest of Lima.
-- **Forecast** of the year after the last observed one, with the ensemble range and its out-of-sample check.
+- **Forecast** for 2025–2027, recursively projected from 2024, with ensemble disagreement and a separate one-year out-of-sample check.
 - **Critical streets** ranked by a smoothed collision rate, with vehicles and recorded factors per street.
 - **Explainability**: Grad-CAM map, variable-group attribution and context what-if.
 - **Model view** with architecture, training curves, benchmark and the full high-level confusion.
@@ -84,7 +84,7 @@ python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0-exclude-stat
 python -m ml.fused.export --dataset artifacts/datasets/fused-v1.4.0 --run $R
 python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
 python -m ml.fused.saliency --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
-python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.4.0 --run $R
+python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.4.0 --run $R --steps 3
 python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.4.0 --harmonized $H \
   --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
 # 4. Publish into PostGIS with the publisher role (atomic), then the analyst layers

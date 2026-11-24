@@ -51,6 +51,12 @@ test("E2E-04 RF-04 HU-13 HU-16: level filter applies and clears in one action", 
   await expect(page.getByText(/Mostrando alto en los 43 distritos/)).toBeVisible();
   await page.getByRole("button", { name: "Quitar filtros" }).click();
   await expect(chip).toHaveAttribute("aria-pressed", "false");
+  const district = page.getByLabel("Filtrar por distrito");
+  await district.fill("Miraflores");
+  await expect(page.getByText(/Mostrando todos los niveles en Miraflores/)).toBeVisible();
+  await page.getByRole("button", { name: "Quitar filtros" }).click();
+  await expect(district).toHaveValue("");
+  await expect(page.getByRole("button", { name: "Quitar filtros" })).toHaveCount(0);
 });
 
 test("E2E-05 RF-05 HU-17: compare two districts in the same period", async ({ page }) => {
@@ -135,3 +141,19 @@ test("E2E-12 D-11: forecast view with ranking, ensemble range and 2024 validatio
   await expect(page.getByLabel("Detalle del pronóstico").locator("tbody tr.on")).toHaveCount(1);
 });
 
+
+test("E2E-13 D-16: switch chained forecast years and compare with preceding year", async ({ page }) => {
+  await ready(page);
+  await page.getByRole("button", { name: "Pronóstico" }).click();
+  await expect(page.getByRole("heading", { name: "Riesgo esperado en 2025" })).toBeVisible();
+  for (const year of [2026, 2027]) {
+    await page.getByRole("radio", { name: String(year), exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Riesgo esperado en " + year })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Mayor aumento frente a " + (year - 1) })).toBeVisible();
+    await expect(page.getByText(/No se ha validado este horizonte/)).toBeVisible();
+    await expect(page.getByLabel("Detalle del pronóstico").locator("tbody tr").first()).toBeVisible();
+  }
+  await page.getByRole("radio", { name: "2025", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Mayor aumento frente a 2024" })).toBeVisible();
+  await expect(page.getByText(/No se ha validado este horizonte/)).toHaveCount(0);
+});
