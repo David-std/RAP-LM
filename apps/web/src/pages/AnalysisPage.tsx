@@ -234,7 +234,7 @@ function Ranking({ meta, units, districts, bands, openUnit }: Props & { bands: C
                 <td className="num">{fmtValue(r.historical_average)}</td>
                 <td className="num">{fmtCount(r.observed.events)}</td>
                 <td>
-                  <button type="button" className="btn small" onClick={() => openUnit(r.unit.unit_id)}>
+                  <button type="button" className="link-btn small" onClick={() => openUnit(r.unit.unit_id)}>
                     Ver en mapa
                   </button>
                 </td>

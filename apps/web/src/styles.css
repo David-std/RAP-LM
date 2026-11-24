@@ -400,3 +400,15 @@ details[open] summary { margin-bottom: 8px; }
 .panel-table.static tbody tr { cursor: default; }
 .panel-table.static tbody tr:hover td { background: none; }
 .zone-panel .card > header h2 { font-size: 14px; }
+.zone-meta { display: grid; grid-template-columns: 76px 1fr; gap: 2px 10px; margin: 10px 0 0; font-size: 12px; }
+.zone-meta dt { color: var(--muted); }
+.zone-meta dd { margin: 0; color: var(--ink-2); }
+.kv.compact { grid-template-columns: 132px 1fr; gap: 3px 10px; margin-top: 10px; font-size: 12px; }
+.risk-table { margin-bottom: 12px; }
+.risk-table td.big { font-size: 20px; line-height: 1.1; }
+.panel-table th.num { text-align: right; }
+.option { border: 0; background: none; border-radius: 0; padding: 5px 0; }
+.option:hover .option-label { color: var(--accent); }
+.option.on { background: none; }
+.option .option-desc { display: none; }
+.option.on .option-desc { display: block; }
