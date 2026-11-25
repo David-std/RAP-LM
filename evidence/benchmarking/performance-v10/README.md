@@ -45,3 +45,18 @@ C4 1.924, C2 1.975; 2016 historical 1.863, C2 1.841, C3 1.852, C4 1.855, C0 2.02
 Without combining with the historical average, the network ranks cells better than the
 historical average in both test years and every ranking measure. The 2017 district MAE
 remains below the reference because of the recording increase of the 2017 edition.
+
+## Ablation (A2; D2b and D3b, five seeds, fixed 150 epochs)
+
+| Arm | 2016 district MAE | 2016 cell AP | 2016 cell AUC | 2023 district MAE | 2023 cell AP |
+|---|---:|---:|---:|---:|---:|
+| Historical average | 1.863 | 0.855 | 0.951 | 0.603 | 0.254 |
+| C0 ConvLSTM, full inputs | 1.714 | 0.903 | 0.981 | 0.572 | 0.431 |
+| A_cnn, no recurrence | 1.863 | 0.850 | 0.967 | 0.606 | 0.343 |
+| A_rnn, no spatial convolution | 2.109 | 0.858 | 0.973 | 0.609 | 0.352 |
+| A_noctx, no urban context | 1.876 | 0.729 | 0.922 | 0.625 | 0.369 |
+| A_nohist, no previous-year history | 1.717 | 0.903 | 0.980 | 0.597 | 0.392 |
+
+Recurrence, spatial convolution and urban context each contribute; context matters most
+for cell ranking. Explicit previous-year history adds little in CENACOM (the recurrence
+carries that memory) and helps in ONSV.
