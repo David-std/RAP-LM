@@ -69,3 +69,9 @@ D2b train CENACOM 2011-2015, evaluate 2016; D3b train CENACOM 2011-2017 and ONSV
 2021-2022, evaluate ONSV 2023. Same candidates and seeds. Selection: mean over D2b
 (all severities, weight 2) and D3b (weight 1) of the relative gains over the historical
 average in cell AP (all located) and district MAE; precise-location AP reported.
+
+## Final scoring (selected candidate C0, once)
+
+T1f train CENACOM 2011-2016, evaluate 2017; T2f train CENACOM and ONSV 2021-2023,
+evaluate ONSV 2024. Fixed 150 epochs, seeds 1-5. Both years were consulted in earlier
+iterations; they are reported as such, not as untouched tests.

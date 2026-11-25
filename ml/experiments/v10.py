@@ -55,6 +55,8 @@ FOLDS = {
     ),
     "D2b": dict(years=list(range(2011, 2017)), train={"cenacom": CEN[:5]}, stop=None, epochs=150, eval=("cenacom", 2016)),
     "D3b": dict(years=list(range(2011, 2024)), train={"cenacom": CEN, "onsv": [2021, 2022]}, stop=None, epochs=150, eval=("onsv", 2023)),
+    "T1f": dict(years=CEN, train={"cenacom": CEN[:6]}, stop=None, epochs=150, eval=("cenacom", 2017)),
+    "T2f": dict(years=list(range(2011, 2025)), train={"cenacom": CEN, "onsv": [2021, 2022, 2023]}, stop=None, epochs=150, eval=("onsv", 2024)),
     "T1": dict(
         years=CEN, train={"cenacom": CEN[:5]}, stop={"cenacom": [2016]}, eval=("cenacom", 2017)
     ),
