@@ -215,7 +215,7 @@ Priorización con el mismo presupuesto (el nivel alto es un percentil de una esc
 | Validación ONSV 2023 | 0.575 | 0.569 | 66.4 % | 67.7 % | 0.0642 | 0.0644 |
 | Prueba ONSV 2024 | 0.568 | 0.570 | 67.4 % | 68.3 % | 0.0651 | 0.0660 |
 
-Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v4 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
+Reproducibilidad (M-04), corrida fused-cnnlstm-2026.11-v5 reentrenada desde cero: 258.896/258.896 valores dentro de la tolerancia (100,0 %), coincidencia de unidad, periodo y nivel 100,0 %.
 
 **Entrenamiento en CPU y en GPU.** Mismo protocolo, datos y semillas en ambos dispositivos (búsqueda de 16 configuraciones y ensamble de 5).
 
@@ -235,7 +235,21 @@ Una repetición de la corrida en GPU con la misma configuración produjo pesos y
 
 ### 3.5. Selección
 
-Se publica el candidato CNN-RNN con menor error de validación, como exige el plan (la arquitectura comprometida es CNN-RNN). El GLM y el promedio histórico quedan como referencia permanente en la vista *Modelo* de la aplicación.
+Se publica el candidato CNN-RNN con menor error de validación, como exige el plan (la arquitectura comprometida es CNN-RNN). El GLM y el promedio histórico quedan como referencia permanente en la vista *Modelo* de la aplicación. La versión publicada es la v5 (sección 3.6).
+
+### 3.6. Iteración v5 y metodología de evaluación (D-17, D-18)
+
+La investigación de `docs/ml/performance-v10.md` corrigió la evaluación (empates agrupados, estratos por precisión geográfica, normalización con años de entrenamiento y pliegues que no evalúan el año de detención), comparó memoria multihorizonte, una CNN-RNN de dos cabezales y un piloto de transferencia desde diez ciudades, y seleccionó la arquitectura publicada. La v5 la reentrena con todos los años observados (D-18). Cada cifra proviene de una red entrenada sin el año evaluado; 2017 y 2024 se consultaron en iteraciones previas.
+
+| Medida | CENACOM 2017 red | histórico | ONSV 2024 red | histórico |
+|---|---:|---:|---:|---:|
+| Precisión promedio celda-año (principal, D-17) | 0,898 | 0,887 | 0,355 | 0,294 |
+| AUC celda-año | 0,981 | 0,976 | 0,926 | 0,785 |
+| Captura en el 10 % de celdas | 78,7 | 78,3 | 68,3 | 61,8 |
+| Captura en el 20 % de celdas | 95,0 | 94,8 | 89,7 | 71,4 |
+| MAE distrito × franja | 2,459 | 2,380 | 0,569 | 0,607 |
+
+Ablación (CENACOM 2016, todas las severidades): precisión promedio de la red completa 0,903; sin recurrencia 0,850; sin convolución espacial 0,858; sin contexto urbano 0,729. Horizontes encadenados en ONSV: la red mantiene un AUC de 0,92 a 0,93 hasta tres años después del último año observado (`evidence/benchmarking/performance-v14`). El piloto de transferencia no cumplió la regla de adopción (`evidence/benchmarking/performance-v13`).
 
 ## 4. Benchmarking de la unidad espacial
 
@@ -283,8 +297,8 @@ Se selecciona (c): multiplica por más de diez la cobertura ubicada frente a (a)
 
 ## 6. Conclusiones
 
-1. La red CNN-RNN aporta principalmente en **detectar zonas y franjas de riesgo alto** (recall) y en el ajuste por celda; en el total por distrito, los modelos simples siguen siendo competitivos, lo que se reporta sin ocultarlo.
-2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a más de nueve mil ubicados bajo el nivel de distrito, de todas las severidades.
+1. La red CNN-RNN aporta principalmente en **priorizar celdas de riesgo**: sin combinarse con el promedio histórico lo supera en precisión promedio, AUC y captura en los dos años de prueba (D-17). En el error por distrito, el promedio histórico sigue siendo competitivo y gana en 2017, lo que se reporta sin ocultarlo. El contexto urbano es el componente que más aporta a la priorización.
+2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a 3 887 ubicados bajo el nivel de distrito, de todas las severidades; los ubicados solo por la comisaría quedan a nivel distrital (D-14).
 3. La combinación malla + corredor + distrito responde a la causa C3 del plan sin perder comparabilidad.
 4. El proceso es reproducible: al reentrenar con la misma configuración se obtienen los mismos valores (M-04).
 
