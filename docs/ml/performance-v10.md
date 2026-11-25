@@ -54,3 +54,18 @@ historical average in (a) cell-year average precision, all located mass, and
 C0's by more than 0.02. The best candidate is reported with its neural-only result.
 Only then: transfer learning (V13), multi-year forecast evaluation (V14), and a single
 scoring of 2017 and 2024 for the final candidate, labelled as previously consulted years.
+
+## Amendment A1 (after the first development run, before any new training)
+
+D1/D2 cannot judge cell-level ranking: CENACOM has located events only from 2015, so
+the D2 network trains on 2011-2014 with no cell supervision (2015 only stops training)
+while the historical average uses 2015, and in D1 neither has located history. In D3
+ONSV enters training with one year, so its recording factor is poorly identified.
+District-level results of D1-D3 stay valid and are reported.
+
+Added folds with a fixed training length (150 epochs, the median best epoch of the v4
+members) instead of early stopping, so the evaluated year stays unused:
+D2b train CENACOM 2011-2015, evaluate 2016; D3b train CENACOM 2011-2017 and ONSV
+2021-2022, evaluate ONSV 2023. Same candidates and seeds. Selection: mean over D2b
+(all severities, weight 2) and D3b (weight 1) of the relative gains over the historical
+average in cell AP (all located) and district MAE; precise-location AP reported.

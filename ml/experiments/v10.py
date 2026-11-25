@@ -53,6 +53,8 @@ FOLDS = {
         stop={"onsv": [2022]},
         eval=("onsv", 2023),
     ),
+    "D2b": dict(years=list(range(2011, 2017)), train={"cenacom": CEN[:5]}, stop=None, epochs=150, eval=("cenacom", 2016)),
+    "D3b": dict(years=list(range(2011, 2024)), train={"cenacom": CEN, "onsv": [2021, 2022]}, stop=None, epochs=150, eval=("onsv", 2023)),
     "T1": dict(
         years=CEN, train={"cenacom": CEN[:5]}, stop={"cenacom": [2016]}, eval=("cenacom", 2017)
     ),
@@ -198,14 +200,18 @@ def fit_candidate(t, fold, cand, seed, device="cuda", max_epochs=300, patience=4
     nll = two_head_nll if two else poisson_nll
     opt = torch.optim.Adam(model.parameters(), lr=0.003, weight_decay=1e-4)
     train = year_mask(t, fold["train"]).to(device)
-    stop = year_mask(t, fold["stop"]).to(device)
+    fixed = fold.get("stop") is None
+    stop = None if fixed else year_mask(t, fold["stop"]).to(device)
     best = (float("inf"), None, 0)
-    for epoch in range(max_epochs):
+    for epoch in range(fold["epochs"] if fixed else max_epochs):
         model.train()
         opt.zero_grad()
         loss = nll(model, d, train)
         loss.backward()
         opt.step()
+        if fixed:
+            best = (0.0, None, epoch)
+            continue
         model.eval()
         with torch.no_grad():
             v = nll(model, d, stop).item()
@@ -213,7 +219,8 @@ def fit_candidate(t, fold, cand, seed, device="cuda", max_epochs=300, patience=4
             best = (v, {k: x.detach().clone() for k, x in model.state_dict().items()}, epoch)
         elif epoch - best[2] >= patience:
             break
-    model.load_state_dict(best[1])
+    if best[1] is not None:
+        model.load_state_dict(best[1])
     model = model.cpu().eval()
     p = two_head_predict(model, t) if two else predict(model, t)
     return p, best[2]
@@ -224,7 +231,7 @@ MEMORY = {"C0": "none", "C1": "all", "C2": "multi", "C3": "none", "C4": "multi"}
 
 def load_fold(name):
     f = FOLDS[name]
-    norm = sorted({y for ys in f["train"].values() for y in ys})
+    norm = sorted({y for ys in f["train"].values() for y in ys})  # stop/eval years excluded
     return f, load_dataset(DATASET, f["years"], norm_years=norm)
 
 
