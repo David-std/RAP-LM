@@ -11,10 +11,10 @@ import type { CorridorCollection, CorridorProps, Meta, UnitCollection } from "..
 import { useApi } from "../api/useApi";
 import { LineChart } from "../components/charts";
 import { FACTOR_LABEL } from "../components/ZonePanel";
-import { Notice } from "../components/Controls";
+import { Disclosure, InfoTip, Notice } from "../components/Controls";
 import { addScopeMask, createBaseMap } from "../lib/basemap";
 import { exportCsv, type ExportColumn } from "../lib/export";
-import { BANDS, fmtCount } from "../lib/format";
+import { BANDS, fmtCount, fmtValue } from "../lib/format";
 import { colorFor, type ClassBand } from "../lib/levels";
 
 const PRIOR_KM = 0.5;
@@ -87,20 +87,18 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
     <div className="workspace">
       <aside className="rail" aria-label="Filtros de vías críticas">
         <div>
-          <p className="eyebrow">Calles</p>
-          <h2 className="rail-title">Vías críticas: calles con más atropellos registrados</h2>
-          <p className="muted small" style={{ marginTop: 6 }}>
-            Calles con nombre dentro de cada distrito, con los atropellos registrados ubicados sobre ellas (2011-2017 y
-            2021-2024). Útil para priorizar dónde mirar con más detalle.
+          <h2 className="rail-title">Vías críticas</h2>
+          <p className="rail-lead">
+            Calles con más atropellos registrados por kilómetro, 2011–2017 y 2021–2024. Es historial observado, no una
+            predicción.
           </p>
+          {summary && (
+            <p className="rail-lead">
+              El 10 % de la longitud de calles con mayor densidad concentra el{" "}
+              <strong>{Math.round((summary.concentration["10%_length"] ?? 0) * 100)} %</strong> de los atropellos ubicados.
+            </p>
+          )}
         </div>
-        {summary && (
-          <div className="card" style={{ boxShadow: "none" }}>
-            <p className="kpi-label">Concentración en Lima</p>
-            <p className="kpi-value">{Math.round((summary.concentration["10%_length"] ?? 0) * 100)} %</p>
-            <p className="kpi-foot">de los atropellos ubicados ocurre en el 10 % de la longitud de calles con mayor densidad</p>
-          </div>
-        )}
         <div className="rail-section">
           <label className="field-label" htmlFor="corr-district">Distrito</label>
           <select id="corr-district" className="select" value={district} onChange={(e) => { setDistrict(e.target.value); setSelected(null); }}>
@@ -122,12 +120,15 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
             Exportar CSV
           </button>
         </div>
-        <p className="muted small">
-          El ranking usa una tasa ajustada: suma a cada calle {PRIOR_KM.toString().replace(".", ",")} km con la tasa media de
-          Lima, para que un tramo muy corto con pocos atropellos no aparezca con una tasa desproporcionada. Un cruce
-          reparte medio evento a cada calle. Las avenidas de doble calzada suman ambas vías en la longitud, lo que
-          reduce sus eventos por km. Eventos sin calle identificable quedan fuera ({summary ? fmtCount(summary.events_not_on_corridor) : "…"}).
-        </p>
+        <Disclosure
+          summary="Cómo se calcula la tasa"
+          items={[
+            ["Tasa ajustada", <>Se suman {fmtValue(PRIOR_KM, 1)} km con la tasa media de Lima a cada calle, para que un tramo corto con pocos atropellos no quede con una tasa desproporcionada.</>],
+            ["Cruces", "Un atropello en un cruce reparte medio evento a cada calle."],
+            ["Doble calzada", "Las avenidas con dos calzadas suman ambas vías en la longitud."],
+            ["Fuera del ranking", <>{summary ? fmtCount(summary.events_not_on_corridor) : "…"} atropellos sin calle identificable.</>],
+          ]}
+        />
       </aside>
 
       <main className="map-area">
@@ -156,28 +157,43 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
         ) : (
           <section className="card">
             <header>
-              <h3>Ranking por atropellos por km</h3>
-              <span className="card-sub">{features.length} tramos de calle</span>
+              <h3>Calles con mayor tasa <InfoTip text="Atropellos registrados por kilómetro de calle, con una tasa ajustada para que los tramos muy cortos no dominen el ranking." align="right" /></h3>
+              <span className="card-sub">{features.length} tramos</span>
             </header>
-            <ol className="ranked-list">
-              {sorted.slice(0, 40).map((f, i) => (
-                <li key={f.id}>
-                  <button type="button" className="link-btn" onClick={() => setSelected(f.id)}>
-                    {i + 1}. {f.properties.street}
-                  </button>
-                  <span className="num small">
-                    {(f.properties.rate_adj ?? f.properties.events_per_km).toFixed(1)}/km ajustado, {fmtCount(f.properties.events)} en {f.properties.length_km.toFixed(1).replace(".", ",")} km
-                    <span className="muted"> {f.properties.district_name}</span>
-                  </span>
-                </li>
-              ))}
-            </ol>
+            <table className="panel-table">
+              <thead>
+                <tr>
+                  <th scope="col" className="num">#</th>
+                  <th scope="col">Calle</th>
+                  <th scope="col" className="num">Atrop.</th>
+                  <th scope="col" className="num">km</th>
+                  <th scope="col" className="num" title="Atropellos por km, tasa ajustada">Por km</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.slice(0, 40).map((f, i) => (
+                  <tr key={f.id} onClick={() => setSelected(f.id)}>
+                    <td className="num muted">{i + 1}</td>
+                    <td>
+                      <button type="button" className="link-btn" onClick={(e) => { e.stopPropagation(); setSelected(f.id); }}>
+                        {f.properties.street}
+                      </button>
+                      <span className="sub">{f.properties.district_name}</span>
+                    </td>
+                    <td className="num">{fmtCount(f.properties.events)}</td>
+                    <td className="num">{fmtValue(f.properties.length_km, 1)}</td>
+                    <td className="num strong">{fmtValue(f.properties.rate_adj ?? f.properties.events_per_km, 1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="card-note">Por km: tasa ajustada. Clic en una calle para ver su detalle. Fuente: atropellos CENACOM 2011–2017 y ONSV 2021–2024 ubicados sobre calles de OpenStreetMap.</p>
           </section>
         )}
         {summary && !current && (
           <section className="card">
             <header>
-              <h3>Curva de concentración</h3>
+              <h3>Curva de concentración <InfoTip text="Recorre las calles de mayor a menor densidad y acumula sus atropellos. Cuanto más se aleja de la diagonal, más concentrado está el problema." align="right" /></h3>
             </header>
             <p className="muted small">Qué parte de los atropellos ubicados se acumula al recorrer las calles de mayor a menor densidad.</p>
             <LineChart
@@ -211,13 +227,13 @@ function CorridorDetail({ c, bands, onBack }: { c: CorridorProps; bands: ClassBa
         <div className="zone-head">
           <div>
             <h2>{c.street}</h2>
-            <p className="muted">{c.district_name}, {c.length_km.toFixed(1)} km de vía mapeada</p>
+            <p className="muted">{c.district_name}, {fmtValue(c.length_km, 1)} km de vía mapeada</p>
           </div>
           <button type="button" className="icon-btn" onClick={onBack} aria-label="Volver al ranking">×</button>
         </div>
         <div className="kpi-row" style={{ marginTop: 12 }}>
           <div className="kpi"><span className="kpi-label">Atropellos</span><span className="kpi-value">{fmtCount(c.events)}</span><span className="kpi-foot">registrados</span></div>
-          <div className="kpi"><span className="kpi-label">Por km, ajustado</span><span className="kpi-value">{(c.rate_adj ?? c.events_per_km).toFixed(1)}</span><span className="kpi-foot">sin ajustar {c.events_per_km.toFixed(1)} en {c.length_km.toFixed(2).replace(".", ",")} km</span></div>
+          <div className="kpi"><span className="kpi-label">Por km, ajustado</span><span className="kpi-value">{fmtValue(c.rate_adj ?? c.events_per_km, 1)}</span><span className="kpi-foot">sin ajustar {fmtValue(c.events_per_km, 1)} en {fmtValue(c.length_km, 2)} km</span></div>
           <div className="kpi">
             <span className="kpi-label">Riesgo modelado</span>
             <span className="kpi-value">{c.mean_risk_index === null ? "–" : Math.round(c.mean_risk_index)}</span>
@@ -319,7 +335,7 @@ function CorridorMap({ data, scope, selected, onSelect }: { data: CorridorCollec
       },
       onEachFeature: (f, lyr) => {
         const p = f.properties as CorridorProps;
-        lyr.bindTooltip(`<b>${p.street}</b><br>${p.district_name}<br>${p.events} atropellos en ${p.length_km.toFixed(2)} km, ${(p.rate_adj ?? p.events_per_km).toFixed(1)} por km ajustado`, { sticky: true });
+        lyr.bindTooltip(`<b>${p.street}</b><br>${p.district_name}<br>${fmtCount(p.events)} atropellos en ${fmtValue(p.length_km, 2)} km, ${fmtValue(p.rate_adj ?? p.events_per_km, 1)} por km ajustado`, { sticky: true });
         lyr.on("click", () => select.current(p.corridor_id));
       },
     }).addTo(m);

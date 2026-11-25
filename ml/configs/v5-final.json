@@ -1,0 +1,15 @@
+{
+  "run_id": "fused-cnnlstm-2026.11-v5",
+  "description": "Final refit (D-17): published v4 architecture trained on every observed year, fixed 150 epochs. Out-of-sample evidence: docs/ml/performance-v10.md (T1f, T2f) and V14.",
+  "years": [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+  "split": {"train": {"cenacom": [2011, 2012, 2013, 2014, 2015, 2016, 2017], "onsv": [2021, 2022, 2023, 2024]}, "validation": {}, "test": {}},
+  "fixed_config": {"variant": "convlstm", "hidden": 32, "dropout": 0.1, "lr": 0.003},
+  "fixed_epochs": 150,
+  "selection_rule": "configuration and training length fixed on development folds D2b and D3b (v10); no year held out",
+  "seed": 20261122, "hidden": 32, "dropout": 0.1, "lr": 0.003, "weight_decay": 0.0001,
+  "max_epochs": 300, "patience": 40, "area_floor_km2": 0.1,
+  "thresholds": {"version": "levels-v1", "low_max": 40, "medium_max": 70, "method": "Same rule as v4: percentile rank within the frozen reference distribution of all cell x subperiod estimates of the training years. Low < 40, medium 40 to < 70, high >= 70."},
+  "threads": 8,
+  "search": {"variants": ["convlstm"], "hidden": [32], "dropout": [0.1], "lr": [0.003], "ensemble_seeds": [1, 2, 3, 4, 5]},
+  "device": "cuda"
+}

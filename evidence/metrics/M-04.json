@@ -1,8 +1,8 @@
 {
   "metric": "M-04",
   "target": ">= 95 % values within tolerance; 100 % unit/period/level match",
-  "run_id": "fused-cnnlstm-2026.11-v4",
-  "measured_at": "2026-11-23T22:51:42.664744+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v5",
+  "measured_at": "2026-11-25T02:06:48.534221+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",
@@ -13,6 +13,6 @@
   "value": 100.0,
   "unit_period_alignment_pct": 100.0,
   "level_match_pct": 100.0,
-  "reference_run": "fused-cnnlstm-2026.11-v4",
-  "rerun": "fused-cnnlstm-2026.11-v4-repro"
+  "reference_run": "fused-cnnlstm-2026.11-v5",
+  "rerun": "fused-cnnlstm-2026.11-v5-repro"
 }

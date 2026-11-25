@@ -1,0 +1,721 @@
+{
+  "dataset_manifest_sha256": "1cbaa2eed7a7bc8891d671384687ae28286ac8d4fd20c10b3e1fbec086698869",
+  "dataset_events_sha256": "052b13a1fa355145312562ab47a2b52f71784f85bb7c83fea29df3ed1e2e5852",
+  "published_model": "fused-cnnlstm-2026.11-v4",
+  "device": "CUDA, NVIDIA RTX 4050 Laptop GPU",
+  "torch": "2.14.1+cu130",
+  "seed": 20261122,
+  "test_evaluations": 0,
+  "results": [
+    {
+      "fold": "onsv",
+      "arm": "H0",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5731224417686462,
+          "cell_mae": 0.016698021441698074,
+          "cell_deviance": 0.06649242341518402,
+          "capture_top10": 0.6681416034698486
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 4.986
+      },
+      "best_epoch": 148,
+      "epochs": 184,
+      "elapsed": 33.11,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489,
+          0.8180239796638489
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "onsv",
+      "arm": "H1",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5712964534759521,
+          "cell_mae": 0.01595368981361389,
+          "cell_deviance": 0.06748896837234497,
+          "capture_top10": 0.6814159154891968
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 5.2887
+      },
+      "best_epoch": 139,
+      "epochs": 175,
+      "elapsed": 17.54,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033,
+          0.8169931769371033
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "onsv",
+      "arm": "H2",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.589834451675415,
+          "cell_mae": 0.016368499025702477,
+          "cell_deviance": 0.06588210165500641,
+          "capture_top10": 0.6017699241638184
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 2.2154
+      },
+      "best_epoch": 170,
+      "epochs": 200,
+      "elapsed": 19.51,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18481093645095825,
+          0.15610438585281372,
+          0.15536674857139587,
+          0.16959358751773834,
+          0.18873003125190735,
+          0.16415910422801971,
+          0.16410182416439056,
+          0.16986753046512604
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "onsv",
+      "arm": "H3",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.6031090617179871,
+          "cell_mae": 0.017393581569194794,
+          "cell_deviance": 0.06454335898160934,
+          "capture_top10": 0.6681416034698486
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 0.0147
+      },
+      "best_epoch": 145,
+      "epochs": 181,
+      "elapsed": 18.23,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18136641383171082,
+          0.15336483716964722,
+          0.15284983813762665,
+          0.16432030498981476,
+          0.18533463776111603,
+          0.1598408967256546,
+          0.16025803983211517,
+          0.16216734051704407
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "onsv",
+      "arm": "H4",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5939446091651917,
+          "cell_mae": 0.01768738403916359,
+          "cell_deviance": 0.06597475707530975,
+          "capture_top10": 0.6238937973976135
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 1.534
+      },
+      "best_epoch": 50,
+      "epochs": 86,
+      "elapsed": 9.07,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18186569213867188,
+          0.18792322278022766,
+          0.19003108143806458,
+          0.19108740985393524,
+          0.18945500254631042,
+          0.1678013950586319,
+          0.1758434772491455,
+          0.1853996366262436
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "H0",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7846144437789917,
+          "cell_mae": 0.047820787876844406,
+          "cell_deviance": 0.08654271811246872,
+          "capture_top10": 0.747982382774353
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.2266
+      },
+      "best_epoch": 174,
+      "epochs": 200,
+      "elapsed": 11.89,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "H1",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7810243368148804,
+          "cell_mae": 0.04793589189648628,
+          "cell_deviance": 0.08592631667852402,
+          "capture_top10": 0.7487600445747375
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.4193
+      },
+      "best_epoch": 173,
+      "epochs": 200,
+      "elapsed": 12.34,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "H2",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7846144437789917,
+          "cell_mae": 0.047820787876844406,
+          "cell_deviance": 0.08654271811246872,
+          "capture_top10": 0.747982382774353
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.2266
+      },
+      "best_epoch": 174,
+      "epochs": 200,
+      "elapsed": 12.17,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "H3",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7810243368148804,
+          "cell_mae": 0.04793589189648628,
+          "cell_deviance": 0.08592631667852402,
+          "capture_top10": 0.7487600445747375
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.4193
+      },
+      "best_epoch": 173,
+      "epochs": 200,
+      "elapsed": 12.19,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "H4",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7810243368148804,
+          "cell_mae": 0.04793589189648628,
+          "cell_deviance": 0.08592631667852402,
+          "capture_top10": 0.7487600445747375
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.4193
+      },
+      "best_epoch": 173,
+      "epochs": 200,
+      "elapsed": 12.75,
+      "rho": [
+        [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        [
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473,
+          0.18242552876472473
+        ]
+      ],
+      "code_commit": "e106ca3"
+    },
+    {
+      "fold": "onsv",
+      "arm": "Q1",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.6107279658317566,
+          "cell_mae": 0.018553296104073524,
+          "cell_deviance": 0.0650128722190857,
+          "capture_top10": 0.6902654767036438
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": -1.2484
+      },
+      "epochs": 182,
+      "best_epoch": 146,
+      "elapsed": 27.39,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "onsv",
+      "arm": "Q2",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.585292637348175,
+          "cell_mae": 0.01670660823583603,
+          "cell_deviance": 0.06494146585464478,
+          "capture_top10": 0.6637167930603027
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 2.9684
+      },
+      "epochs": 151,
+      "best_epoch": 115,
+      "elapsed": 16.93,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "onsv",
+      "arm": "Q3",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5900172591209412,
+          "cell_mae": 0.01715388335287571,
+          "cell_deviance": 0.06484638899564743,
+          "capture_top10": 0.6814159154891968
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 2.1851
+      },
+      "epochs": 200,
+      "best_epoch": 181,
+      "elapsed": 21.44,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "onsv",
+      "arm": "Q4",
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5793477892875671,
+          "cell_mae": 0.01677929051220417,
+          "cell_deviance": 0.06421494483947754,
+          "capture_top10": 0.6902654767036438
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 3.9539
+      },
+      "epochs": 196,
+      "best_epoch": 160,
+      "elapsed": 21.26,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "Q1",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.8075753450393677,
+          "cell_mae": 0.048641420900821686,
+          "cell_deviance": 0.08727379143238068,
+          "capture_top10": 0.7541459798812866
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 2.9944
+      },
+      "epochs": 200,
+      "best_epoch": 196,
+      "elapsed": 12.99,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "Q2",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 2.1136748790740967,
+          "cell_mae": 0.05180121585726738,
+          "cell_deviance": 0.09204419702291489,
+          "capture_top10": 0.748079776763916
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": -13.4328
+      },
+      "epochs": 200,
+      "best_epoch": 199,
+      "elapsed": 12.83,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "Q3",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.844115138053894,
+          "cell_mae": 0.04886417090892792,
+          "cell_deviance": 0.08752858638763428,
+          "capture_top10": 0.7627711296081543
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 1.0334
+      },
+      "epochs": 200,
+      "best_epoch": 183,
+      "elapsed": 12.5,
+      "code_commit": "9078107"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "Q4",
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.8037407398223877,
+          "cell_mae": 0.047620318830013275,
+          "cell_deviance": 0.08688823133707047,
+          "capture_top10": 0.7521562576293945
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 3.2002
+      },
+      "epochs": 200,
+      "best_epoch": 166,
+      "elapsed": 12.44,
+      "code_commit": "9078107"
+    }
+  ],
+  "total_fit_elapsed_seconds": 296.58,
+  "total_epochs": 3355,
+  "research_gate": ">=10% relative MAE improvement in both validation folds; improve E0 in both; no >2 pp capture loss",
+  "decision": "no candidate passes; retain v4"
+}

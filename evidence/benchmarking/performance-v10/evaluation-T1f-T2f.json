@@ -1,0 +1,164 @@
+{
+  "T1f": {
+    "historical": {
+      "district": {
+        "mae": 2.379837989807129,
+        "deviance": 2.815444231033325,
+        "spearman": 0.9361220175173662,
+        "capture_top20": 0.5281767955801104
+      },
+      "all_located": {
+        "auc": 0.9759272170528773,
+        "average_precision": 0.8865509873647599,
+        "capture_top5": 0.5497264604116839,
+        "capture_top10": 0.7833334555673012,
+        "capture_top20": 0.9476859685997591,
+        "positives": 398,
+        "mass": 945.999998
+      },
+      "precise": {
+        "auc": 0.9521616297573731,
+        "average_precision": 0.40599439845931534,
+        "capture_top5": 0.5774647887323944,
+        "capture_top10": 0.8098591549295775,
+        "capture_top20": 0.971830985915493,
+        "positives": 102,
+        "mass": 142.0
+      }
+    },
+    "decayed_historical": {
+      "district": {
+        "mae": 2.4252016145037896,
+        "deviance": 2.9643543009610775,
+        "spearman": 0.9462398067049229,
+        "capture_top20": 0.5366482504604051
+      },
+      "all_located": {
+        "auc": 0.9760196423942986,
+        "average_precision": 0.8875547745585651,
+        "capture_top5": 0.5554496323053904,
+        "capture_top10": 0.7852831550428819,
+        "capture_top20": 0.9497630214582728,
+        "positives": 398,
+        "mass": 945.999998
+      },
+      "precise": {
+        "auc": 0.9523123514690109,
+        "average_precision": 0.40882821265925795,
+        "capture_top5": 0.5915492957746479,
+        "capture_top10": 0.8169014084507042,
+        "capture_top20": 0.9788732394366197,
+        "positives": 102,
+        "mass": 142.0
+      }
+    },
+    "C0": {
+      "district": {
+        "mae": 2.458564519882202,
+        "deviance": 2.698399066925049,
+        "spearman": 0.9222289338568409,
+        "capture_top20": 0.5392265193370166
+      },
+      "all_located": {
+        "auc": 0.9810497911388208,
+        "average_precision": 0.8975162763619252,
+        "capture_top5": 0.5694076860875429,
+        "capture_top10": 0.7871372648776687,
+        "capture_top20": 0.9495138225148285,
+        "positives": 398,
+        "mass": 945.999998
+      },
+      "precise": {
+        "auc": 0.9565080233022777,
+        "average_precision": 0.419050578630779,
+        "capture_top5": 0.6193661971830987,
+        "capture_top10": 0.852112676056338,
+        "capture_top20": 0.9788732394366197,
+        "positives": 102,
+        "mass": 142.0
+      },
+      "members": 5
+    }
+  },
+  "T2f": {
+    "historical": {
+      "district": {
+        "mae": 0.606589138507843,
+        "deviance": 4.512814521789551,
+        "spearman": 0.8172757475083057,
+        "capture_top20": 0.49356223175965663
+      },
+      "all_located": {
+        "auc": 0.7850701602713307,
+        "average_precision": 0.294168960522686,
+        "capture_top5": 0.37348710317460315,
+        "capture_top10": 0.6179383116883118,
+        "capture_top20": 0.7138561419118056,
+        "positives": 165,
+        "mass": 224.0
+      },
+      "precise": {
+        "auc": 0.7850701602713307,
+        "average_precision": 0.294168960522686,
+        "capture_top5": 0.37348710317460315,
+        "capture_top10": 0.6179383116883118,
+        "capture_top20": 0.7138561419118056,
+        "positives": 165,
+        "mass": 224.0
+      }
+    },
+    "decayed_historical": {
+      "district": {
+        "mae": 0.6168908173029148,
+        "deviance": 4.516991815054602,
+        "spearman": 0.825128360012081,
+        "capture_top20": 0.48497854077253216
+      },
+      "all_located": {
+        "auc": 0.7851643723260402,
+        "average_precision": 0.2834252593742853,
+        "capture_top5": 0.3748282967032968,
+        "capture_top10": 0.6081737012987014,
+        "capture_top20": 0.7138561419118056,
+        "positives": 165,
+        "mass": 224.0
+      },
+      "precise": {
+        "auc": 0.7851643723260402,
+        "average_precision": 0.2834252593742853,
+        "capture_top5": 0.3748282967032968,
+        "capture_top10": 0.6081737012987014,
+        "capture_top20": 0.7138561419118056,
+        "positives": 165,
+        "mass": 224.0
+      }
+    },
+    "C0": {
+      "district": {
+        "mae": 0.5692407488822937,
+        "deviance": 0.9351243376731873,
+        "spearman": 0.8169737239504681,
+        "capture_top20": 0.4334763948497854
+      },
+      "all_located": {
+        "auc": 0.9262884883952917,
+        "average_precision": 0.35539332213417846,
+        "capture_top5": 0.39687500000000014,
+        "capture_top10": 0.6830357142857143,
+        "capture_top20": 0.8973214285714286,
+        "positives": 165,
+        "mass": 224.0
+      },
+      "precise": {
+        "auc": 0.9262884883952917,
+        "average_precision": 0.35539332213417846,
+        "capture_top5": 0.39687500000000014,
+        "capture_top10": 0.6830357142857143,
+        "capture_top20": 0.8973214285714286,
+        "positives": 165,
+        "mass": 224.0
+      },
+      "members": 5
+    }
+  }
+}

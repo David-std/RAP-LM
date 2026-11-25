@@ -1,14 +1,71 @@
 {
   "metric": "M-05",
   "target": "> 0 %",
-  "run_id": "fused-cnnlstm-2026.11-v4",
-  "measured_at": "2026-11-23T22:51:43.308958+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v5",
+  "measured_at": "2026-11-25T02:06:49.132854+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",
     "os": "Windows"
   },
-  "evaluations": [
+  "decision": "D-17",
+  "value": 1.2368,
+  "formula": "(AP_model - AP_historical) / AP_historical * 100; cell-year average precision, all-severity test",
+  "criterion": "> 0",
+  "met": true,
+  "dimensions": [
+    {
+      "family": "cenacom",
+      "year": 2017,
+      "average_precision": [
+        0.8975162763619252,
+        0.8865509873647599
+      ],
+      "auc": [
+        0.9810497911388208,
+        0.9759272170528773
+      ],
+      "capture_top20": [
+        0.9495138225148285,
+        0.9476859685997591
+      ],
+      "district_mae": [
+        2.458564519882202,
+        2.379837989807129
+      ],
+      "district_deviance": [
+        2.698399066925049,
+        2.815444231033325
+      ]
+    },
+    {
+      "family": "onsv",
+      "year": 2024,
+      "average_precision": [
+        0.35539332213417846,
+        0.294168960522686
+      ],
+      "auc": [
+        0.9262884883952917,
+        0.7850701602713307
+      ],
+      "capture_top20": [
+        0.8973214285714286,
+        0.7138561419118056
+      ],
+      "district_mae": [
+        0.5692407488822937,
+        0.606589138507843
+      ],
+      "district_deviance": [
+        0.9351243376731873,
+        4.512814521789551
+      ]
+    }
+  ],
+  "source": "docs/ml/performance-v10.md",
+  "note": "Models trained without the scored year (fixed 150 epochs); 2017 and 2024 were consulted in earlier iterations.",
+  "original_m05_history": [
     {
       "run": "fused-cnnlstm-2026.11-v4",
       "variant": "convlstm",
@@ -17,8 +74,15 @@
       "E_baseline": 0.606589138507843,
       "E_model": 0.5684484243392944,
       "improvement_pct": 6.2877
+    },
+    {
+      "run": "fused-cnnlstm-backtest-2017-v4",
+      "variant": "cnn_lstm",
+      "family": "cenacom",
+      "year": 2017,
+      "E_baseline": 2.379837989807129,
+      "E_model": 2.457818031311035,
+      "improvement_pct": -3.2767
     }
-  ],
-  "value": 6.2877,
-  "formula": "(E_baseline - E_model) / E_baseline * 100, E = district x subperiod MAE"
+  ]
 }

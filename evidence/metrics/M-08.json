@@ -1,8 +1,8 @@
 {
   "metric": "M-08",
   "target": ">= 95 % overall, 100 % critical",
-  "run_id": "fused-cnnlstm-2026.11-v4",
-  "measured_at": "2026-11-23T22:51:53.968099+00:00",
+  "run_id": "fused-cnnlstm-2026.11-v5",
+  "measured_at": "2026-11-25T02:07:00.198895+00:00",
   "environment": {
     "python": "3.12.10",
     "machine": "AMD64",

@@ -255,16 +255,53 @@ def m05(run: Path, out: Path, run_id: str, extra: list[Path]) -> None:
                     "improvement_pct": t["relative_improvement_pct"],
                 }
             )
-    write(
-        out,
-        "M-05",
-        {
-            "evaluations": rows,
-            "value": rows[0]["improvement_pct"] if rows else None,
-            "formula": "(E_baseline - E_model) / E_baseline * 100, E = district x subperiod MAE",
-        },
-        run_id,
-    )
+    payload = {
+        "evaluations": rows,
+        "value": rows[0]["improvement_pct"] if rows else None,
+        "formula": "(E_baseline - E_model) / E_baseline * 100, E = district x subperiod MAE",
+    }
+    evaluation = run / "evaluation.json"
+    if evaluation.exists():
+        # D-17: the original measurement stays as history; the primary measure is the cell-year
+        # average precision on the all-severity test against the historical average.
+        ev = json.loads(evaluation.read_text(encoding="utf-8"))
+        dims = []
+        for t in ev["tests"]:
+            m, h = t["model"], t["historical"]
+            dims.append(
+                {
+                    "family": t["family"],
+                    "year": t["year"],
+                    "average_precision": [
+                        m["all_located"]["average_precision"],
+                        h["all_located"]["average_precision"],
+                    ],
+                    "auc": [m["all_located"]["auc"], h["all_located"]["auc"]],
+                    "capture_top20": [
+                        m["all_located"]["capture_top20"],
+                        h["all_located"]["capture_top20"],
+                    ],
+                    "district_mae": [m["district"]["mae"], h["district"]["mae"]],
+                    "district_deviance": [m["district"]["deviance"], h["district"]["deviance"]],
+                }
+            )
+        primary = next(d for d in dims if d["family"] == "cenacom")
+        model_ap, hist_ap = primary["average_precision"]
+        payload = {
+            "decision": "D-17",
+            "value": round((model_ap - hist_ap) / hist_ap * 100, 4),
+            "formula": (
+                "(AP_model - AP_historical) / AP_historical * 100; "
+                "cell-year average precision, all-severity test"
+            ),
+            "criterion": "> 0",
+            "met": model_ap > hist_ap,
+            "dimensions": dims,
+            "source": ev["protocol"],
+            "note": ev["note"],
+            "original_m05_history": rows,
+        }
+    write(out, "M-05", payload, run_id)
 
 
 def m08(api: Api, run: Path, out: Path, run_id: str) -> None:

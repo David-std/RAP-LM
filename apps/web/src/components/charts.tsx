@@ -3,6 +3,8 @@
 
 import { useMemo, useRef, useState, type ReactNode } from "react";
 
+import { fmtNumber } from "../lib/format";
+
 const W = 360;
 
 function niceMax(v: number): number {
@@ -13,7 +15,7 @@ function niceMax(v: number): number {
 }
 
 const fmt = (v: number) =>
-  Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+  fmtNumber(v, Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2);
 
 function Tip({ x, y, children }: { x: number | string; y: number; children: ReactNode }) {
   return (
@@ -182,15 +184,18 @@ export function LineChart({
   xFormat = (v) => String(v),
   yFormat = fmt,
   marker,
+  width,
 }: {
   series: LineSeries[];
   height?: number;
+  width?: number;
   xLabel?: string;
   yLabel?: string;
   xFormat?: (v: number) => string;
   yFormat?: (v: number) => string;
   marker?: { x: number; label: string };
 }) {
+  const W = width ?? 360;
   const H = height;
   const pad = { l: 40, r: 10, t: 10, b: 30 };
   const all = series.flatMap((s) => s.points);

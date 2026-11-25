@@ -2,8 +2,13 @@
 
 import type { DayType, Period } from "../api/types";
 
-const nf = (digits: number) =>
-  new Intl.NumberFormat("es-PE", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+// Same convention as the project report: decimal comma and a thin space for
+// thousands (0,36; 258 896). Intl "es-PE" would give 0.36 and 258,896.
+const nf = (digits: number) => {
+  const base = new Intl.NumberFormat("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  return { format: (v: number) => base.format(v).replace(/,/g, " ").replace(".", ",") };
+};
+export const fmtNumber = (v: number, digits = 0) => nf(digits).format(v);
 
 export const fmtIndex = (v: number | null) => (v === null ? "Sin resultado" : nf(0).format(v));
 export const fmtValue = (v: number | null, digits = 2) => (v === null ? "Sin dato" : nf(digits).format(v));

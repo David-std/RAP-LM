@@ -1,13 +1,13 @@
 // Application shell: top bar, views and status bar. Loads the reference data
 // (periods, cell and district geometry) once and shares it with every view.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { api } from "./api/client";
 import type { Meta, UnitCollection } from "./api/types";
 import { useApi } from "./api/useApi";
 import { Notice } from "./components/Controls";
-import { BANDS, DAY_LABEL } from "./lib/format";
+import { BANDS, DAY_LABEL, fmtNumber } from "./lib/format";
 import { classBands } from "./lib/levels";
 import { AnalysisPage } from "./pages/AnalysisPage";
 import { ComparePage } from "./pages/ComparePage";
@@ -29,15 +29,22 @@ export default function App() {
   if (error) {
     return (
       <div className="boot">
-        <Notice tone="error">
-          No se pudo conectar con la API de resultados publicados: {error.message}. No se muestran datos simulados en su
-          lugar.
-        </Notice>
+        <section className="boot-card" role="alert">
+          <h1>No se pudieron cargar los resultados</h1>
+          <p>
+            El servicio de datos no respondió. Si usa la demostración en línea, el servidor puede tardar hasta un minuto
+            en activarse; vuelva a intentarlo. La aplicación no muestra datos simulados en su lugar.
+          </p>
+          <button type="button" className="btn primary" onClick={() => window.location.reload()}>
+            Volver a intentar
+          </button>
+          <p className="boot-detail">Detalle técnico: {error.message}</p>
+        </section>
       </div>
     );
   }
   if (!periods.data || !cells.data || !districts.data) {
-    return <div className="boot">Cargando RAP-LM…</div>;
+    return <Booting />;
   }
   return (
     <QueryProvider periods={periods.data.data}>
@@ -46,36 +53,54 @@ export default function App() {
   );
 }
 
+function Booting() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setSlow(true), 6000);
+    return () => window.clearTimeout(id);
+  }, []);
+  return (
+    <div className="boot" role="status">
+      <section className="boot-card">
+        <h1>Cargando RAP-LM</h1>
+        <p>{slow ? "El servidor se está activando. Puede tardar hasta un minuto la primera vez." : "Cargando periodos, malla y distritos."}</p>
+      </section>
+    </div>
+  );
+}
+
 function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; districts: UnitCollection }) {
   const [view, setView] = useState<View>("map");
   const [corridorDistrict, setCorridorDistrict] = useState<string | null>(null);
   const q = useQuery();
   const bands = useMemo(() => classBands(meta.legend), [meta.legend]);
-  const tabs: { id: View; label: string }[] = [
+  // Task views first; documentation is a separate, quieter group (information architecture).
+  const tabs: { id: View; label: string; doc?: boolean }[] = [
     { id: "map", label: "Mapa de riesgo" },
     { id: "forecast", label: "Pronóstico" },
     { id: "corridors", label: "Vías críticas" },
     { id: "compare", label: "Comparar" },
     { id: "analysis", label: "Análisis" },
-    { id: "model", label: "Modelo" },
-    { id: "method", label: "Metodología y fuentes" },
+    { id: "model", label: "Modelo", doc: true },
+    { id: "method", label: "Metodología y fuentes", doc: true },
   ];
+  const modelLabel = meta.run.is_demo ? "Datos de ejemplo" : `Modelo ${meta.run.run_id.split("-").pop()}`;
   return (
     <div className="app">
       <header className="topbar">
-        <span className="brand" aria-label="RAP-LM">
+        <button type="button" className="brand" aria-label="RAP-LM, ir al mapa de riesgo" onClick={() => setView("map")}>
           <span className="brand-mark" aria-hidden="true" />
           <span className="brand-text">
             <span className="brand-name"><span className="brand-accent">RAP</span>-<span className="brand-accent2">LM</span></span>
             <small>Riesgo de atropello peatonal, Lima Metropolitana</small>
           </span>
-        </span>
+        </button>
         <nav aria-label="Vistas">
-          {tabs.map((t) => (
+          {tabs.map((t, i) => (
             <button
               key={t.id}
               type="button"
-              className={view === t.id ? "tab on" : "tab"}
+              className={`tab${view === t.id ? " on" : ""}${t.doc ? " tab-doc" : ""}${t.doc && !tabs[i - 1]?.doc ? " tab-doc-first" : ""}`}
               aria-current={view === t.id ? "page" : undefined}
               onClick={() => setView(t.id)}
             >
@@ -83,7 +108,6 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
             </button>
           ))}
         </nav>
-        <span className="topbar-run" title={meta.scope_notice}>{meta.run.is_demo ? "Datos de ejemplo" : `Run ${meta.run.run_id}`}</span>
       </header>
 
       {meta.run.is_demo && <div className="demo-banner">{meta.scope_notice}</div>}
@@ -125,7 +149,7 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
 
       <footer className="statusbar">
         <span>
-          Unidad: <b>{q.selectedUnitId ?? "—"}</b>
+          Zona: <b>{q.selectedUnitId ?? "ninguna"}</b>
         </span>
         <span>
           Periodo:{" "}
@@ -134,11 +158,11 @@ function Shell({ meta, cells, districts }: { meta: Meta; cells: UnitCollection; 
           </b>
         </span>
         <span>
-          Malla: <b>1 km, {cells.features.length.toLocaleString("es-PE")} celdas, {districts.features.length} distritos</b>
+          Malla: <b>1 km, {fmtNumber(cells.features.length)} celdas, {districts.features.length} distritos</b>
         </span>
         <span className="grow" />
-        <span className={meta.run.is_demo ? "status-demo" : "status-run"} title={meta.scope_notice}>
-          {meta.run.is_demo ? "Datos de ejemplo" : `Corrida publicada ${meta.run.run_id}`}
+        <span className={meta.run.is_demo ? "status-demo" : "status-run"} title={`Corrida ${meta.run.run_id}. ${meta.scope_notice}`}>
+          {modelLabel}, dataset {meta.run.dataset_version_id.replace("fused-", "")}
         </span>
       </footer>
     </div>

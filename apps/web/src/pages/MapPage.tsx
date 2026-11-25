@@ -8,12 +8,12 @@ import { useCallback, useMemo, useState } from "react";
 import { api } from "../api/client";
 import type { Legend as LegendDto, RiskLevel, RiskResult, UnitCollection } from "../api/types";
 import { useApi } from "../api/useApi";
-import { FilterChips, Notice, OptionList, PeriodPicker, SearchSelect, Segmented } from "../components/Controls";
+import { Disclosure, FilterChips, Notice, OptionList, PeriodPicker, SearchSelect, Segmented } from "../components/Controls";
 import { HeatMap } from "../components/HeatMap";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
 import { ZonePanel } from "../components/ZonePanel";
-import { BANDS, DAY_LABEL, fmtIndex, periodLabel } from "../lib/format";
+import { BANDS, DAY_LABEL, fmtCount, fmtIndex, fmtNumber, fmtValue, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL } from "../lib/levels";
 import { heatLegend } from "../lib/heatSurface";
 import { ALL_LEVELS, useQuery } from "../state/QueryContext";
@@ -67,6 +67,17 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     [periodId, q.unitType, q.districtIds.join(), q.levels.join()],
     !!periodId,
   );
+  // Same period one year earlier: the tooltip shows how the network's estimate moved.
+  const prevPeriodId = q.periodId({ ...q.active, year: q.active.year - 1 });
+  const prevRisk = useApi(
+    (s) => api.risk({ periodId: prevPeriodId!, unitType: q.unitType }, s),
+    [prevPeriodId, q.unitType],
+    !!prevPeriodId && layer === "risk",
+  );
+  const prevIndex = useMemo(
+    () => new Map((prevRisk.data?.data ?? []).map((r) => [r.unit.unit_id, r.risk_index] as [string, number | null])),
+    [prevRisk.data],
+  );
   // The selected unit is fetched on its own so it stays visible even when filtered out (HU-08).
   const selected = useApi(
     (s) => api.risk({ periodId: periodId!, unitType: q.unitType, unitId: q.selectedUnitId! }, s),
@@ -91,12 +102,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     [activeExplanation],
   );
   const influenceStatus = !q.selectedUnitId
-    ? "Seleccione una zona para ver su explicación."
+    ? "Seleccione una zona: el mapa muestra qué celdas pesaron en su estimación."
     : explanation.loading
       ? "Cargando explicación…"
       : influence.size > 0
-        ? "Grad-CAM: celdas con mayor influencia en la estimación anual de " + q.selectedUnitId + " (2024, todas las franjas)."
-        : "Sin explicación disponible para esta zona. Disponible en los 43 distritos y las 400 celdas de mayor riesgo de 2024.";
+        ? `Celdas que más pesaron en la estimación de ${q.selectedUnitId} para 2024, todas las franjas.`
+        : "Sin explicación para esta zona. Disponible en los 43 distritos y las 400 celdas de mayor riesgo de 2024.";
+  const influenceRank = useMemo(
+    () => new Map([...influence.entries()].sort((a, b) => b[1] - a[1]).map(([u], i) => [u, i + 1] as [string, number])),
+    [influence],
+  );
   const maxDensity = useMemo(
     () => Math.max(...(risk.data?.data ?? []).map((r) => (r.observed.events ?? 0) / Math.max(r.unit.area_km2, 0.1)), 0.0001),
     [risk.data],
@@ -162,9 +177,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
     <div className="workspace">
       <aside className="rail" aria-label="Consulta">
         <div>
-          <p className="eyebrow">Explorar</p>
           <h2 className="rail-title">Riesgo por zona y periodo</h2>
         </div>
+        <form className="search-row" onSubmit={onSearch} role="search">
+          <label htmlFor="unit-search" className="field-label">Ir a una zona</label>
+          <div className="search-inline">
+            <input id="unit-search" className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Distrito o celda, ej. Miraflores" />
+            <button type="submit" className="btn">Ir</button>
+          </div>
+        </form>
+        <h3 className="rail-group">Qué ver</h3>
         <Segmented<MapView>
           label="Vista"
           value={view}
@@ -178,6 +200,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
         />
         <OptionList<MapLayer>
           label="Qué mostrar"
+          hint="Riesgo estimado: índice de 0 a 100 calculado por la red para el periodo. Atropellos registrados: lo que anotaron las fuentes, sin modelo. Grad-CAM: qué celdas usó la red para estimar la zona elegida."
           value={layer}
           onChange={setLayer}
           options={[
@@ -186,13 +209,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             { value: "influence", label: "Grad-CAM", description: "Qué zonas pesan en la estimación de la zona elegida" },
           ]}
         />
-        <div className="rail-section">
+        <h3 className="rail-group">Periodo</h3>
+        <div className="rail-block">
           <PeriodPicker years={q.years} value={q.active} onChange={q.setActive} />
           {!periodId && <Notice tone="warn">Este periodo no tiene resultados publicados.</Notice>}
         </div>
-        <div className="rail-section">
+        <h3 className="rail-group">Filtros</h3>
+        <div className="rail-block">
           <FilterChips<RiskLevel>
             label="Filtrar por nivel"
+            hint="Bajo: índice menor que 40. Medio: de 40 a 69. Alto: 70 o más. Los umbrales son fijos y se definieron antes de evaluar el modelo."
             selected={q.levels}
             onToggle={q.toggleLevel}
             items={ALL_LEVELS.map((level) => {
@@ -223,16 +249,12 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           ) : (
             counts && (
               <p className="rail-summary">
-                {(counts.high + counts.medium + counts.low).toLocaleString("es-PE")} {q.unitType === "cell" ? "celdas" : "distritos"} con resultado
+                {fmtNumber(counts.high + counts.medium + counts.low)} {q.unitType === "cell" ? "celdas" : "distritos"} con resultado
                 {counts.no_result > 0 && `, ${counts.no_result} sin resultado`}
               </p>
             )
           )}
         </div>
-        <form className="rail-section search" onSubmit={onSearch} role="search">
-          <label htmlFor="unit-search" className="field-label">Ir a una zona</label>
-          <input id="unit-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Distrito o celda, ej. F54-C35" />
-        </form>
       </aside>
 
       <main className="map-area">
@@ -270,19 +292,22 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
           <div className="map-tip" role="tooltip">
             <strong>{hovered.unit.unit_type === "cell" ? `Celda ${hovered.unit.unit_id}` : hovered.unit.display_name}</strong>
             <span className="muted">{hovered.unit.district_name}</span>
-            <span>
-              {layer === "record" ? (
-                hovered.observed.events === null ? "Sin registro disponible" : <><b>{hovered.observed.events}</b> registros · {(hovered.observed.events / Math.max(hovered.unit.area_km2, 0.1)).toFixed(2)} /km²</>
-              ) : layer === "influence" ? (
-                influence.has(hovered.unit.unit_id) ? <><b>{(influence.get(hovered.unit.unit_id)! * 100).toFixed(1)}%</b> de la influencia máxima</> : "Sin atribución mostrada"
-              ) : hovered.risk_level ? (
-                <>
-                  <b>{fmtIndex(hovered.risk_index)}</b> {LEVEL_LABEL[hovered.risk_level]}
-                </>
+            {layer === "record" ? (
+              <RecordTip r={hovered} />
+            ) : layer === "influence" ? (
+              influence.has(hovered.unit.unit_id) ? (
+                <dl className="tip-kv">
+                  <dt>Influencia</dt><dd><b>{fmtValue(influence.get(hovered.unit.unit_id)! * 100, 0)} %</b> de la máxima</dd>
+                  <dt>Posición</dt><dd>{influenceRank.get(hovered.unit.unit_id)} de {influence.size} celdas</dd>
+                </dl>
               ) : (
-                "Sin resultado"
-              )}
-            </span>
+                <span>Fuera de las celdas de mayor influencia</span>
+              )
+            ) : hovered.risk_level ? (
+              <RiskTip r={hovered} prev={prevIndex.get(hovered.unit.unit_id) ?? null} prevYear={q.active.year - 1} />
+            ) : (
+              <span>Sin resultado</span>
+            )}
             <span className="muted small">{layer === "influence" ? "Explicación anual 2024" : periodLabel(hovered.period)}</span>
           </div>
         )}
@@ -294,7 +319,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <ul className="legend-classes">
                 <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin eventos registrados</li>
                 {DENSITY_RAMP.map((c, i) => (
-                  <li key={c}><span className="swatch" style={{ background: c }} /> {i === 0 ? "≤" : ">"} {densityCuts[Math.max(0, i - 1)]?.toFixed(2) ?? "0"}</li>
+                  <li key={c}><span className="swatch" style={{ background: c }} /> {i === 0 ? "≤" : ">"} {fmtValue(densityCuts[Math.max(0, i - 1)] ?? 0, 2)}</li>
                 ))}
               </ul>
             </section>
@@ -305,8 +330,18 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <p className="legend-sub">
                 {influenceStatus}
               </p>
+              <Disclosure
+                summary="Cómo leerlo"
+                className="compact"
+                items={[
+                  ["Qué mide", "Cuánto elevó la estimación de la zona elegida lo que la red leyó en cada celda, en 2024 y años previos."],
+                  ["Celdas oscuras", "Las que más pesaron. La más influyente vale 100 %."],
+                  ["Cobertura", "Disponible para los 43 distritos y las 400 celdas de mayor riesgo de 2024."],
+                  ["Límite", "Muestra en qué se apoyó el modelo, no las causas de los atropellos."],
+                ]}
+              />
               <ul className="legend-classes">
-                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Sin atribución mostrada</li>
+                <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Fuera de las 40 de mayor influencia</li>
                 {INFLUENCE_RAMP.map((c, i) => (
                   <li key={c}><span className="swatch" style={{ background: c }} /> {i * 20} a {(i + 1) * 20} % de la máxima</li>
                 ))}
@@ -319,7 +354,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <p className="legend-sub">{layer === "risk" ? "Índice de riesgo estimado (0 a 100)" : layer === "record" ? "Atropellos registrados por km²" : "Influencia Grad-CAM"}</p>
               <div style={{ height: 12, borderRadius: 6, background: heatLegend(HEAT_GRADIENT[layer]) }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span>Bajo</span><span>Alto</span></div>
-              {layer === "record" && <p className="legend-sub">Escala relativa a la densidad máxima visible: {maxDensity > 0.0001 ? maxDensity.toFixed(2) : "0"} eventos/km². La ausencia de color no demuestra ausencia de atropellos.</p>}
+              {layer === "record" && <p className="legend-sub">Escala relativa a la densidad máxima visible: {maxDensity > 0.0001 ? fmtValue(maxDensity, 2) : "0"} eventos/km². La ausencia de color no demuestra ausencia de atropellos.</p>}
               {layer === "influence" && <p className="legend-sub">{influenceStatus} Se muestran hasta las 40 celdas de mayor influencia, respecto a la máxima.</p>}
               <p className="legend-sub">Superficie interpolada de la malla de 1 km. Consulte la celda para su valor exacto.</p>
             </section>
@@ -336,6 +371,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
 
       <ZonePanel
         result={selected.data?.data[0] ?? null}
+        periodResults={risk.data?.data}
         bands={bands}
         onClose={() => q.select(null)}
         onCompareZones={() => {
@@ -349,5 +385,52 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
         onOpenCorridors={goCorridors}
       />
     </div>
+  );
+}
+
+function RiskTip({ r, prev, prevYear }: { r: RiskResult; prev: number | null; prevYear: number }) {
+  const hist = r.historical_average;
+  const vsHist = hist && r.indicator_value !== null ? ((r.indicator_value - hist) / hist) * 100 : null;
+  const diff = prev !== null && r.risk_index !== null ? r.risk_index - prev : null;
+  return (
+    <dl className="tip-kv">
+      <dt>Índice</dt>
+      <dd><b>{fmtIndex(r.risk_index)}</b> {r.risk_level ? LEVEL_LABEL[r.risk_level].toLowerCase() : ""}</dd>
+      <dt>Esperado</dt>
+      <dd>{fmtValue(r.indicator_value, 3)} atropellos por km² al año</dd>
+      {diff !== null && (
+        <>
+          <dt>Frente a {prevYear}</dt>
+          <dd className={Math.abs(diff) < 2 ? "" : diff > 0 ? "delta-up" : "delta-down"}>
+            {Math.abs(diff) < 2 ? "estable" : `${diff > 0 ? "▲ sube" : "▼ baja"} ${fmtValue(Math.abs(diff), 0)} puntos`}
+          </dd>
+        </>
+      )}
+      {vsHist !== null && (
+        <>
+          <dt>Frente al histórico</dt>
+          <dd className={vsHist > 0 ? "delta-up" : "delta-down"}>{vsHist > 0 ? "+" : "−"}{fmtValue(Math.abs(vsHist), 0)} %</dd>
+        </>
+      )}
+    </dl>
+  );
+}
+
+function RecordTip({ r }: { r: RiskResult }) {
+  if (r.observed.events === null) return <span>Sin registro disponible para este periodo</span>;
+  const sev = r.breakdown?.severity;
+  return (
+    <dl className="tip-kv">
+      <dt>Registrados</dt>
+      <dd><b>{fmtCount(r.observed.events)}</b>, {fmtValue(r.observed.events / Math.max(r.unit.area_km2, 0.1), 2)} por km²</dd>
+      {sev && r.observed.events > 0 && (
+        <>
+          <dt>Con fallecido</dt><dd>{fmtCount(sev.fatal)}</dd>
+          <dt>Con lesionados</dt><dd>{fmtCount(sev.nonfatal)}</dd>
+        </>
+      )}
+      <dt>Peatones</dt>
+      <dd>{fmtCount(r.observed.pedestrians_deceased)} {r.observed.pedestrians_deceased === 1 ? "fallecido" : "fallecidos"}, {fmtCount(r.observed.pedestrians_injured)} {r.observed.pedestrians_injured === 1 ? "lesionado" : "lesionados"}</dd>
+    </dl>
   );
 }
