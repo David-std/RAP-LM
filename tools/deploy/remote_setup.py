@@ -4,7 +4,7 @@ Usage::
 
     RAPLM_REMOTE_OWNER_URL="postgresql://raplm_owner:<password>@<host>/raplm" \\
         python -m tools.deploy.remote_setup \\
-        --dataset artifacts/datasets/fused-v1.3.0 --run artifacts/runs/<run_id>
+        --dataset artifacts/datasets/fused-v1.4.0 --run artifacts/runs/<run_id> [--rotate-publisher]
 
 Steps, all idempotent except the publication of a run (runs are immutable):
 
@@ -84,6 +84,11 @@ def main() -> None:
     ap.add_argument("--dataset", type=Path, required=True)
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--publisher-password", help="existing raplm_publisher password (reruns)")
+    ap.add_argument(
+        "--rotate-publisher",
+        action="store_true",
+        help="set a new random raplm_publisher password with the owner role (lost password)",
+    )
     args = ap.parse_args()
     owner = os.environ.get("RAPLM_REMOTE_OWNER_URL")
     if not owner:
@@ -92,6 +97,15 @@ def main() -> None:
 
     created = ensure_roles(owner)
     publisher_password = created.get("raplm_publisher") or args.publisher_password
+    if not publisher_password and args.rotate_publisher:
+        publisher_password = secrets.token_urlsafe(24)
+        with psycopg.connect(owner, autocommit=True) as conn:
+            conn.execute(
+                sql.SQL("ALTER ROLE raplm_publisher PASSWORD {}").format(
+                    sql.Literal(publisher_password)
+                )
+            )
+        print("raplm_publisher password rotated (only the owner can do this; not stored)")
     if not publisher_password:
         raise SystemExit("raplm_publisher already exists: pass --publisher-password")
 
