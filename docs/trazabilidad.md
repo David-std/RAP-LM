@@ -29,7 +29,8 @@ outside the repository (Sprint Review, change control). Measured values are in
 | 3.4.1 to 3.4.3 | Integration and critical flows | Playwright journeys `apps/web/e2e` | Implemented, measured (M-07) |
 | 3.4.4 | Model outputs stored and served unchanged | `pipelines/publication` reconciliation, M-08 | Implemented, measured |
 | 4.3 | Verification | `docs/pruebas/plan-de-pruebas.md`, pytest, Vitest, Playwright, `tools/metrics` | Measured |
-| 4.4 | Technical evaluation against the historical average | `evidence/benchmarking`, M-05 and high-level errors | Measured |
+| 4.4 | Technical evaluation against the historical average | `evidence/benchmarking`, `docs/ml/performance-v10.md` (out-of-sample evaluation, ablation), `evidence/benchmarking/performance-v13` (transfer pilot), `performance-v14` (horizons), M-05 per D-17 | Measured |
+| 3.2.9 | Final refit of the selected architecture (D-18) | `ml/configs/v5-final.json`, `fixed_config`/`fixed_epochs` in `ml/fused/search.py` and `train.py`, run `fused-cnnlstm-2026.11-v5`, M-04 | Implemented, measured |
 | 4.5 | Validation with at least five specialists | Instruments in `docs/validacion`, consolidation `tools/validation` | Instruments ready; sessions run by the team |
 | 5.1 to 5.3 | Manual, closure, clean installation | `docs/manual-de-usuario.md`, `README.md` | Implemented |
 | 5.3 | Despliegue de demostración (D-13) | `render.yaml`, `tools/deploy/remote_setup.py` (probado sobre una base vacía), test `test_config.py` | Implemented, pending cloud account |
@@ -42,7 +43,7 @@ outside the repository (Sprint Review, change control). Measured values are in
 | M-02 Result completeness | same | `evidence/metrics/M-02.json` |
 | M-03 Source and version traceability | same | `evidence/metrics/M-03.json` |
 | M-04 Pipeline reproducibility | rerun of the published configuration | `evidence/metrics/M-04.json` |
-| M-05 Improvement over the historical average | frozen test evaluation | `evidence/metrics/M-05.json`, `evidence/benchmarking/` |
+| M-05 Prioritisation over the historical average (D-17; original MAE measurement kept as history) | cell-year average precision, all-severity test, models trained without the scored year | `evidence/metrics/M-05.json`, `evidence/benchmarking/fused-cnnlstm-2026.11-v5.evaluation.json`, `docs/architecture/registro-de-decisiones.md` |
 | M-06 Mandatory RF accepted | test plan per requirement | `docs/pruebas/plan-de-pruebas.md`; acceptance by the Product Owner |
 | M-07 Critical end-to-end scenarios | Playwright | `evidence/e2e/results.json` |
 | M-08 Query, filter and comparison correctness | API vs exported results | `evidence/metrics/M-08.json` |

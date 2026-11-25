@@ -1,7 +1,13 @@
 # Manual de usuario de RAP-LM
 
-**Historia:** HU-29 (RNF-01). **Versión de la aplicación:** la de la rama que contiene este archivo. La corrida
-publicada que se consulta aparece en la barra superior y en la barra de estado.
+**Historia:** HU-29 (RNF-01). **Versión de la aplicación:** v1.1.1. La versión del modelo aparece en la barra
+superior (con el enlace *Código* al repositorio) y el dataset y la corrida completa, en la barra de estado.
+
+**Navegación.** Las vistas de trabajo (*Mapa de riesgo*, *Pronóstico*, *Vías críticas*, *Comparar*, *Análisis*)
+van a la izquierda; la documentación (*Modelo*, *Metodología y fuentes*) queda separada a la derecha. El nombre
+RAP-LM vuelve al mapa. Cada opción o medida que no se explica sola tiene un botón **?**: se abre al pasar el
+cursor, con el teclado o con un clic, y se cierra con Escape. Los textos secundarios se abren con su título
+(*Cómo se obtiene*, *Cómo se calcula la tasa*, *Cómo leerlo*, *Procedencia y limitaciones*).
 
 RAP-LM permite consultar, comparar, analizar y exportar el **riesgo relativo de atropello peatonal** (todas las
 severidades y subtipos) en los 43 distritos de la provincia de Lima, por celda de 1 km, por distrito y por calle,
@@ -39,35 +45,44 @@ intervenciones**.
 4. **Filtros:** active uno o más chips de nivel (alto, medio, bajo; cada uno indica cuántas zonas tiene) o escriba
    un distrito. Las unidades fuera del filtro se atenúan y un resumen indica lo que se muestra; *Quitar filtros*
    restablece el conjunto completo. Abrir o cerrar una zona no cambia los filtros.
-5. **Ir a una zona:** escriba un código de celda (por ejemplo `F54-C35`) o parte del nombre de un distrito.
-6. **Navegar:** rueda o botones para acercar, arrastre para desplazarse, botón ⤢ para volver a toda Lima.
-7. **Leyenda:** abajo a la izquierda, con rangos numéricos y nombres de nivel (no depende solo del color).
+5. **Ir a una zona:** arriba del panel izquierdo; escriba un código de celda (por ejemplo `F54-C35`) o parte del
+   nombre de un distrito y pulse *Ir*.
+6. **Pasar el cursor:** en *Riesgo estimado* muestra el índice y su nivel, el valor esperado, si la estimación
+   sube o baja frente al año anterior y la diferencia con el promedio histórico; en *Atropellos registrados*, los
+   registros con su severidad y los peatones afectados; en *Grad-CAM*, la influencia de la celda y su posición.
+7. **Navegar:** rueda o botones para acercar, arrastre para desplazarse, botón ⤢ para volver a toda Lima.
+8. **Leyenda:** abajo a la izquierda, con rangos numéricos y nombres de nivel (no depende solo del color).
 
 ### Panel de zona
 
-Al hacer clic en una celda o distrito, el panel derecho muestra tarjetas:
+Sin zona elegida, el panel derecho resume el periodo: cuántas zonas hay en cada nivel y las de mayor riesgo; un
+clic en una de ellas la selecciona. Al hacer clic en una celda o distrito, el panel muestra sus secciones:
 
 | Tarjeta | Qué responde |
 |---|---|
-| Riesgo estimado | Nivel, índice de frecuencia (con su valor en atropellos esperados por km² al año), severidad esperada y razón frente al contexto; posición en Lima y diferencia frente al promedio histórico. |
+| Riesgo estimado | Tabla con el índice y el valor de frecuencia, severidad y razón frente al contexto; barra de posición en la escala y diferencia frente al promedio histórico. |
 | La red año a año | Atropellos que la red esperaba registrar frente a los registrados, año por año. Muestra cómo la parte recurrente sigue la evolución; clic en un año para cambiar el periodo. |
 | Perfil horario | Índice en las ocho combinaciones de tipo de día y franja del año activo; clic para cambiar de franja. |
 | Registro histórico | Total del periodo con desglose por subtipo, severidad, vehículo, servicio de transporte y factores registrados; lesionados y fallecidos. |
 | Entorno de la zona | Cada indicador del entorno con su valor y su posición en Lima (bajo, medio, alto), por ejemplo pocos semáforos por km de vía. Describe el entorno; no recomienda intervenciones. |
-| Qué impulsa la estimación | Cuánto cambia la estimación si se retira cada grupo de variables (población, transporte, comercio, infraestructura peatonal, vías arteriales, atropellos del año previo). Rojo eleva, petróleo reduce. Es asociación del modelo, no causalidad. |
-| Influencia (Grad-CAM) | Con la capa Grad-CAM del mapa, qué celdas pesan en la estimación de la zona elegida. |
+| Qué impulsa la estimación | Cuánto cambia la estimación si cada grupo de variables (población, transporte, comercio, infraestructura peatonal, vías arteriales, atropellos del año previo) se reemplaza por el promedio de Lima. Rojo eleva, petróleo reduce. Es asociación del modelo, no causalidad. |
+| Influencia (Grad-CAM) | Con la capa Grad-CAM del mapa, qué celdas pesan en la estimación de la zona elegida (la más influyente vale 100 %). Disponible para los 43 distritos y las 400 celdas de mayor riesgo de 2024. |
 | Simular contexto del distrito | Elija una variable y mueva el control (de 0 a 2 veces su valor actual): se muestra cómo cambia el riesgo estimado del distrito. Los escenarios se calcularon fuera de línea; no son recomendaciones. |
 | Calles con más atropellos | Las cinco calles del distrito con más eventos registrados; *Ver vías críticas* abre la vista de calles. |
-| Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. |
+| Procedencia y limitaciones | Corrida, dataset, fuentes del periodo y limitaciones. Cada sección indica también su fuente. |
 
 ## 3. Pronóstico
 
 La vista *Pronóstico* permite elegir 2025, 2026 o 2027, por distrito o celda, tipo de día y franja.
-Los pesos y el contexto de 2024 se mantienen fijos; 2026 y 2027 usan las proyecciones previas como entrada.
-La tabla compara cada horizonte con el año inmediatamente anterior, no siempre con 2024. El rango muestra
-el mínimo y máximo entre los cinco miembros del ensamble, no un intervalo de confianza. El error puede
-acumularse y no hay validación observada de los horizontes proyectados. La evaluación independiente
-de un año en ONSV 2024 (fatales) se muestra por separado. Es un insumo de planificación, no una alerta en tiempo real.
+El modelo v5 se entrenó con todos los años observados (hasta 2024) y el contexto queda fijo en 2024; 2026 y 2027
+usan las proyecciones previas como entrada. La tabla compara cada horizonte con el año inmediatamente anterior.
+El rango muestra el mínimo y máximo entre los cinco miembros del ensamble, no un intervalo de confianza.
+Los atropellos esperados están en la escala de registro del censo de comisarías: no son el total real de Lima.
+
+El bloque *Fiabilidad* resume la evaluación fuera de muestra: primero todas las severidades (CENACOM 2017) y
+luego los siniestros fatales (ONSV 2024), además del ensayo a tres años con años conocidos (2021 a 2024), en el
+que la red mantuvo su ventaja sobre el promedio histórico. No existe validación observada de 2026 y 2027.
+Es un insumo de planificación, no una alerta en tiempo real.
 
 ## 4. Vías críticas
 
@@ -108,21 +123,25 @@ vista, filtros y unidad seleccionada: copie el enlace para compartir la misma co
 
 ## 7. Modelo
 
-Muestra cómo está construida y cómo se evaluó la red publicada:
+Documento técnico con índice lateral y secciones numeradas. Cada tabla y figura indica el archivo del repositorio
+del que proviene, y al final hay referencias académicas:
 
-- arquitectura (entrada, parte espacial, parte temporal, salida y vínculo con cada fuente);
-- particiones de entrenamiento, validación y prueba por año y fuente;
-- curvas de entrenamiento por época;
-- benchmark en la prueba independiente frente al promedio histórico y otras arquitecturas, con la mejora relativa
-  (M-05);
-- errores del nivel alto: zonas críticas detectadas, falsos negativos y falsos positivos del modelo y del promedio
-  histórico;
-- búsqueda de configuración, variables de entrada, ficha técnica y huella SHA-256 de los pesos.
+- resumen con la priorización de celdas en los años de prueba;
+- datos y años con que entrena la versión publicada (v5 usa todos los años observados, por eso sus valores
+  2011 a 2024 son reconstrucciones; la evaluación proviene de redes entrenadas sin el año evaluado);
+- arquitectura (entrada, ConvLSTM, cabeza y operador de observación), configuración y curva de entrenamiento;
+- evaluación fuera de muestra frente al promedio histórico: precisión promedio (medida principal de M-05 según
+  D-17), AUC, captura en el 10 y 20 % de celdas, estrato de ubicación precisa, error por distrito y correlación
+  de rangos, incluidas las medidas desfavorables;
+- pronóstico a uno, dos y tres años con años conocidos, y ablación de cada componente;
+- cómo se explica la red (Grad-CAM, atribución por grupos y simulación de contexto), variables de entrada y
+  reproducibilidad (commit, huella SHA-256 de los pesos y M-04).
 
 ## 8. Metodología y fuentes
 
-Qué representa cada componente, cómo se obtiene, las fuentes (incluidas las no incorporadas y por qué), las
-variables por grupo (ocurrencia, severidad, exposición y contexto) y las limitaciones.
+Documento técnico con lo que muestra el mapa, la lectura de los niveles, el proceso (cada paso enlaza al
+código que lo implementa), las fuentes incorporadas y las evaluadas no incorporadas con su motivo, las variables
+por grupo con su periodo de referencia y las limitaciones.
 
 ## 9. Buenas prácticas de interpretación
 

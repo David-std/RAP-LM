@@ -235,6 +235,49 @@ def _es_int(n: int) -> str:
     return f"{n:,}".replace(",", ".")
 
 
+def v5_section(ev: dict) -> list[str]:
+    """Out-of-sample evaluation of the published procedure (D-17, D-18)."""
+    tests = sorted(ev["tests"], key=lambda t: t["family"] != "cenacom")
+    rows = [
+        ("Precisión promedio celda-año (principal, D-17)", lambda s: s["all_located"]["average_precision"], 3),
+        ("AUC celda-año", lambda s: s["all_located"]["auc"], 3),
+        ("Captura en el 10 % de celdas", lambda s: s["all_located"]["capture_top10"] * 100, 1),
+        ("Captura en el 20 % de celdas", lambda s: s["all_located"]["capture_top20"] * 100, 1),
+        ("MAE distrito × franja", lambda s: s["district"]["mae"], 3),
+    ]
+    head = " | ".join(f"{t['family'].upper()} {t['year']} red | histórico" for t in tests)
+    L = [
+        "### 3.6. Iteración v5 y metodología de evaluación (D-17, D-18)",
+        "",
+        "La investigación de `docs/ml/performance-v10.md` corrigió la evaluación (empates agrupados, estratos por "
+        "precisión geográfica, normalización con años de entrenamiento y pliegues que no evalúan el año de "
+        "detención), comparó memoria multihorizonte, una CNN-RNN de dos cabezales y un piloto de transferencia "
+        "desde diez ciudades, y seleccionó la arquitectura publicada. La v5 la reentrena con todos los años "
+        "observados (D-18). Cada cifra proviene de una red entrenada sin el año evaluado; 2017 y 2024 se "
+        "consultaron en iteraciones previas.",
+        "",
+        f"| Medida | {head} |",
+        "|---|" + "---:|---:|" * len(tests),
+    ]
+    for label, get, d in rows:
+        cells = " | ".join(f"{_es(get(t['model']), d)} | {_es(get(t['historical']), d)}" for t in tests)
+        L.append(f"| {label} | {cells} |")
+    abl = {a["arm"]: a for a in ev["ablation"]}
+    L += [
+        "",
+        "Ablación (CENACOM 2016, todas las severidades): precisión promedio de la red completa "
+        f"{_es(abl['C0']['cenacom_2016']['average_precision'], 3)}; sin recurrencia "
+        f"{_es(abl['A_cnn']['cenacom_2016']['average_precision'], 3)}; sin convolución espacial "
+        f"{_es(abl['A_rnn']['cenacom_2016']['average_precision'], 3)}; sin contexto urbano "
+        f"{_es(abl['A_noctx']['cenacom_2016']['average_precision'], 3)}. Horizontes encadenados en ONSV: "
+        "la red mantiene un AUC de 0,92 a 0,93 hasta tres años después del último año observado "
+        "(`evidence/benchmarking/performance-v14`). El piloto de transferencia no cumplió la regla de "
+        "adopción (`evidence/benchmarking/performance-v13`).",
+        "",
+    ]
+    return L
+
+
 def main() -> None:
     v1 = load("fused-cnnlstm-2026.11-r1.metrics.json")
     v1b = load("fused-cnnlstm-backtest-2017.metrics.json")
@@ -246,6 +289,7 @@ def main() -> None:
     v4 = load("fused-cnnlstm-2026.11-v4.metrics.json")
     v4b = load("fused-cnnlstm-backtest-2017-v4.metrics.json")
     v4x = load("fused-cnnlstm-2026.11-v4-exclude-station.metrics.json")
+    v5ev = load("fused-cnnlstm-2026.11-v5.evaluation.json")
     devices = load("device_comparison.json")
     spatial = load("spatial_units.json")
     dataset = (
@@ -380,8 +424,9 @@ def main() -> None:
         "",
         "Se publica el candidato CNN-RNN con menor error de validación, como exige el plan (la arquitectura "
         "comprometida es CNN-RNN). El GLM y el promedio histórico quedan como referencia permanente en la vista "
-        "*Modelo* de la aplicación.",
+        "*Modelo* de la aplicación. La versión publicada es la v5 (sección 3.6).",
         "",
+        *(v5_section(v5ev) if v5ev else []),
         "## 4. Benchmarking de la unidad espacial",
         "",
         "### 4.1. Propuestas y criterios",
@@ -454,11 +499,13 @@ def main() -> None:
         "",
         "## 6. Conclusiones",
         "",
-        "1. La red CNN-RNN aporta principalmente en **detectar zonas y franjas de riesgo alto** (recall) y en el "
-        "ajuste por celda; en el total por distrito, los modelos simples siguen siendo competitivos, lo que se "
-        "reporta sin ocultarlo.",
-        "2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a más de "
-        "nueve mil ubicados bajo el nivel de distrito, de todas las severidades.",
+        "1. La red CNN-RNN aporta principalmente en **priorizar celdas de riesgo**: sin combinarse con el promedio "
+        "histórico lo supera en precisión promedio, AUC y captura en los dos años de prueba (D-17). En el error "
+        "por distrito, el promedio histórico sigue siendo competitivo y gana en 2017, lo que se reporta sin "
+        "ocultarlo. El contexto urbano es el componente que más aporta a la priorización.",
+        "2. La fusión de fuentes y la ubicación por calles permiten pasar de 817 eventos con coordenadas a 3 887 "
+        "ubicados bajo el nivel de distrito, de todas las severidades; los ubicados solo por la comisaría quedan "
+        "a nivel distrital (D-14).",
         "3. La combinación malla + corredor + distrito responde a la causa C3 del plan sin perder comparabilidad.",
         "4. El proceso es reproducible: al reentrenar con la misma configuración se obtienen los mismos valores (M-04).",
         "",
