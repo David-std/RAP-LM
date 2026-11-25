@@ -473,3 +473,7 @@ button.brand { border: 0; background: none; color: inherit; cursor: pointer; pad
 .doc-refs a { word-break: break-all; font-family: var(--font); font-size: 12.5px; }
 .step-src { margin-left: 4px; font-size: 11px; color: var(--muted) !important; }
 .step-src code { font-size: 11px; background: none !important; border: 0 !important; padding: 0 !important; color: var(--muted); }
+.topbar-meta { flex: none; display: flex; align-items: center; gap: 14px; font-size: 12px; color: #a9aab0; white-space: nowrap; }
+.topbar-link { display: inline-flex; align-items: center; gap: 6px; color: #c4c5ca; text-decoration: none; border: 1px solid #3a3d44; border-radius: 6px; padding: 4px 9px; }
+.topbar-link:hover { color: #fff; border-color: #6b6e75; }
+@media (max-width: 1280px) { .topbar-meta > span { display: none; } }

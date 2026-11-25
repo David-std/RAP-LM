@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page) {
   await page.goto("/");
-  await expect(page.getByText(/Modelo v\d+, dataset|Datos de ejemplo/)).toBeVisible();
+  await expect(page.getByText(/Dataset v[\d.]+, corrida|Datos de ejemplo/)).toBeVisible();
   await expect(page.locator(".leaflet-overlay-pane path").first()).toBeAttached();
 }
 
