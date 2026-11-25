@@ -24,6 +24,7 @@ def main() -> None:
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--prioritisation", type=Path)
     ap.add_argument("--noise-ceiling", type=Path)
+    ap.add_argument("--evaluation", type=Path)
     args = ap.parse_args()
     card_path = args.run / "explanations" / "card.json"
     card = json.loads(card_path.read_text(encoding="utf-8"))

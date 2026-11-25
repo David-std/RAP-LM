@@ -268,6 +268,7 @@ def main() -> None:
         # Scale-free prioritisation and noise ceiling of the test years (optional).
         "prioritisation": _optional_json(args.run / "prioritisation.json"),
         "noise_ceiling": _optional_json(args.run / "noise_ceiling.json"),
+        "evaluation": _optional_json(args.run / "evaluation.json"),
     }
     (out / "card.json").write_text(json.dumps(card), encoding="utf-8")
     print("explanations written to", out)
