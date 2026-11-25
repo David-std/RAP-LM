@@ -1,0 +1,214 @@
+{
+  "D2b": {
+    "historical": {
+      "district": {
+        "mae": 1.8633720874786377,
+        "deviance": 1.717841386795044,
+        "spearman": 0.952431289640592,
+        "capture_top20": 0.5154133333333333
+      },
+      "all_located": {
+        "auc": 0.9510408011705797,
+        "average_precision": 0.8553305930085464,
+        "capture_top5": 0.5442785888187835,
+        "capture_top10": 0.7526225766148829,
+        "capture_top20": 0.9261368022051139,
+        "positives": 443,
+        "mass": 1125.999993
+      },
+      "precise": {
+        "auc": 0.9295860079126259,
+        "average_precision": 0.35047813589448795,
+        "capture_top5": 0.5827338129496403,
+        "capture_top10": 0.7834532374100722,
+        "capture_top20": 0.935251798561151,
+        "positives": 98,
+        "mass": 139.0
+      }
+    },
+    "A_lima_reduced": {
+      "district": {
+        "mae": 1.8918410539627075,
+        "deviance": 1.3558485507965088,
+        "spearman": 0.9519782543038355,
+        "capture_top20": 0.5240533333333334
+      },
+      "all_located": {
+        "auc": 0.9564589598605893,
+        "average_precision": 0.7989919605339495,
+        "capture_top5": 0.4417404264584219,
+        "capture_top10": 0.7009333627944349,
+        "capture_top20": 0.899083978946348,
+        "positives": 443,
+        "mass": 1125.999993
+      },
+      "precise": {
+        "auc": 0.939369321452251,
+        "average_precision": 0.3001635493035966,
+        "capture_top5": 0.5179856115107914,
+        "capture_top10": 0.7841726618705036,
+        "capture_top20": 0.9424460431654677,
+        "positives": 98,
+        "mass": 139.0
+      }
+    },
+    "B_transfer_reduced": {
+      "district": {
+        "mae": 2.0060629844665527,
+        "deviance": 1.6281299591064453,
+        "spearman": 0.9198127453941407,
+        "capture_top20": 0.5163733333333334
+      },
+      "all_located": {
+        "auc": 0.9611491827265976,
+        "average_precision": 0.8186692494125428,
+        "capture_top5": 0.4839262404418151,
+        "capture_top10": 0.7106464902970919,
+        "capture_top20": 0.9097710241282392,
+        "positives": 443,
+        "mass": 1125.999993
+      },
+      "precise": {
+        "auc": 0.9408483850519858,
+        "average_precision": 0.30130831178963774,
+        "capture_top5": 0.5179856115107914,
+        "capture_top10": 0.7913669064748201,
+        "capture_top20": 0.9640287769784173,
+        "positives": 98,
+        "mass": 139.0
+      }
+    },
+    "C0_full_inputs": {
+      "district": {
+        "mae": 1.7141996622085571,
+        "deviance": 1.1779425144195557,
+        "spearman": 0.9678344910903051,
+        "capture_top20": 0.5192533333333333
+      },
+      "all_located": {
+        "auc": 0.980572753141521,
+        "average_precision": 0.9034998939370202,
+        "capture_top5": 0.5271518696181732,
+        "capture_top10": 0.7626782673523516,
+        "capture_top20": 0.9501388371678258,
+        "positives": 443,
+        "mass": 1125.999993
+      },
+      "precise": {
+        "auc": 0.9497919839124511,
+        "average_precision": 0.3597064912675025,
+        "capture_top5": 0.5683453237410072,
+        "capture_top10": 0.8129496402877698,
+        "capture_top20": 0.9928057553956835,
+        "positives": 98,
+        "mass": 139.0
+      }
+    }
+  },
+  "D3b": {
+    "historical": {
+      "district": {
+        "mae": 0.6031976938247681,
+        "deviance": 7.269891738891602,
+        "spearman": 0.8005134400483237,
+        "capture_top20": 0.4443965517241379
+      },
+      "all_located": {
+        "auc": 0.7323047128245151,
+        "average_precision": 0.2542974554677682,
+        "capture_top5": 0.3540719166573317,
+        "capture_top10": 0.5564751762411879,
+        "capture_top20": 0.6057557122143893,
+        "positives": 178,
+        "mass": 226.0
+      },
+      "precise": {
+        "auc": 0.7323047128245151,
+        "average_precision": 0.2542974554677682,
+        "capture_top5": 0.3540719166573317,
+        "capture_top10": 0.5564751762411879,
+        "capture_top20": 0.6057557122143893,
+        "positives": 178,
+        "mass": 226.0
+      }
+    },
+    "A_lima_reduced": {
+      "district": {
+        "mae": 0.6600743532180786,
+        "deviance": 1.0804431438446045,
+        "spearman": 0.7357293868921776,
+        "capture_top20": 0.4189655172413793
+      },
+      "all_located": {
+        "auc": 0.8989527974265905,
+        "average_precision": 0.3096192705737928,
+        "capture_top5": 0.25663716814159293,
+        "capture_top10": 0.5265486725663717,
+        "capture_top20": 0.8008849557522124,
+        "positives": 178,
+        "mass": 226.0
+      },
+      "precise": {
+        "auc": 0.8989527974265905,
+        "average_precision": 0.3096192705737928,
+        "capture_top5": 0.25663716814159293,
+        "capture_top10": 0.5265486725663717,
+        "capture_top20": 0.8008849557522124,
+        "positives": 178,
+        "mass": 226.0
+      }
+    },
+    "B_transfer_reduced": {
+      "district": {
+        "mae": 0.6518961787223816,
+        "deviance": 1.11421537399292,
+        "spearman": 0.7751434611899729,
+        "capture_top20": 0.43448275862068964
+      },
+      "all_located": {
+        "auc": 0.9048206004897407,
+        "average_precision": 0.3137819806997421,
+        "capture_top5": 0.26548672566371684,
+        "capture_top10": 0.5442477876106194,
+        "capture_top20": 0.8442477876106198,
+        "positives": 178,
+        "mass": 226.0
+      },
+      "precise": {
+        "auc": 0.9048206004897407,
+        "average_precision": 0.3137819806997421,
+        "capture_top5": 0.26548672566371684,
+        "capture_top10": 0.5442477876106194,
+        "capture_top20": 0.8442477876106198,
+        "positives": 178,
+        "mass": 226.0
+      }
+    },
+    "C0_full_inputs": {
+      "district": {
+        "mae": 0.5717669725418091,
+        "deviance": 1.0838911533355713,
+        "spearman": 0.7931138628813048,
+        "capture_top20": 0.4396551724137931
+      },
+      "all_located": {
+        "auc": 0.9344383467743601,
+        "average_precision": 0.43089919490715817,
+        "capture_top5": 0.415929203539823,
+        "capture_top10": 0.6765486725663719,
+        "capture_top20": 0.911504424778761,
+        "positives": 178,
+        "mass": 226.0
+      },
+      "precise": {
+        "auc": 0.9344383467743601,
+        "average_precision": 0.43089919490715817,
+        "capture_top5": 0.415929203539823,
+        "capture_top10": 0.6765486725663719,
+        "capture_top20": 0.911504424778761,
+        "positives": 178,
+        "mass": 226.0
+      }
+    }
+  }
+}

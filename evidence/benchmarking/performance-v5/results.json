@@ -1,0 +1,511 @@
+{
+  "dataset_manifest_sha256": "1cbaa2eed7a7bc8891d671384687ae28286ac8d4fd20c10b3e1fbec086698869",
+  "dataset_events_sha256": "052b13a1fa355145312562ab47a2b52f71784f85bb7c83fea29df3ed1e2e5852",
+  "published_model": "fused-cnnlstm-2026.11-v4",
+  "device": "CUDA, NVIDIA RTX 4050 Laptop GPU",
+  "torch": "2.14.1+cu130",
+  "seed": 20261122,
+  "test_evaluations": 0,
+  "source_2025": {
+    "url": "https://www.onsv.gob.pe/estaticos/excel/BBDD%20ONSV%20-%20SINIESTROS%20FATALES%202021-2025%20%28preliminar%29.xlsx",
+    "retrieved": "2026-11-24",
+    "sha256": "4b815b6823cd558d55c8343ca0ab13023cbd63ef162c1c99b78e3dea4ae2762d",
+    "matches_existing_snapshot": true,
+    "national_observed_2025_min": "2025-01-01",
+    "national_observed_2025_max": "2025-12-30",
+    "lima_province_observed_2025_min": "2025-01-04",
+    "lima_province_observed_2025_max": "2025-04-02",
+    "interpretation": "Fatal-only; preliminary. Observed date endpoints do not establish complete coverage. No 2025 outcomes used in model selection or evaluation."
+  },
+  "results": [
+    {
+      "fold": "onsv",
+      "arm": "E0",
+      "best_epoch": 127,
+      "epochs": 163,
+      "elapsed": 24.45,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5703631043434143,
+          "cell_mae": 0.015900444239377975,
+          "cell_deviance": 0.06680312752723694,
+          "capture_top10": 0.6814159154891968
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 5.4434
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "onsv",
+      "arm": "E1",
+      "best_epoch": 1,
+      "epochs": 37,
+      "elapsed": 4.94,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 1.1285595893859863,
+          "cell_mae": 0.028061427175998688,
+          "cell_deviance": 0.0906507670879364,
+          "capture_top10": 0.5265486836433411
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": -87.0961
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "onsv",
+      "arm": "E2",
+      "best_epoch": 1,
+      "epochs": 37,
+      "elapsed": 5.25,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 1.126017689704895,
+          "cell_mae": 0.027590058743953705,
+          "cell_deviance": 0.09156548976898193,
+          "capture_top10": 0.5221238732337952
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": -86.6747
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "onsv",
+      "arm": "E3",
+      "best_epoch": 148,
+      "epochs": 184,
+      "elapsed": 28.43,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5820142030715942,
+          "cell_mae": 0.015836672857403755,
+          "cell_deviance": 0.07196865975856781,
+          "capture_top10": 0.5575221180915833
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 3.5119
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "onsv",
+      "arm": "E4",
+      "best_epoch": 98,
+      "epochs": 134,
+      "elapsed": 20.98,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5733742117881775,
+          "cell_mae": 0.014719411730766296,
+          "cell_deviance": 0.07505577802658081,
+          "capture_top10": 0.5884955525398254
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 4.9442
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "E0",
+      "best_epoch": 174,
+      "epochs": 200,
+      "elapsed": 12.41,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7845720052719116,
+          "cell_mae": 0.04782120883464813,
+          "cell_deviance": 0.08654310554265976,
+          "capture_top10": 0.747982382774353
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.2289
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "E1",
+      "best_epoch": 104,
+      "epochs": 140,
+      "elapsed": 8.79,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.811379313468933,
+          "cell_mae": 0.052685465663671494,
+          "cell_deviance": 0.10112110525369644,
+          "capture_top10": 0.7175074815750122
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 2.7903
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "E2",
+      "best_epoch": 123,
+      "epochs": 159,
+      "elapsed": 9.9,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7827354669570923,
+          "cell_mae": 0.05257100611925125,
+          "cell_deviance": 0.10031625628471375,
+          "capture_top10": 0.7176346778869629
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.3275
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "E3",
+      "best_epoch": 102,
+      "epochs": 138,
+      "elapsed": 13.49,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.8039050102233887,
+          "cell_mae": 0.05770442262291908,
+          "cell_deviance": 0.1204269602894783,
+          "capture_top10": 0.6651907563209534
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 3.1914
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "E4",
+      "best_epoch": 47,
+      "epochs": 83,
+      "elapsed": 8.89,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.7841830253601074,
+          "cell_mae": 0.056397441774606705,
+          "cell_deviance": 0.11707989126443863,
+          "capture_top10": 0.7275429964065552
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 4.2498
+      },
+      "code_commit": "d05fb66"
+    },
+    {
+      "fold": "onsv",
+      "arm": "R0",
+      "best_epoch": 75,
+      "epochs": 111,
+      "elapsed": 16.99,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5992031693458557,
+          "cell_mae": 0.01787720061838627,
+          "cell_deviance": 0.06518691778182983,
+          "capture_top10": 0.7035398483276367
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 0.6622
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "onsv",
+      "arm": "R1",
+      "best_epoch": 120,
+      "epochs": 156,
+      "elapsed": 17.54,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5800499320030212,
+          "cell_mae": 0.016731498762965202,
+          "cell_deviance": 0.06618090718984604,
+          "capture_top10": 0.6504424810409546
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 3.8375
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "onsv",
+      "arm": "R2",
+      "best_epoch": 62,
+      "epochs": 98,
+      "elapsed": 11.61,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.6060664057731628,
+          "cell_mae": 0.018022464588284492,
+          "cell_deviance": 0.06515997648239136,
+          "capture_top10": 0.6946902871131897
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": -0.4756
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "R0",
+      "best_epoch": 22,
+      "epochs": 58,
+      "elapsed": 4.52,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 2.0044538974761963,
+          "cell_mae": 0.05337970703840256,
+          "cell_deviance": 0.09958107024431229,
+          "capture_top10": 0.739863395690918
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": -7.5713
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "R1",
+      "best_epoch": 184,
+      "epochs": 200,
+      "elapsed": 12.0,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.8657045364379883,
+          "cell_mae": 0.0480063334107399,
+          "cell_deviance": 0.08526460081338882,
+          "capture_top10": 0.7565807104110718
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": -0.1252
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "R2",
+      "best_epoch": 19,
+      "epochs": 55,
+      "elapsed": 4.4,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.9543312788009644,
+          "cell_mae": 0.05433866009116173,
+          "cell_deviance": 0.09980025142431259,
+          "capture_top10": 0.7409838438034058
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": -4.8814
+      },
+      "code_commit": "7a8e9b8"
+    },
+    {
+      "fold": "onsv",
+      "arm": "N0",
+      "alpha": 0.010498714633286,
+      "epochs": 161,
+      "best_epoch": 125,
+      "elapsed": 24.16,
+      "metrics": {
+        "family": "onsv",
+        "year": 2023,
+        "observed_events": 232.0,
+        "located_events": 226.0,
+        "model": {
+          "district_mae": 0.5738285779953003,
+          "cell_mae": 0.01573110930621624,
+          "cell_deviance": 0.06724008172750473,
+          "capture_top10": 0.6681416034698486
+        },
+        "baseline": {
+          "district_mae": 0.6031976938247681,
+          "cell_mae": 0.016501236706972122,
+          "cell_deviance": 0.11949796974658966,
+          "capture_top10": 0.5486725568771362
+        },
+        "relative_improvement_pct": 4.8689
+      },
+      "code_commit": "6c49de6"
+    },
+    {
+      "fold": "cenacom",
+      "arm": "N0",
+      "alpha": 0.0009541077306494117,
+      "epochs": 200,
+      "best_epoch": 179,
+      "elapsed": 13.49,
+      "metrics": {
+        "family": "cenacom",
+        "year": 2016,
+        "observed_events": 1875.0,
+        "located_events": 1126.0,
+        "model": {
+          "district_mae": 1.814189076423645,
+          "cell_mae": 0.04761939123272896,
+          "cell_deviance": 0.08603692054748535,
+          "capture_top10": 0.755596399307251
+        },
+        "baseline": {
+          "district_mae": 1.8633720874786377,
+          "cell_mae": 0.04525936767458916,
+          "cell_deviance": 0.2560265362262726,
+          "capture_top10": 0.752769947052002
+        },
+        "relative_improvement_pct": 2.6395
+      },
+      "code_commit": "6c49de6"
+    }
+  ],
+  "total_fit_elapsed_seconds": 242.24
+}
