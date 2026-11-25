@@ -1,0 +1,46 @@
+[
+  {
+    "fold": "onsv",
+    "year": 2023,
+    "baseline_mean": 0.6031976938247681,
+    "baseline_median": 0.5755813953488372,
+    "model_mean": 0.5751065721069364,
+    "model_median": 0.5552325581395349,
+    "noise_floor": 0.562041958621524,
+    "max_improvement_pct": 6.822926484065779,
+    "achieved_improvement_pct": 4.657034004840259
+  },
+  {
+    "fold": "onsv",
+    "year": 2024,
+    "baseline_mean": 0.606589138507843,
+    "baseline_median": 0.5813953488372093,
+    "model_mean": 0.5684524439213317,
+    "model_median": 0.5465116279069767,
+    "noise_floor": 0.5659325714134694,
+    "max_improvement_pct": 6.702488474222477,
+    "achieved_improvement_pct": 6.287071786402959
+  },
+  {
+    "fold": "cenacom",
+    "year": 2016,
+    "baseline_mean": 1.8633720874786377,
+    "baseline_median": 1.819767441860465,
+    "model_mean": 1.6907151336562622,
+    "model_median": 1.627906976744186,
+    "noise_floor": 1.5740055710073666,
+    "max_improvement_pct": 15.529185953558965,
+    "achieved_improvement_pct": 9.265833430831341
+  },
+  {
+    "fold": "cenacom",
+    "year": 2017,
+    "baseline_mean": 2.379837989807129,
+    "baseline_median": 2.4040697674418605,
+    "model_mean": 2.4578180139164845,
+    "model_median": 2.497093023255814,
+    "noise_floor": 1.4671370902451033,
+    "max_improvement_pct": 38.351387929394065,
+    "achieved_improvement_pct": -3.276694650784836
+  }
+]

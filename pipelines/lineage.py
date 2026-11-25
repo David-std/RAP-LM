@@ -16,14 +16,25 @@ ROOT = Path(__file__).resolve().parents[1]
 def git_sha(root: Path = ROOT) -> str:
     """Return the checked-out commit SHA, or raise if it cannot be determined."""
     git = root / ".git"
+    common = git
+    if git.is_file():
+        # Linked worktree: .git holds "gitdir: <repo>/.git/worktrees/<name>"; branch refs
+        # and packed-refs live in the common directory named by its "commondir" file.
+        git = (root / git.read_text(encoding="utf-8").split(":", 1)[1].strip()).resolve()
+        commondir = git / "commondir"
+        if commondir.exists():
+            common = (git / commondir.read_text(encoding="utf-8").strip()).resolve()
+        else:
+            common = git
     head = (git / "HEAD").read_text(encoding="utf-8").strip()
     if not head.startswith("ref: "):
         return head  # detached HEAD
     ref = head[5:]
-    loose = git / ref
-    if loose.exists():
-        return loose.read_text(encoding="utf-8").strip()
-    packed = git / "packed-refs"
+    for base in (git, common):
+        loose = base / ref
+        if loose.exists():
+            return loose.read_text(encoding="utf-8").strip()
+    packed = common / "packed-refs"
     if packed.exists():
         for line in packed.read_text(encoding="utf-8").splitlines():
             if line.endswith(" " + ref):

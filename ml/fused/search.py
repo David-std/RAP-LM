@@ -60,11 +60,15 @@ def main() -> None:
         t.X[:, : len(t.context_order)] = 0.0
     split, grid = cfg["split"], cfg["search"]
 
-    # 1. Search on validation only.
+    # 1. Search on validation only (a final refit fixes the configuration instead).
     search = []
-    for variant, hidden, dropout, lr in itertools.product(
-        grid["variants"], grid["hidden"], grid["dropout"], grid["lr"]
-    ):
+    fixed = cfg.get("fixed_config")
+    combos = (
+        []
+        if fixed
+        else itertools.product(grid["variants"], grid["hidden"], grid["dropout"], grid["lr"])
+    )
+    for variant, hidden, dropout, lr in combos:
         run_cfg = cfg | {"hidden": hidden, "dropout": dropout, "lr": lr, "seed": cfg["seed"]}
         model, info = fit(t, run_cfg, variant)
         val_rows = evaluate(t, predict(model, t), split["validation"])
@@ -79,7 +83,11 @@ def main() -> None:
         }
         search.append(row)
         print("search", json.dumps(row), flush=True)
-    best = min(search, key=lambda r: (r["validation_E"], r["validation_nll"]))
+    best = (
+        dict(fixed)
+        if fixed
+        else min(search, key=lambda r: (r["validation_E"], r["validation_nll"]))
+    )
     print("selected", json.dumps(best), flush=True)
 
     # 2. Seed ensemble of the selected configuration.
@@ -118,7 +126,9 @@ def main() -> None:
         "protocol": "docs/ml/benchmark-protocol-v2.md",
         "selected_variant": best["variant"],
         "selected_config": best,
-        "selection_rule": "lowest validation E (district x subperiod MAE); seed ensemble of 5",
+        "selection_rule": cfg.get(
+            "selection_rule", "lowest validation E (district x subperiod MAE); seed ensemble of 5"
+        ),
         "search": search,
         "ensemble_members": histories,
         "validation": val_rows,

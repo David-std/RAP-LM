@@ -106,6 +106,27 @@ def fit(t: Tensors, cfg: dict, variant: str) -> tuple[SpatioTemporalModel, dict]
     val_mask = year_mask(t, cfg["split"]["validation"]).to(device)
     best = (float("inf"), None, 0)
     history = []
+    fixed = cfg.get("fixed_epochs")
+    if fixed:
+        # Final refit (D-17): every observed year trains the network for a training length
+        # fixed beforehand on development folds; no year is held out for early stopping.
+        for epoch in range(fixed):
+            model.train()
+            opt.zero_grad()
+            loss = poisson_nll(model, d, train_mask)
+            loss.backward()
+            opt.step()
+            history.append((epoch, round(loss.item(), 6), None))
+        model = model.cpu()
+        model.eval()
+        return model, {
+            "variant": variant,
+            "best_epoch": fixed - 1,
+            "best_validation_nll": None,
+            "epochs_run": fixed,
+            "history_tail": history[-5:],
+            "history": history,
+        }
     for epoch in range(cfg["max_epochs"]):
         model.train()
         opt.zero_grad()
