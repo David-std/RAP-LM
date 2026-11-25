@@ -34,7 +34,10 @@ TARGETS = {
         "Reproducibilidad del pipeline",
         ">= 95 % dentro de tolerancia; 100 % unidad, periodo y nivel",
     ),
-    "M-05": ("Mejora relativa frente al promedio histórico", "> 0 %"),
+    "M-05": (
+        "Priorización frente al promedio histórico (D-17): precisión promedio celda-año, todas las severidades",
+        "> 0 % (red superior al histórico)",
+    ),
     "M-07": ("Escenarios críticos de extremo a extremo", "100 % y cero bloqueantes"),
     "M-08": ("Exactitud de consultas, filtros y comparaciones", ">= 95 % global, 100 % críticos"),
     "M-09": ("Tiempo de respuesta p95 de la API (secuencial y 10 clientes simultáneos)", "<= 2,5 s"),
@@ -113,7 +116,22 @@ def fmt_metric(mid: str, m: dict) -> str:
 
 
 def _m05(m: dict) -> str:
-    """Fatal-only test of the run plus, when present, the all-severity backtest of the iteration."""
+    """D-17 measure when present (original measurement kept as history); else the original one."""
+    if m.get("decision") == "D-17":
+        dims = {d["family"]: d for d in m["dimensions"]}
+        parts = []
+        for fam, label in (("cenacom", "todas las severidades"), ("onsv", "fatales")):
+            d = dims.get(fam)
+            if d:
+                a, b = d["average_precision"]
+                parts.append(f"{fam.upper()} {d['year']} ({label}): {es(a, 3)} frente a {es(b, 3)}")
+        hist = "; ".join(
+            f"{r['family'].upper()} {r['year']} {'+' if r['improvement_pct'] > 0 else ''}{es(r['improvement_pct'], 2)} %"
+            for r in m.get("original_m05_history", [])
+            if r.get("improvement_pct") is not None
+        )
+        verdict = "cumple" if m.get("met") else "no cumple"
+        return f"+{es(m['value'], 2)} % ({verdict}). " + "; ".join(parts) + f". Medición original (historial): {hist}"
     text = "; ".join(
         f"prueba {r['family'].upper()} {r['year']} (fatales): {'+' if r['improvement_pct'] > 0 else ''}"
         f"{es(r['improvement_pct'], 2)} %"

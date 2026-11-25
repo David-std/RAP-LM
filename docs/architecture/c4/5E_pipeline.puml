@@ -8,8 +8,8 @@ Container_Boundary(p, "Pipeline analítico") {
   Component(s3, "3. Fusión y georreferenciación", "Python, OSM", "Todos los atropellos; ubicación por cruce, tramo de calle o distrito")
   Component(s4, "4. Variables de contexto", "rasterio, osmium", "Exposición y entorno: población, comercio, transporte, veredas, cruces, jerarquía vial")
   Component(s5, "5. Tensores", "NumPy", "Años x variables x malla; entradas causales")
-  Component(s6, "6. Entrenamiento y benchmark", "PyTorch", "ConvLSTM y CNN-LSTM frente a GLM, ablaciones y promedio histórico; ensamble de semillas")
-  Component(s7, "7. Evaluación", "Python", "Prueba posterior al entrenamiento, M-05 y errores del nivel alto")
+  Component(s6, "6. Entrenamiento y benchmark", "PyTorch", "ConvLSTM y CNN-LSTM frente a GLM, ablaciones y promedio histórico; ensamble de semillas; reajuste final (D-18)")
+  Component(s7, "7. Evaluación", "Python", "Evaluación fuera de muestra, M-05 según D-17, horizontes encadenados")
   Component(s8, "8. Exportación y explicaciones", "Python", "Frecuencia, severidad, exposición; serie, influencia, atribución, simulación y corredores")
   Component(s9, "9. Publicación atómica", "psycopg", "Carga, conciliación y cambio del puntero activo")
 }

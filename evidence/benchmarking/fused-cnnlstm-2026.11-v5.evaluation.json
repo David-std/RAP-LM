@@ -1,0 +1,794 @@
+{
+  "protocol": "docs/ml/performance-v10.md",
+  "note": "Models trained without the scored year (fixed 150 epochs); 2017 and 2024 were consulted in earlier iterations.",
+  "tests": [
+    {
+      "family": "cenacom",
+      "year": 2017,
+      "population": "Atropellos de todas las severidades",
+      "model": {
+        "district": {
+          "mae": 2.458564519882202,
+          "deviance": 2.698399066925049,
+          "spearman": 0.9222289338568409,
+          "capture_top20": 0.5392265193370166
+        },
+        "all_located": {
+          "auc": 0.9810497911388208,
+          "average_precision": 0.8975162763619252,
+          "capture_top5": 0.5694076860875429,
+          "capture_top10": 0.7871372648776687,
+          "capture_top20": 0.9495138225148285,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.9565080233022777,
+          "average_precision": 0.419050578630779,
+          "capture_top5": 0.6193661971830987,
+          "capture_top10": 0.852112676056338,
+          "capture_top20": 0.9788732394366197,
+          "positives": 102
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 2.379837989807129,
+          "deviance": 2.815444231033325,
+          "spearman": 0.9361220175173662,
+          "capture_top20": 0.5281767955801104
+        },
+        "all_located": {
+          "auc": 0.9759272170528773,
+          "average_precision": 0.8865509873647599,
+          "capture_top5": 0.5497264604116839,
+          "capture_top10": 0.7833334555673012,
+          "capture_top20": 0.9476859685997591,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.9521616297573731,
+          "average_precision": 0.40599439845931534,
+          "capture_top5": 0.5774647887323944,
+          "capture_top10": 0.8098591549295775,
+          "capture_top20": 0.971830985915493,
+          "positives": 102
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "year": 2024,
+      "population": "Siniestros fatales con peat\u00f3n",
+      "model": {
+        "district": {
+          "mae": 0.5692407488822937,
+          "deviance": 0.9351243376731873,
+          "spearman": 0.8169737239504681,
+          "capture_top20": 0.4334763948497854
+        },
+        "all_located": {
+          "auc": 0.9262884883952917,
+          "average_precision": 0.35539332213417846,
+          "capture_top5": 0.39687500000000014,
+          "capture_top10": 0.6830357142857143,
+          "capture_top20": 0.8973214285714286,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.9262884883952917,
+          "average_precision": 0.35539332213417846,
+          "capture_top5": 0.39687500000000014,
+          "capture_top10": 0.6830357142857143,
+          "capture_top20": 0.8973214285714286,
+          "positives": 165
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.606589138507843,
+          "deviance": 4.512814521789551,
+          "spearman": 0.8172757475083057,
+          "capture_top20": 0.49356223175965663
+        },
+        "all_located": {
+          "auc": 0.7850701602713307,
+          "average_precision": 0.294168960522686,
+          "capture_top5": 0.37348710317460315,
+          "capture_top10": 0.6179383116883118,
+          "capture_top20": 0.7138561419118056,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.7850701602713307,
+          "average_precision": 0.294168960522686,
+          "capture_top5": 0.37348710317460315,
+          "capture_top10": 0.6179383116883118,
+          "capture_top20": 0.7138561419118056,
+          "positives": 165
+        }
+      }
+    }
+  ],
+  "horizons": [
+    {
+      "family": "cenacom",
+      "last_observed": 2015,
+      "target": 2016,
+      "horizon": 1,
+      "model": {
+        "district": {
+          "mae": 1.7141846418380737,
+          "deviance": 1.1779526472091675,
+          "spearman": 0.9678344910903051,
+          "capture_top20": 0.5192533333333333
+        },
+        "all_located": {
+          "auc": 0.9805690766979654,
+          "average_precision": 0.9034936833819822,
+          "capture_top5": 0.5271518696181732,
+          "capture_top10": 0.7626782673523516,
+          "capture_top20": 0.9504429153224693,
+          "positives": 443
+        },
+        "precise": {
+          "auc": 0.9497883408986586,
+          "average_precision": 0.3596882054572912,
+          "capture_top5": 0.5683453237410072,
+          "capture_top10": 0.8129496402877698,
+          "capture_top20": 0.9928057553956835,
+          "positives": 98
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 1.8633720874786377,
+          "deviance": 1.717841386795044,
+          "spearman": 0.952431289640592,
+          "capture_top20": 0.5154133333333333
+        },
+        "all_located": {
+          "auc": 0.9510408011705797,
+          "average_precision": 0.8553305930085464,
+          "capture_top5": 0.5442785888187835,
+          "capture_top10": 0.7526225766148829,
+          "capture_top20": 0.9261368022051139,
+          "positives": 443
+        },
+        "precise": {
+          "auc": 0.9295860079126259,
+          "average_precision": 0.35047813589448795,
+          "capture_top5": 0.5827338129496403,
+          "capture_top10": 0.7834532374100722,
+          "capture_top20": 0.935251798561151,
+          "positives": 98
+        }
+      }
+    },
+    {
+      "family": "cenacom",
+      "last_observed": 2015,
+      "target": 2017,
+      "horizon": 2,
+      "model": {
+        "district": {
+          "mae": 2.578803539276123,
+          "deviance": 2.9084784984588623,
+          "spearman": 0.932648746602235,
+          "capture_top20": 0.5429097605893186
+        },
+        "all_located": {
+          "auc": 0.9767520127627342,
+          "average_precision": 0.8805028510708228,
+          "capture_top5": 0.5395072619228484,
+          "capture_top10": 0.7756713723587133,
+          "capture_top20": 0.9438659087608159,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.9527469908235013,
+          "average_precision": 0.40795126033718077,
+          "capture_top5": 0.6119718309859158,
+          "capture_top10": 0.8380281690140845,
+          "capture_top20": 0.971830985915493,
+          "positives": 102
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 2.376420259475708,
+          "deviance": 2.9211411476135254,
+          "spearman": 0.9329507701600724,
+          "capture_top20": 0.5281767955801104
+        },
+        "all_located": {
+          "auc": 0.9523125423197555,
+          "average_precision": 0.8378002364550478,
+          "capture_top5": 0.5242594132648191,
+          "capture_top10": 0.7476351918554657,
+          "capture_top20": 0.9285181491089177,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.9310605901280784,
+          "average_precision": 0.3766035141567033,
+          "capture_top5": 0.5563380281690141,
+          "capture_top10": 0.7887323943661971,
+          "capture_top20": 0.9577464788732394,
+          "positives": 102
+        }
+      }
+    },
+    {
+      "family": "cenacom",
+      "last_observed": 2014,
+      "target": 2015,
+      "horizon": 1,
+      "model": {
+        "district": {
+          "mae": 2.2413229942321777,
+          "deviance": 1.7555491924285889,
+          "spearman": 0.9279673814557534,
+          "capture_top20": 0.48123962368566686
+        },
+        "all_located": {
+          "auc": 0.9202596414475248,
+          "average_precision": 0.6702174165719084,
+          "capture_top5": 0.3720569709978187,
+          "capture_top10": 0.6229684973296512,
+          "capture_top20": 0.8589565014895872,
+          "positives": 425
+        },
+        "precise": {
+          "auc": 0.9361840534733826,
+          "average_precision": 0.2557513069598021,
+          "capture_top5": 0.5955056179775281,
+          "capture_top10": 0.8089887640449438,
+          "capture_top20": 0.9438202247191011,
+          "positives": 59
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 2.1533429622650146,
+          "deviance": 3.137340545654297,
+          "spearman": 0.9243430987617035,
+          "capture_top20": 0.48788046485888215
+        },
+        "all_located": {
+          "auc": 0.5,
+          "average_precision": 0.1466022766471197,
+          "capture_top5": 0.05000000000000001,
+          "capture_top10": 0.10000000000000002,
+          "capture_top20": 0.20000000000000004,
+          "positives": 425
+        },
+        "precise": {
+          "auc": 0.5,
+          "average_precision": 0.020351845463953088,
+          "capture_top5": 0.05,
+          "capture_top10": 0.1,
+          "capture_top20": 0.2,
+          "positives": 59
+        }
+      }
+    },
+    {
+      "family": "cenacom",
+      "last_observed": 2014,
+      "target": 2016,
+      "horizon": 2,
+      "model": {
+        "district": {
+          "mae": 1.94591224193573,
+          "deviance": 1.393314242362976,
+          "spearman": 0.9622470552703111,
+          "capture_top20": 0.5156266666666667
+        },
+        "all_located": {
+          "auc": 0.9252220571907559,
+          "average_precision": 0.7087687987061502,
+          "capture_top5": 0.38011756226538457,
+          "capture_top10": 0.6086526891301678,
+          "capture_top20": 0.8725823349094817,
+          "positives": 443
+        },
+        "precise": {
+          "auc": 0.923194340213772,
+          "average_precision": 0.2598679628701384,
+          "capture_top5": 0.39568345323741005,
+          "capture_top10": 0.6906474820143885,
+          "capture_top20": 0.8992805755395683,
+          "positives": 98
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 1.9425872564315796,
+          "deviance": 2.29386830329895,
+          "spearman": 0.9423135004530352,
+          "capture_top20": 0.5117866666666667
+        },
+        "all_located": {
+          "auc": 0.5,
+          "average_precision": 0.15281131424629182,
+          "capture_top5": 0.05,
+          "capture_top10": 0.1,
+          "capture_top20": 0.2,
+          "positives": 443
+        },
+        "precise": {
+          "auc": 0.5,
+          "average_precision": 0.03380476026215937,
+          "capture_top5": 0.05000000000000001,
+          "capture_top10": 0.10000000000000002,
+          "capture_top20": 0.20000000000000004,
+          "positives": 98
+        }
+      }
+    },
+    {
+      "family": "cenacom",
+      "last_observed": 2014,
+      "target": 2017,
+      "horizon": 3,
+      "model": {
+        "district": {
+          "mae": 2.2895729541778564,
+          "deviance": 2.2394704818725586,
+          "spearman": 0.9385382059800665,
+          "capture_top20": 0.5262124002455494
+        },
+        "all_located": {
+          "auc": 0.9328781050393913,
+          "average_precision": 0.7102979126553377,
+          "capture_top5": 0.4068019169276997,
+          "capture_top10": 0.6503344890070497,
+          "capture_top20": 0.8835979976397421,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.9116174893267998,
+          "average_precision": 0.24557903787788374,
+          "capture_top5": 0.4003521126760567,
+          "capture_top10": 0.7316901408450707,
+          "capture_top20": 0.9295774647887324,
+          "positives": 102
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 2.343916177749634,
+          "deviance": 3.311495065689087,
+          "spearman": 0.9254001812141347,
+          "capture_top20": 0.5240024554941682
+        },
+        "all_located": {
+          "auc": 0.5,
+          "average_precision": 0.1372887202483615,
+          "capture_top5": 0.05,
+          "capture_top10": 0.1,
+          "capture_top20": 0.2,
+          "positives": 398
+        },
+        "precise": {
+          "auc": 0.5,
+          "average_precision": 0.03518454639530873,
+          "capture_top5": 0.05,
+          "capture_top10": 0.1,
+          "capture_top20": 0.2,
+          "positives": 102
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2023,
+      "target": 2024,
+      "horizon": 1,
+      "model": {
+        "district": {
+          "mae": 0.5691969394683838,
+          "deviance": 0.9351385235786438,
+          "spearman": 0.8169737239504681,
+          "capture_top20": 0.4334763948497854
+        },
+        "all_located": {
+          "auc": 0.9262884883952917,
+          "average_precision": 0.35541645059663546,
+          "capture_top5": 0.39687500000000014,
+          "capture_top10": 0.6830357142857143,
+          "capture_top20": 0.8973214285714286,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.9262884883952917,
+          "average_precision": 0.35541645059663546,
+          "capture_top5": 0.39687500000000014,
+          "capture_top10": 0.6830357142857143,
+          "capture_top20": 0.8973214285714286,
+          "positives": 165
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.606589138507843,
+          "deviance": 4.512814521789551,
+          "spearman": 0.8172757475083057,
+          "capture_top20": 0.49356223175965663
+        },
+        "all_located": {
+          "auc": 0.7850701602713307,
+          "average_precision": 0.294168960522686,
+          "capture_top5": 0.37348710317460315,
+          "capture_top10": 0.6179383116883118,
+          "capture_top20": 0.7138561419118056,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.7850701602713307,
+          "average_precision": 0.294168960522686,
+          "capture_top5": 0.37348710317460315,
+          "capture_top10": 0.6179383116883118,
+          "capture_top20": 0.7138561419118056,
+          "positives": 165
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2022,
+      "target": 2023,
+      "horizon": 1,
+      "model": {
+        "district": {
+          "mae": 0.5715295672416687,
+          "deviance": 1.0931683778762817,
+          "spearman": 0.8033826638477801,
+          "capture_top20": 0.4396551724137931
+        },
+        "all_located": {
+          "auc": 0.9347810826323766,
+          "average_precision": 0.4307616987375173,
+          "capture_top5": 0.39778761061946916,
+          "capture_top10": 0.6592920353982301,
+          "capture_top20": 0.915929203539823,
+          "positives": 178
+        },
+        "precise": {
+          "auc": 0.9347810826323766,
+          "average_precision": 0.4307616987375173,
+          "capture_top5": 0.39778761061946916,
+          "capture_top10": 0.6592920353982301,
+          "capture_top20": 0.915929203539823,
+          "positives": 178
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.6031976938247681,
+          "deviance": 7.269891738891602,
+          "spearman": 0.8005134400483237,
+          "capture_top20": 0.4443965517241379
+        },
+        "all_located": {
+          "auc": 0.7323047128245151,
+          "average_precision": 0.2542974554677682,
+          "capture_top5": 0.3540719166573317,
+          "capture_top10": 0.5564751762411879,
+          "capture_top20": 0.6057557122143893,
+          "positives": 178
+        },
+        "precise": {
+          "auc": 0.7323047128245151,
+          "average_precision": 0.2542974554677682,
+          "capture_top5": 0.3540719166573317,
+          "capture_top10": 0.5564751762411879,
+          "capture_top20": 0.6057557122143893,
+          "positives": 178
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2022,
+      "target": 2024,
+      "horizon": 2,
+      "model": {
+        "district": {
+          "mae": 0.5630653500556946,
+          "deviance": 1.0556670427322388,
+          "spearman": 0.8041377227423738,
+          "capture_top20": 0.4317596566523605
+        },
+        "all_located": {
+          "auc": 0.9263749418102015,
+          "average_precision": 0.3707479620112431,
+          "capture_top5": 0.41964285714285715,
+          "capture_top10": 0.65625,
+          "capture_top20": 0.9241071428571429,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.9263749418102015,
+          "average_precision": 0.3707479620112431,
+          "capture_top5": 0.41964285714285715,
+          "capture_top10": 0.65625,
+          "capture_top20": 0.9241071428571429,
+          "positives": 165
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.6061046719551086,
+          "deviance": 7.994185924530029,
+          "spearman": 0.7798248263364542,
+          "capture_top20": 0.48068669527896996
+        },
+        "all_located": {
+          "auc": 0.7241947640265124,
+          "average_precision": 0.23960694027095356,
+          "capture_top5": 0.36873869801084996,
+          "capture_top10": 0.5569022397094431,
+          "capture_top20": 0.6061353241861717,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.7241947640265124,
+          "average_precision": 0.23960694027095356,
+          "capture_top5": 0.36873869801084996,
+          "capture_top10": 0.5569022397094431,
+          "capture_top20": 0.6061353241861717,
+          "positives": 165
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2021,
+      "target": 2022,
+      "horizon": 1,
+      "model": {
+        "district": {
+          "mae": 0.5776053071022034,
+          "deviance": 1.0114200115203857,
+          "spearman": 0.8278465720326185,
+          "capture_top20": 0.46565656565656566
+        },
+        "all_located": {
+          "auc": 0.9299978709814776,
+          "average_precision": 0.3519131783977396,
+          "capture_top5": 0.404871794871795,
+          "capture_top10": 0.6153846153846154,
+          "capture_top20": 0.9282051282051282,
+          "positives": 154
+        },
+        "precise": {
+          "auc": 0.9299978709814776,
+          "average_precision": 0.3519131783977396,
+          "capture_top5": 0.404871794871795,
+          "capture_top10": 0.6153846153846154,
+          "capture_top20": 0.9282051282051282,
+          "positives": 154
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.6424418687820435,
+          "deviance": 10.387505531311035,
+          "spearman": 0.8166717003926307,
+          "capture_top20": 0.4444444444444444
+        },
+        "all_located": {
+          "auc": 0.6497149480756038,
+          "average_precision": 0.1700625130999141,
+          "capture_top5": 0.3701341551849166,
+          "capture_top10": 0.4032849891225526,
+          "capture_top20": 0.4695866569978246,
+          "positives": 154
+        },
+        "precise": {
+          "auc": 0.6497149480756038,
+          "average_precision": 0.1700625130999141,
+          "capture_top5": 0.3701341551849166,
+          "capture_top10": 0.4032849891225526,
+          "capture_top20": 0.4695866569978246,
+          "positives": 154
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2021,
+      "target": 2023,
+      "horizon": 2,
+      "model": {
+        "district": {
+          "mae": 0.6072391271591187,
+          "deviance": 1.1164402961730957,
+          "spearman": 0.7721232256115976,
+          "capture_top20": 0.4482758620689655
+        },
+        "all_located": {
+          "auc": 0.9277570622168816,
+          "average_precision": 0.3724787671266835,
+          "capture_top5": 0.37168141592920356,
+          "capture_top10": 0.6061946902654868,
+          "capture_top20": 0.915929203539823,
+          "positives": 178
+        },
+        "precise": {
+          "auc": 0.9277570622168816,
+          "average_precision": 0.3724787671266835,
+          "capture_top5": 0.37168141592920356,
+          "capture_top10": 0.6061946902654868,
+          "capture_top20": 0.915929203539823,
+          "positives": 178
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.6773256063461304,
+          "deviance": 13.685413360595703,
+          "spearman": 0.7260646330413771,
+          "capture_top20": 0.41810344827586204
+        },
+        "all_located": {
+          "auc": 0.6361993070954581,
+          "average_precision": 0.16743433550697953,
+          "capture_top5": 0.32839687602276885,
+          "capture_top10": 0.3637444088636757,
+          "capture_top20": 0.4344394745454896,
+          "positives": 178
+        },
+        "precise": {
+          "auc": 0.6361993070954581,
+          "average_precision": 0.16743433550697953,
+          "capture_top5": 0.32839687602276885,
+          "capture_top10": 0.3637444088636757,
+          "capture_top20": 0.4344394745454896,
+          "positives": 178
+        }
+      }
+    },
+    {
+      "family": "onsv",
+      "last_observed": 2021,
+      "target": 2024,
+      "horizon": 3,
+      "model": {
+        "district": {
+          "mae": 0.5790426731109619,
+          "deviance": 1.0846976041793823,
+          "spearman": 0.7909996979764422,
+          "capture_top20": 0.42231759656652357
+        },
+        "all_located": {
+          "auc": 0.9224446365631442,
+          "average_precision": 0.3476904314348392,
+          "capture_top5": 0.375,
+          "capture_top10": 0.6383928571428571,
+          "capture_top20": 0.9107142857142857,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.9224446365631442,
+          "average_precision": 0.3476904314348392,
+          "capture_top5": 0.375,
+          "capture_top10": 0.6383928571428571,
+          "capture_top20": 0.9107142857142857,
+          "positives": 165
+        }
+      },
+      "historical": {
+        "district": {
+          "mae": 0.6860465407371521,
+          "deviance": 14.27822208404541,
+          "spearman": 0.7206282090003019,
+          "capture_top20": 0.4334763948497854
+        },
+        "all_located": {
+          "auc": 0.6385970162488085,
+          "average_precision": 0.16670623877283547,
+          "capture_top5": 0.35360566339479954,
+          "capture_top10": 0.387626417952968,
+          "capture_top20": 0.4556679270693049,
+          "positives": 165
+        },
+        "precise": {
+          "auc": 0.6385970162488085,
+          "average_precision": 0.16670623877283547,
+          "capture_top5": 0.35360566339479954,
+          "capture_top10": 0.387626417952968,
+          "capture_top20": 0.4556679270693049,
+          "positives": 165
+        }
+      }
+    }
+  ],
+  "ablation": [
+    {
+      "arm": "historical",
+      "label": "Promedio hist\u00f3rico",
+      "cenacom_2016": {
+        "mae": 1.8633720874786377,
+        "average_precision": 0.8553305930085464,
+        "auc": 0.9510408011705797
+      },
+      "onsv_2023": {
+        "mae": 0.6031976938247681,
+        "average_precision": 0.2542974554677682,
+        "auc": 0.7323047128245151
+      }
+    },
+    {
+      "arm": "C0",
+      "label": "Red completa",
+      "cenacom_2016": {
+        "mae": 1.7141996622085571,
+        "average_precision": 0.9034998939370202,
+        "auc": 0.980572753141521
+      },
+      "onsv_2023": {
+        "mae": 0.5717669725418091,
+        "average_precision": 0.43089919490715817,
+        "auc": 0.9344383467743601
+      }
+    },
+    {
+      "arm": "A_cnn",
+      "label": "Sin recurrencia",
+      "cenacom_2016": {
+        "mae": 1.8632817268371582,
+        "average_precision": 0.8498525827821682,
+        "auc": 0.9666546569510518
+      },
+      "onsv_2023": {
+        "mae": 0.6056016683578491,
+        "average_precision": 0.34282978599872616,
+        "auc": 0.919556177710607
+      }
+    },
+    {
+      "arm": "A_rnn",
+      "label": "Sin convoluci\u00f3n espacial",
+      "cenacom_2016": {
+        "mae": 2.109419822692871,
+        "average_precision": 0.857535063087487,
+        "auc": 0.9730406394070632
+      },
+      "onsv_2023": {
+        "mae": 0.6089145541191101,
+        "average_precision": 0.3520209718444632,
+        "auc": 0.9243069922244384
+      }
+    },
+    {
+      "arm": "A_noctx",
+      "label": "Sin contexto urbano",
+      "cenacom_2016": {
+        "mae": 1.876244306564331,
+        "average_precision": 0.729090085238422,
+        "auc": 0.9221292490496393
+      },
+      "onsv_2023": {
+        "mae": 0.6251952052116394,
+        "average_precision": 0.3685907165568322,
+        "auc": 0.9046636852776367
+      }
+    },
+    {
+      "arm": "A_nohist",
+      "label": "Sin historial del a\u00f1o anterior",
+      "cenacom_2016": {
+        "mae": 1.7173175811767578,
+        "average_precision": 0.9025964237748744,
+        "auc": 0.9801187123624091
+      },
+      "onsv_2023": {
+        "mae": 0.5971981287002563,
+        "average_precision": 0.39196124255182596,
+        "auc": 0.9331623783390938
+      }
+    }
+  ]
+}

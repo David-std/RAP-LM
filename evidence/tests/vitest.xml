@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="10" failures="0" errors="0" time="0.0303005">
-    <testsuite name="src/__tests__/client.test.ts" timestamp="2026-11-24T00:28:34.032Z" hostname="ASUS_ROG_STRIX" tests="3" failures="0" errors="0" skipped="0" time="0.0064538">
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; serialises filters as comma-separated lists and skips empty ones" time="0.0043738">
+<testsuites name="vitest tests" tests="10" failures="0" errors="0" time="0.0316833">
+    <testsuite name="src/__tests__/client.test.ts" timestamp="2026-11-25T04:08:47.733Z" hostname="ASUS_ROG_STRIX" tests="3" failures="0" errors="0" skipped="0" time="0.0073049">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; serialises filters as comma-separated lists and skips empty ones" time="0.0051715">
         </testcase>
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; raises the contract error code" time="0.0012029">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; raises the contract error code" time="0.0012004">
         </testcase>
-        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; forwards the abort signal so stale period requests are cancelled" time="0.0003372">
-        </testcase>
-    </testsuite>
-    <testsuite name="src/__tests__/heatSurface.test.ts" timestamp="2026-11-24T00:28:34.038Z" hostname="ASUS_ROG_STRIX" tests="3" failures="0" errors="0" skipped="0" time="0.0219254">
-        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; preserves peaks and zero values at cell centres without adding intensity" time="0.0203544">
-        </testcase>
-        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; fades low weights and keeps higher values visible" time="0.0002045">
-        </testcase>
-        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; uses identical sorted gradient stops in the raster and legend" time="0.0007204">
+        <testcase classname="src/__tests__/client.test.ts" name="api client &gt; forwards the abort signal so stale period requests are cancelled" time="0.0003827">
         </testcase>
     </testsuite>
-    <testsuite name="src/__tests__/levels.test.ts" timestamp="2026-11-24T00:28:34.039Z" hostname="ASUS_ROG_STRIX" tests="4" failures="0" errors="0" skipped="0" time="0.0019213">
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; splits the three API levels into six ordered classes" time="0.0009644">
+    <testsuite name="src/__tests__/heatSurface.test.ts" timestamp="2026-11-25T04:08:47.743Z" hostname="ASUS_ROG_STRIX" tests="3" failures="0" errors="0" skipped="0" time="0.0224515">
+        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; preserves peaks and zero values at cell centres without adding intensity" time="0.0209213">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; colours by the level cut points of the API, not hard-coded ones" time="0.0002055">
+        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; fades low weights and keeps higher values visible" time="0.0001982">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; never colours a missing result as low risk" time="0.0000787">
+        <testcase classname="src/__tests__/heatSurface.test.ts" name="continuous heat surface &gt; uses identical sorted gradient stops in the raster and legend" time="0.0007606">
         </testcase>
-        <testcase classname="src/__tests__/levels.test.ts" name="inkOn &gt; uses white text on the dark half of the ramp for contrast" time="0.0000821">
+    </testsuite>
+    <testsuite name="src/__tests__/levels.test.ts" timestamp="2026-11-25T04:08:47.744Z" hostname="ASUS_ROG_STRIX" tests="4" failures="0" errors="0" skipped="0" time="0.0019269">
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; splits the three API levels into six ordered classes" time="0.000925">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; colours by the level cut points of the API, not hard-coded ones" time="0.0002194">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="classBands &gt; never colours a missing result as low risk" time="0.0000846">
+        </testcase>
+        <testcase classname="src/__tests__/levels.test.ts" name="inkOn &gt; uses white text on the dark half of the ramp for contrast" time="0.0000829">
         </testcase>
     </testsuite>
 </testsuites>

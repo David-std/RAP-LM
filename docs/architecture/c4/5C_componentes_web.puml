@@ -10,7 +10,7 @@ Container_Boundary(web, "Aplicación web") {
   Component(corr, "Corredores", "React, Leaflet", "Ranking de calles y curva de concentración")
   Component(comp, "Comparadores", "React", "Zonas en un periodo y una zona entre periodos (RF-05, RF-06)")
   Component(anal, "Análisis", "React", "Ranking, cambio, persistencia, perfil distrital y exportación")
-  Component(modelo, "Modelo", "React, SVG", "Arquitectura, curvas, benchmark, errores del nivel alto y ficha (RM-01 a RM-05)")
+  Component(modelo, "Modelo", "React, SVG", "Documento técnico: arquitectura, evaluación fuera de muestra, horizontes, ablación y fuentes citadas (RM-01 a RM-05)")
   Component(metod, "Metodología y fuentes", "React", "Componentes, fuentes, variables y limitaciones (RF-08)")
 }
 Container_Ext(api, "API de consulta", "FastAPI")
