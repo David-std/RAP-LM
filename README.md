@@ -23,7 +23,8 @@ analytical reference: no real-time prediction and no intervention recommendation
 - **Forecast** for 2025–2027, recursively projected from 2024, with ensemble disagreement and a separate one-year out-of-sample check.
 - **Critical streets** ranked by a smoothed collision rate, with vehicles and recorded factors per street.
 - **Explainability**: Grad-CAM map, variable-group attribution and context what-if.
-- **Model view** with architecture, training curves, benchmark and the full high-level confusion.
+- **Model view** documented as a technical report: architecture, training, out-of-sample evaluation, multi-year
+  horizons, ablation and references, with the repository file behind every table.
 
 | Zone detail | Forecast | Critical streets |
 |---|---|---|
@@ -71,11 +72,12 @@ H=$D/harmonized/RAP-LM-HARMONIZED/data/harmonized_crash_events.csv
 python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --out artifacts/datasets/fused-v1.4.0
 python -m pipelines.fusion --raw $D/raw/RAP-LM-DATA --harmonized $H --station-proxy exclude \
   --out artifacts/datasets/fused-v1.4.0-exclude-station                              # sensitivity arm
-# 2. v4 (published, protocol v2 with amendment A3), trained on the GPU (CUDA environment, see below)
-R=artifacts/runs/fused-cnnlstm-2026.11-v4
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-main.json --out $R
-python -m ml.fused.classification --dataset artifacts/datasets/fused-v1.4.0 --run $R
-#    benchmark arms: all-severity backtest and station sensitivity (not published)
+# 2. v5 (published, D-18): v4 architecture retrained on every observed year, fixed 150 epochs, on the GPU.
+#    Out-of-sample evidence: ml/experiments/v10.py and docs/ml/performance-v10.md
+R=artifacts/runs/fused-cnnlstm-2026.11-v5
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v5-final.json --out $R
+python -m ml.experiments.evaluation_card --out $R/evaluation.json
+#    v4 benchmark arms (kept as history): all-severity backtest and station sensitivity
 python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-backtest-2017.json \
   --out artifacts/runs/fused-cnnlstm-backtest-2017-v4
 python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0-exclude-station \
@@ -85,6 +87,7 @@ python -m ml.fused.export --dataset artifacts/datasets/fused-v1.4.0 --run $R
 python -m ml.fused.explain --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
 python -m ml.fused.saliency --dataset artifacts/datasets/fused-v1.4.0 --run $R --device cuda
 python -m ml.fused.forecast --dataset artifacts/datasets/fused-v1.4.0 --run $R --steps 3
+python -m ml.fused.card_refresh --run $R --evaluation $R/evaluation.json
 python -m pipelines.fusion.corridors --dataset artifacts/datasets/fused-v1.4.0 --harmonized $H \
   --boundary $D/raw/RAP-LM-DATA/geography/boundaries/lima_43_districts_inei.geojson --results $R/results.csv
 # 4. Publish into PostGIS with the publisher role (atomic), then the analyst layers
@@ -92,11 +95,11 @@ export RAPLM_PUBLISHER_URL=postgresql://raplm_publisher:raplm_publisher_dev@127.
 python -m pipelines.publication.publisher --dataset artifacts/datasets/fused-v1.4.0 --run $R
 python -m pipelines.publication.extras --dataset artifacts/datasets/fused-v1.4.0 --run $R
 # 5. Reproducibility (M-04): retrain into a new folder on the same device and compare
-python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v4-main.json \
-  --out artifacts/runs/fused-cnnlstm-2026.11-v4-repro
+python -m ml.fused.search --dataset artifacts/datasets/fused-v1.4.0 --config ml/configs/v5-final.json \
+  --out artifacts/runs/fused-cnnlstm-2026.11-v5-repro
 ```
 
-Earlier iterations (v1 on dataset v1.0, v2 on v1.1, v3 on v1.2 and v1.3) keep their configs in `ml/configs/`
+Earlier iterations (v1 on dataset v1.0, v2 on v1.1, v3 on v1.2 and v1.3, v4 on v1.4) keep their configs in `ml/configs/`
 and their evidence in `evidence/benchmarking/`.
 
 The same steps run inside the batch container: `docker compose --profile batch run --rm pipeline ...`.
@@ -105,7 +108,7 @@ The same steps run inside the batch container: `docker compose --profile batch r
 
 The code trains on CPU (8 threads, about 33 minutes per iteration) or, when the run config sets
 `"device": "cuda"`, on an NVIDIA GPU (about 5 minutes). A repeated GPU run reproduced weights and estimates byte
-for byte, so the published v4 trains on the GPU and M-04 is measured by retraining there. Prediction and export
+for byte, so the published model trains on the GPU and M-04 is measured by retraining there. Prediction and export
 run on CPU; explanations and Grad-CAM accept `--device cuda`. Install the CUDA
 environment from `requirements-gpu.txt` (outside the repository) and run the same commands with its interpreter.
 Each run manifest records the device type (`cpu` or `cuda`), the PyTorch version and the training time.
@@ -121,7 +124,7 @@ publication.
 
    ```bash
    RAPLM_REMOTE_OWNER_URL="<external URL of raplm-db>" python -m tools.deploy.remote_setup \
-     --dataset artifacts/datasets/fused-v1.4.0 --run artifacts/runs/fused-cnnlstm-2026.11-v4
+     --dataset artifacts/datasets/fused-v1.4.0 --run artifacts/runs/fused-cnnlstm-2026.11-v5
    ```
 
    It creates the reader and publisher roles, applies the migrations and publishes the run.
@@ -138,7 +141,7 @@ RAPLM_TEST_ADMIN_URL=postgresql://raplm_owner:raplm_owner_dev@127.0.0.1:5433/rap
 ruff check .
 cd apps/web && npm test && npm run typecheck && npm run build
 python -m tools.metrics.measure --api http://127.0.0.1:8088 --dataset artifacts/datasets/fused-v1.4.0 \
-  --run artifacts/runs/fused-cnnlstm-2026.11-v4 --rerun artifacts/runs/fused-cnnlstm-2026.11-v4-repro \
+  --run artifacts/runs/fused-cnnlstm-2026.11-v5 --rerun artifacts/runs/fused-cnnlstm-2026.11-v5-repro \
   --harmonized $H --out evidence/metrics                                                    # M-01..M-05, M-08, M-09
 cd apps/web && npx playwright test                                                          # M-07, 12 journeys
 python -m tools.reports.test_report && python -m tools.reports.benchmark                    # docs/pruebas, docs/benchmarking
