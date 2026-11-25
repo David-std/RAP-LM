@@ -4,7 +4,7 @@
 // of which type and severity, what drives the estimate, what if the context
 // changed, which streets concentrate the record and where the data comes from.
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import type { CorridorCollection, Explanation, RiskResult } from "../api/types";
@@ -13,7 +13,7 @@ import { BANDS, DAY_LABEL, fmtCount, fmtIndex, fmtValue, PARTITION_LABEL, period
 import { colorFor, inkOn, LEVEL_LABEL, type ClassBand } from "../lib/levels";
 import { useQuery } from "../state/QueryContext";
 import { DivergingBars, LineChart, YearSeriesChart } from "./charts";
-import { Notice } from "./Controls";
+import { Disclosure, InfoTip, Notice } from "./Controls";
 
 export const GROUP_LABEL: Record<string, string> = {
   occurrence: "Ocurrencia",
@@ -61,9 +61,11 @@ interface Props {
   onCompareZones: () => void;
   onComparePeriods: () => void;
   onOpenCorridors: (districtId: string) => void;
+  /** Results of the active period, shown as an entry point while no zone is selected. */
+  periodResults?: RiskResult[];
 }
 
-export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePeriods, onOpenCorridors }: Props) {
+export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePeriods, onOpenCorridors, periodResults }: Props) {
   const q = useQuery();
   const unitId = q.selectedUnitId;
   const year = q.active.year;
@@ -90,10 +92,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
   if (!unitId) {
     return (
       <aside className="zone-panel" aria-label="Panel de zona">
-        <div className="zone-empty">
-          <strong>Seleccione una zona en el mapa</strong>
-          <span>Índice, serie anual, perfil horario, registro y calles con más atropellos.</span>
-        </div>
+        <PeriodSummary rows={periodResults ?? []} bands={bands} onPick={(id) => q.select(id)} />
       </aside>
     );
   }
@@ -128,7 +127,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
       <section className="card">
         <header>
           <div>
-            <h3>La red año a año</h3>
+            <h3>La red año a año <InfoTip text="Barras: atropellos registrados por la fuente de cada año. Línea: lo que la red esperaba registrar sin conocer ese año. Hasta 2017 la fuente es el censo de comisarías (todas las severidades); desde 2021, el ONSV (solo siniestros con fallecido)." /></h3>
             <p className="card-sub">Esperado frente a registrado, todas las franjas</p>
           </div>
         </header>
@@ -139,7 +138,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
 
       <section className="card">
         <header>
-          <h3>Perfil horario {year}</h3>
+          <h3>Perfil horario {year} <InfoTip text="Índice de riesgo de la zona en cada tipo de día y franja de seis horas. Haga clic en una casilla para ver ese periodo en el mapa." /></h3>
           <span className="card-sub">índice, clic para cambiar de franja</span>
         </header>
         <table className="heat">
@@ -187,7 +186,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
         <section className="card">
           <header>
             <div>
-              <h3>Qué impulsa la estimación</h3>
+              <h3>Qué impulsa la estimación <InfoTip text="Cuánto cambia el riesgo estimado si un grupo de variables se reemplaza por el promedio de Lima. Positivo: ese grupo eleva el riesgo de la zona." /></h3>
               <p className="card-sub">
                 Cambio en {explanation.data.attribution_year} al retirar cada grupo de variables
               </p>
@@ -219,28 +218,17 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
       )}
 
       <section className="card">
-        <details>
-          <summary>Procedencia y limitaciones</summary>
-          {prov.data && (
-            <>
-              <dl className="kv">
-                <dt>Corrida</dt>
-                <dd className="mono">{prov.data.run.run_id}</dd>
-                <dt>Dataset</dt>
-                <dd className="mono">{prov.data.meta.run.dataset_version_id}</dd>
-                <dt>Fuentes del periodo</dt>
-                <dd>{prov.data.result_context?.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")}</dd>
-              </dl>
-              <ul className="steps" style={{ marginTop: 8 }}>
-                {prov.data.limitations.map((l) => (
-                  <li key={l.limitation_id}>
-                    <b>{l.dimension}.</b> {l.description}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </details>
+        {prov.data && (
+          <Disclosure
+            summary="Procedencia y limitaciones"
+            items={[
+              ["Corrida", prov.data.run.run_id],
+              ["Dataset", prov.data.meta.run.dataset_version_id],
+              ["Fuentes del periodo", prov.data.result_context?.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")],
+              ...prov.data.limitations.map((l): [string, string] => [l.dimension, l.description]),
+            ]}
+          />
+        )}
       </section>
 
       <div className="zone-actions">
@@ -258,7 +246,7 @@ function RiskCard({ result, bands }: { result: RiskResult; bands: ClassBand[] })
   return (
     <section className="card">
       <header>
-        <h3>Riesgo estimado</h3>
+        <h3>Riesgo estimado <InfoTip text="Índice: posición de 0 a 100 frente a todas las zonas y periodos de referencia; 70 o más es nivel alto. Valor: la cantidad estimada que da origen al índice. Frente al contexto: 1× significa lo que predicen solo las condiciones urbanas." /></h3>
         {result.risk_level ? (
           <span className="level-chip" style={{ background: color ?? undefined, color: color ? inkOn(color) : undefined }}>
             {LEVEL_LABEL[result.risk_level]}
@@ -377,7 +365,7 @@ function RecordCard({ result }: { result: RiskResult }) {
     <section className="card">
       <header>
         <div>
-          <h3>Registro histórico del periodo</h3>
+          <h3>Registro histórico del periodo <InfoTip text="Conteos anotados por las fuentes para esta zona y periodo. Sirven de referencia; no son la estimación de riesgo." /></h3>
           <p className="card-sub">Conteos de las fuentes, no el riesgo estimado</p>
         </div>
         <span className="kpi-value" style={{ fontSize: 20 }}>{fmtCount(total)}</span>
@@ -445,7 +433,7 @@ function EnvironmentCard({ profile, view }: { profile: [string, number, number][
     <section className="card">
       <header>
         <div>
-          <h3>Entorno de la zona</h3>
+          <h3>Entorno de la zona <InfoTip text="Condiciones urbanas que lee la red. La marca indica la posición de la zona frente al resto de Lima: bajo es el cuarto inferior y alto el cuarto superior." /></h3>
           <p className="card-sub">
             Posición frente a {view === "cell" ? "las 2 899 celdas" : "los 43 distritos"} de Lima
           </p>
@@ -481,7 +469,7 @@ function WhatIfCard({ e }: { e: Explanation }) {
     <section className="card">
       <header>
         <div>
-          <h3>Simular contexto del distrito</h3>
+          <h3>Simular contexto del distrito <InfoTip text="Multiplica una variable en todas las celdas del distrito y muestra cómo responde la red. Describe la sensibilidad del modelo, no el efecto de una obra real." /></h3>
           <p className="card-sub">Respuesta de la red al multiplicar una variable</p>
         </div>
       </header>
@@ -529,5 +517,65 @@ function CorridorList({ data }: { data: CorridorCollection | null }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Entry point while no zone is selected: level distribution and the highest-risk zones. */
+function PeriodSummary({ rows, bands, onPick }: { rows: RiskResult[]; bands: ClassBand[]; onPick: (id: string) => void }) {
+  const q = useQuery();
+  const scored = rows.filter((r) => r.risk_index !== null);
+  const top = [...scored].sort((a, b) => (b.risk_index ?? 0) - (a.risk_index ?? 0)).slice(0, 10);
+  const levels = (["high", "medium", "low"] as const).map((l) => ({ l, n: scored.filter((r) => r.risk_level === l).length }));
+  const cell = q.unitType === "cell";
+  return (
+    <>
+      <section className="card">
+        <header>
+          <h2>Resumen del periodo</h2>
+        </header>
+        <p className="panel-text">{periodLabel({ year: q.active.year, day_type: q.active.dayType, time_band: q.active.band })}. Seleccione una zona en el mapa o en la lista para ver su detalle.</p>
+        {scored.length > 0 && (
+          <div className="level-bar" role="img" aria-label={levels.map((x) => `${LEVEL_LABEL[x.l]}: ${x.n}`).join(", ")}>
+            {levels.map((x) => (
+              <span key={x.l} style={{ flex: x.n, background: colorFor(x.l === "high" ? 85 : x.l === "medium" ? 55 : 20, bands) ?? undefined }} title={`${LEVEL_LABEL[x.l]}: ${x.n}`} />
+            ))}
+          </div>
+        )}
+        <dl className="kv compact">
+          {levels.map((x) => (
+            <Fragment key={x.l}>
+              <dt>{LEVEL_LABEL[x.l]}</dt>
+              <dd>{fmtCount(x.n)} {cell ? "celdas" : "distritos"}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      </section>
+      {top.length > 0 && (
+        <section className="card">
+          <header>
+            <h2>{cell ? "Celdas" : "Distritos"} con mayor riesgo</h2>
+          </header>
+          <table className="panel-table">
+            <thead>
+              <tr><th scope="col">{cell ? "Celda" : "Distrito"}</th><th scope="col" className="num">Índice</th><th scope="col">Nivel</th></tr>
+            </thead>
+            <tbody>
+              {top.map((r) => (
+                <tr key={r.unit.unit_id} onClick={() => onPick(r.unit.unit_id)}>
+                  <td>
+                    <button type="button" className="link-btn" onClick={(e) => { e.stopPropagation(); onPick(r.unit.unit_id); }}>
+                      {cell ? r.unit.unit_id : r.unit.display_name}
+                    </button>
+                    {cell && <span className="sub">{r.unit.district_name}</span>}
+                  </td>
+                  <td className="num strong">{fmtIndex(r.risk_index)}</td>
+                  <td><span className="swatch" style={{ background: colorFor(r.risk_index, bands) ?? undefined }} /> {r.risk_level ? LEVEL_LABEL[r.risk_level] : "–"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+    </>
   );
 }

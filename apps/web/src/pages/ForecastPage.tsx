@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { api } from "../api/client";
 import type { DayType, ForecastRow, Legend as LegendDto, RiskResult, UnitCollection, UnitType } from "../api/types";
 import { useApi } from "../api/useApi";
-import { Notice, Segmented } from "../components/Controls";
+import { Disclosure, InfoTip, Notice, Segmented } from "../components/Controls";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
 import { exportCsv, type ExportColumn } from "../lib/export";
@@ -91,6 +91,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
         {fc.data?.horizon_years && fc.data.horizon_years.length > 1 && (
           <Segmented<number>
             label="Año pronosticado"
+            hint="Desde el segundo año, cada pronóstico usa como entrada la estimación del año previo, por lo que la incertidumbre crece. Con años conocidos, la red mantuvo su ventaja sobre el promedio histórico hasta tres años después."
             value={year ?? fc.data.horizon_year}
             options={fc.data.horizon_years.map((y) => ({ value: y, label: String(y) }))}
             onChange={(y) => { setYear(y); setHover(null); }}
@@ -112,14 +113,14 @@ export function ForecastPage({ units, districts, legend }: Props) {
           onChange={setDayType}
         />
         <Segmented label="Franja horaria" value={band} options={BANDS.map((b, i) => ({ value: i, label: b }))} onChange={setBand} />
-        <details className="rail-details">
-          <summary>Cómo se obtiene</summary>
-          <p>
-            La red recibe el historial de atropellos y el contexto urbano de cada celda, con la población fijada en{" "}
-            {last ?? "el último año"}. Cada año proyectado sirve de entrada al siguiente, sin registros nuevos. El rango es
-            el desacuerdo entre las cinco redes del ensamble, no un intervalo de confianza.
-          </p>
-        </details>
+        <Disclosure
+          summary="Cómo se obtiene"
+          items={[
+            ["Entradas", <>Historial de atropellos y contexto urbano de cada celda, con la población fijada en {last ?? "el último año observado"}.</>],
+            ["Años siguientes", "Cada año proyectado sirve de entrada al siguiente; no se incorporan registros nuevos."],
+            ["Rango", "Mínimo y máximo entre las cinco redes del ensamble. Mide su desacuerdo, no es un intervalo de confianza."],
+          ]}
+        />
         {current && (
           <button type="button" className="btn" onClick={() => exportCsv(`pronostico-${horizon}-${unitType}.csv`, rows, columns, current.meta, `forecast ${horizon}, ${dayType}, band ${BANDS[band]}`)}>
             Exportar CSV
@@ -163,7 +164,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
       <aside className="zone-panel" aria-label="Detalle del pronóstico">
         <section className="card">
           <header>
-            <h2>Fiabilidad</h2>
+            <h2>Fiabilidad <InfoTip text="Medidas de un modelo entrenado sin el año evaluado. Captura: parte de los siniestros que cae en el 20 % de celdas con mayor riesgo estimado. AUC: 1 es un orden perfecto y 0,5 el azar." align="right" /></h2>
           </header>
           <p className="panel-text">
             Probado sobre {prio?.test_year ?? test?.year ?? 2024} sin usar sus registros, con los siniestros fatales con
@@ -187,8 +188,8 @@ export function ForecastPage({ units, districts, legend }: Props) {
 
         <section className="card">
           <header>
-            <h2>Mayor riesgo esperado</h2>
-            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{fmtValue(totalExpected, 0)} atropellos estimados en la franja para los 43 distritos</p>}
+            <h2>Mayor riesgo esperado <InfoTip text="Índice pronosticado en la escala del mapa de riesgo. Rango: valores mínimo y máximo entre las cinco redes del ensamble; mide su desacuerdo, no un intervalo de confianza." align="right" /></h2>
+            {unitType === "district" && totalExpected > 0 && <p className="card-sub">{fmtValue(totalExpected, 0)} atropellos esperados en la franja, en la escala de registro del censo de comisarías; no es el total real de Lima</p>}
           </header>
           <table className="panel-table">
             <thead>
@@ -220,7 +221,7 @@ export function ForecastPage({ units, districts, legend }: Props) {
 
         <section className="card">
           <header>
-            <h2>Mayor aumento frente a {previous}</h2>
+            <h2>Mayor aumento frente a {previous} <InfoTip align="right" text="Zonas cuyo índice pronosticado sube más respecto al año anterior en el mismo tipo de día y franja." /></h2>
           </header>
           <ul className="plain-list">
             {rising.map((r) => (

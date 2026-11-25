@@ -419,3 +419,46 @@ details[open] summary { margin-bottom: 8px; }
 .legend-how { margin: 4px 0 8px; font-size: 11.5px; color: var(--ink-2); }
 .legend-how summary { cursor: pointer; font-weight: 500; color: var(--ink); }
 .legend-how p { margin-top: 4px; line-height: 1.45; }
+
+/* ---------------------------------------------------------------- shell: grouped navigation, plain status, boot states */
+button.brand { border: 0; background: none; color: inherit; cursor: pointer; padding: 0; text-align: left; font: inherit; }
+.tab.tab-doc { color: #9a9ca3; }
+.tab.tab-doc-first { margin-left: 10px; position: relative; padding-left: 22px; }
+.tab.tab-doc-first::before { content: ""; position: absolute; left: 4px; top: 50%; height: 18px; margin-top: -9px; border-left: 1px solid #3a3d44; }
+.topbar nav { padding-right: 4px; }
+.statusbar { font: 12px var(--font); }
+.statusbar b { font-weight: 500; }
+.boot-card { max-width: 520px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 26px; display: grid; gap: 12px; color: var(--ink-2); }
+.boot-card h1 { font-size: 18px; color: var(--ink); }
+.boot-card .btn { justify-self: start; }
+.boot-detail { font-size: 11.5px; color: var(--muted); }
+.rail-group { font-size: 11.5px; font-weight: 600; color: var(--ink); margin: 6px 0 -4px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+.rail-block { display: flex; flex-direction: column; gap: 10px; }
+.search-row { display: flex; flex-direction: column; }
+.search-inline { display: flex; gap: 6px; }
+.search-inline .input { flex: 1; min-width: 0; }
+.level-bar { display: flex; height: 10px; border-radius: 3px; overflow: hidden; margin: 2px 0 8px; }
+
+/* ---------------------------------------------------------------- contextual help */
+.info { position: relative; display: inline-flex; vertical-align: middle; margin-left: 5px; }
+.info-btn { width: 15px; height: 15px; border-radius: 50%; border: 1px solid currentColor; background: none; color: var(--muted); font: 600 10px/1 var(--font); padding: 0; cursor: help; display: inline-grid; place-items: center; }
+.info-btn:hover, .info-btn[aria-expanded="true"] { color: var(--accent); }
+.info-pop { position: fixed; z-index: 2000; width: 260px; background: var(--ink); color: #f3f2ee; border-radius: 8px; padding: 9px 11px; font: 400 12px/1.45 var(--font); text-transform: none; letter-spacing: 0; text-align: left; white-space: normal; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+.info-pop.left { left: -6px; }
+.info-pop.right { right: -6px; }
+.info-pop b { color: #fff; }
+
+/* ---------------------------------------------------------------- disclosures: summary line, then terms */
+.disclosure { font-size: 12.5px; color: var(--ink-2); }
+.disclosure > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; font-weight: 500; color: var(--ink); padding: 4px 0; }
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::before { content: ""; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s; margin-right: 2px; }
+.disclosure[open] > summary::before { transform: rotate(45deg); }
+.disclosure-body { margin-top: 8px; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; }
+.disclosure-body dl { margin: 0; display: grid; gap: 10px; }
+.disclosure-body dt { font-weight: 600; color: var(--ink); font-size: 12px; }
+.disclosure-body dd { margin: 2px 0 0; line-height: 1.5; }
+.disclosure.compact .disclosure-body { padding: 9px 10px; }
+.disclosure.compact .disclosure-body dl { gap: 7px; }
+.disclosure.compact { font-size: 11.5px; margin: 4px 0 8px; }
+@media (prefers-reduced-motion: reduce) { .disclosure > summary::before { transition: none; } }

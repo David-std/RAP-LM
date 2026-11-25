@@ -8,7 +8,7 @@ import { useCallback, useMemo, useState } from "react";
 import { api } from "../api/client";
 import type { Legend as LegendDto, RiskLevel, RiskResult, UnitCollection } from "../api/types";
 import { useApi } from "../api/useApi";
-import { FilterChips, Notice, OptionList, PeriodPicker, SearchSelect, Segmented } from "../components/Controls";
+import { Disclosure, FilterChips, Notice, OptionList, PeriodPicker, SearchSelect, Segmented } from "../components/Controls";
 import { HeatMap } from "../components/HeatMap";
 import { Legend } from "../components/Legend";
 import { RiskMap } from "../components/RiskMap";
@@ -179,6 +179,14 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
         <div>
           <h2 className="rail-title">Riesgo por zona y periodo</h2>
         </div>
+        <form className="search-row" onSubmit={onSearch} role="search">
+          <label htmlFor="unit-search" className="field-label">Ir a una zona</label>
+          <div className="search-inline">
+            <input id="unit-search" className="input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Distrito o celda, ej. Miraflores" />
+            <button type="submit" className="btn">Ir</button>
+          </div>
+        </form>
+        <h3 className="rail-group">Qué ver</h3>
         <Segmented<MapView>
           label="Vista"
           value={view}
@@ -192,6 +200,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
         />
         <OptionList<MapLayer>
           label="Qué mostrar"
+          hint="Riesgo estimado: índice de 0 a 100 calculado por la red para el periodo. Atropellos registrados: lo que anotaron las fuentes, sin modelo. Grad-CAM: qué celdas usó la red para estimar la zona elegida."
           value={layer}
           onChange={setLayer}
           options={[
@@ -200,13 +209,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             { value: "influence", label: "Grad-CAM", description: "Qué zonas pesan en la estimación de la zona elegida" },
           ]}
         />
-        <div className="rail-section">
+        <h3 className="rail-group">Periodo</h3>
+        <div className="rail-block">
           <PeriodPicker years={q.years} value={q.active} onChange={q.setActive} />
           {!periodId && <Notice tone="warn">Este periodo no tiene resultados publicados.</Notice>}
         </div>
-        <div className="rail-section">
+        <h3 className="rail-group">Filtros</h3>
+        <div className="rail-block">
           <FilterChips<RiskLevel>
             label="Filtrar por nivel"
+            hint="Bajo: índice menor que 40. Medio: de 40 a 69. Alto: 70 o más. Los umbrales son fijos y se definieron antes de evaluar el modelo."
             selected={q.levels}
             onToggle={q.toggleLevel}
             items={ALL_LEVELS.map((level) => {
@@ -243,10 +255,6 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
             )
           )}
         </div>
-        <form className="rail-section search" onSubmit={onSearch} role="search">
-          <label htmlFor="unit-search" className="field-label">Ir a una zona</label>
-          <input id="unit-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Distrito o celda, ej. F54-C35" />
-        </form>
       </aside>
 
       <main className="map-area">
@@ -322,14 +330,16 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
               <p className="legend-sub">
                 {influenceStatus}
               </p>
-              <details className="legend-how">
-                <summary>Cómo leerlo</summary>
-                <p>
-                  La red estima el riesgo de la zona elegida. Grad-CAM recorre la red hacia atrás y mide, celda por celda,
-                  cuánto aumentó esa estimación lo que la red leyó allí en 2024 y en los años previos. Las celdas oscuras son
-                  las que más la elevaron. Muestra en qué se apoyó el modelo, no las causas de los atropellos.
-                </p>
-              </details>
+              <Disclosure
+                summary="Cómo leerlo"
+                className="compact"
+                items={[
+                  ["Qué mide", "Cuánto elevó la estimación de la zona elegida lo que la red leyó en cada celda, en 2024 y años previos."],
+                  ["Celdas oscuras", "Las que más pesaron. La más influyente vale 100 %."],
+                  ["Cobertura", "Disponible para los 43 distritos y las 400 celdas de mayor riesgo de 2024."],
+                  ["Límite", "Muestra en qué se apoyó el modelo, no las causas de los atropellos."],
+                ]}
+              />
               <ul className="legend-classes">
                 <li><span className="swatch" style={{ background: "#F4F3EF", border: "1px solid var(--line)" }} /> Fuera de las 40 de mayor influencia</li>
                 {INFLUENCE_RAMP.map((c, i) => (
@@ -361,6 +371,7 @@ export function MapPage({ units, districts, legend, goCompare, goCorridors }: Pr
 
       <ZonePanel
         result={selected.data?.data[0] ?? null}
+        periodResults={risk.data?.data}
         bands={bands}
         onClose={() => q.select(null)}
         onCompareZones={() => {

@@ -11,7 +11,7 @@ import type { CorridorCollection, CorridorProps, Meta, UnitCollection } from "..
 import { useApi } from "../api/useApi";
 import { LineChart } from "../components/charts";
 import { FACTOR_LABEL } from "../components/ZonePanel";
-import { Notice } from "../components/Controls";
+import { Disclosure, InfoTip, Notice } from "../components/Controls";
 import { addScopeMask, createBaseMap } from "../lib/basemap";
 import { exportCsv, type ExportColumn } from "../lib/export";
 import { BANDS, fmtCount, fmtValue } from "../lib/format";
@@ -120,15 +120,15 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
             Exportar CSV
           </button>
         </div>
-        <details className="rail-details">
-          <summary>Cómo se calcula la tasa</summary>
-          <p>
-            A cada calle se le suman {fmtValue(PRIOR_KM, 1)} km con la tasa media de Lima, para que un tramo corto con pocos
-            atropellos no quede con una tasa desproporcionada. Un cruce reparte medio evento a cada calle. Las avenidas de
-            doble calzada suman ambas vías en la longitud. Los eventos sin calle identificable (
-            {summary ? fmtCount(summary.events_not_on_corridor) : "…"}) quedan fuera del ranking.
-          </p>
-        </details>
+        <Disclosure
+          summary="Cómo se calcula la tasa"
+          items={[
+            ["Tasa ajustada", <>Se suman {fmtValue(PRIOR_KM, 1)} km con la tasa media de Lima a cada calle, para que un tramo corto con pocos atropellos no quede con una tasa desproporcionada.</>],
+            ["Cruces", "Un atropello en un cruce reparte medio evento a cada calle."],
+            ["Doble calzada", "Las avenidas con dos calzadas suman ambas vías en la longitud."],
+            ["Fuera del ranking", <>{summary ? fmtCount(summary.events_not_on_corridor) : "…"} atropellos sin calle identificable.</>],
+          ]}
+        />
       </aside>
 
       <main className="map-area">
@@ -157,7 +157,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
         ) : (
           <section className="card">
             <header>
-              <h3>Calles con mayor tasa</h3>
+              <h3>Calles con mayor tasa <InfoTip text="Atropellos registrados por kilómetro de calle, con una tasa ajustada para que los tramos muy cortos no dominen el ranking." align="right" /></h3>
               <span className="card-sub">{features.length} tramos</span>
             </header>
             <table className="panel-table">
@@ -193,7 +193,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
         {summary && !current && (
           <section className="card">
             <header>
-              <h3>Curva de concentración</h3>
+              <h3>Curva de concentración <InfoTip text="Recorre las calles de mayor a menor densidad y acumula sus atropellos. Cuanto más se aleja de la diagonal, más concentrado está el problema." align="right" /></h3>
             </header>
             <p className="muted small">Qué parte de los atropellos ubicados se acumula al recorrer las calles de mayor a menor densidad.</p>
             <LineChart

@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page) {
   await page.goto("/");
-  await expect(page.getByText(/Corrida publicada|Datos de ejemplo/)).toBeVisible();
+  await expect(page.getByText(/Modelo v\d+, dataset|Datos de ejemplo/)).toBeVisible();
   await expect(page.locator(".leaflet-overlay-pane path").first()).toBeAttached();
 }
 
@@ -100,7 +100,7 @@ test("E2E-09 RM-01 RM-05: model view shows architecture, benchmark and high-leve
 test("E2E-10 D-09: critical streets view ranks streets and opens a street detail", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Vías críticas" }).click();
-  const first = page.getByLabel("Detalle de vías críticas").getByRole("button").first();
+  const first = page.getByLabel("Detalle de vías críticas").locator("tbody button").first();
   await expect(first).toBeVisible();
   await first.click();
   await expect(page.getByText("Atropellos por año")).toBeVisible();

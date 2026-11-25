@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { api } from "../api/client";
 import type { Comparison, Legend as LegendDto, RiskResult, UnitCollection } from "../api/types";
 import { useApi } from "../api/useApi";
-import { Notice, PeriodPicker, Segmented } from "../components/Controls";
+import { InfoTip, Notice, PeriodPicker, Segmented } from "../components/Controls";
 import { RiskMap } from "../components/RiskMap";
 import { fmtCount, fmtIndex, fmtValue, periodLabel } from "../lib/format";
 import { classBands, colorFor, LEVEL_LABEL, type ClassBand } from "../lib/levels";
@@ -155,7 +155,7 @@ function SpatialTable({ cmp, bands }: { cmp: Comparison; bands: ClassBand[] }) {
   return (
     <div className="compare-grid">
       <div className="scale-block">
-        <h3>Posición en la escala común</h3>
+        <h3>Posición en la escala común <InfoTip text="Todas las zonas se ubican en la misma escala de 0 a 100 del periodo elegido, por lo que sus índices son directamente comparables." /></h3>
         <div className="index-bar wide" aria-hidden="true">
           <div className="index-scale">
             {bands.map((b) => (
