@@ -53,10 +53,30 @@ FOLDS = {
         stop={"onsv": [2022]},
         eval=("onsv", 2023),
     ),
-    "D2b": dict(years=list(range(2011, 2017)), train={"cenacom": CEN[:5]}, stop=None, epochs=150, eval=("cenacom", 2016)),
-    "D3b": dict(years=list(range(2011, 2024)), train={"cenacom": CEN, "onsv": [2021, 2022]}, stop=None, epochs=150, eval=("onsv", 2023)),
-    "T1f": dict(years=CEN, train={"cenacom": CEN[:6]}, stop=None, epochs=150, eval=("cenacom", 2017)),
-    "T2f": dict(years=list(range(2011, 2025)), train={"cenacom": CEN, "onsv": [2021, 2022, 2023]}, stop=None, epochs=150, eval=("onsv", 2024)),
+    "D2b": dict(
+        years=list(range(2011, 2017)),
+        train={"cenacom": CEN[:5]},
+        stop=None,
+        epochs=150,
+        eval=("cenacom", 2016),
+    ),
+    "D3b": dict(
+        years=list(range(2011, 2024)),
+        train={"cenacom": CEN, "onsv": [2021, 2022]},
+        stop=None,
+        epochs=150,
+        eval=("onsv", 2023),
+    ),
+    "T1f": dict(
+        years=CEN, train={"cenacom": CEN[:6]}, stop=None, epochs=150, eval=("cenacom", 2017)
+    ),
+    "T2f": dict(
+        years=list(range(2011, 2025)),
+        train={"cenacom": CEN, "onsv": [2021, 2022, 2023]},
+        stop=None,
+        epochs=150,
+        eval=("onsv", 2024),
+    ),
     "T1": dict(
         years=CEN, train={"cenacom": CEN[:5]}, stop={"cenacom": [2016]}, eval=("cenacom", 2017)
     ),
@@ -188,7 +208,9 @@ def two_head_predict(model, t):
 
 
 # ----------------------------------------------------------------------------- training
-def fit_candidate(t, fold, cand, seed, device="cuda", max_epochs=300, patience=40):
+def fit_candidate(
+    t, fold, cand, seed, device="cuda", max_epochs=300, patience=40, return_model=False
+):
     set_determinism(seed, 8, device)
     d = to_torch(t, device)
     two = cand in ("C3", "C4")
@@ -196,7 +218,12 @@ def fit_candidate(t, fold, cand, seed, device="cuda", max_epochs=300, patience=4
         TwoHead(t)
         if two
         else SpatioTemporalModel(
-            t.X.shape[1], len(SUBPERIODS), len(SOURCE_FAMILIES), 32, 0.1, "convlstm"
+            t.X.shape[1],
+            len(SUBPERIODS),
+            len(SOURCE_FAMILIES),
+            32,
+            0.1,
+            VARIANT.get(cand, "convlstm"),
         )
     ).to(device)
     nll = two_head_nll if two else poisson_nll
@@ -225,10 +252,31 @@ def fit_candidate(t, fold, cand, seed, device="cuda", max_epochs=300, patience=4
         model.load_state_dict(best[1])
     model = model.cpu().eval()
     p = two_head_predict(model, t) if two else predict(model, t)
-    return p, best[2]
+    return (p, best[2], model) if return_model else (p, best[2])
 
 
-MEMORY = {"C0": "none", "C1": "all", "C2": "multi", "C3": "none", "C4": "multi"}
+MEMORY = {
+    "C0": "none",
+    "C1": "all",
+    "C2": "multi",
+    "C3": "none",
+    "C4": "multi",
+    "A_cnn": "none",
+    "A_rnn": "none",
+    "A_noctx": "none",
+    "A_nohist": "none",
+}
+# Ablation (v10 amendment A2): no recurrence, no spatial convolution, no context, no history.
+VARIANT = {"A_cnn": "cnn_only", "A_rnn": "lstm_only"}
+
+
+def ablate(t, cand):
+    n_ctx = len(t.context_order)
+    if cand == "A_noctx":
+        t.X[:, :n_ctx] = 0.0  # standardised mean of every context variable, population included
+    elif cand == "A_nohist":
+        t.X[:, n_ctx + 1 : n_ctx + 7] = 0.0  # previous-year history of both sources
+    return t
 
 
 def load_fold(name):
@@ -243,7 +291,7 @@ def train(folds, cands):
         for cand in cands:
             out = OUT / name / cand
             out.mkdir(parents=True, exist_ok=True)
-            t = add_memory(_copy(base), "all" if MEMORY[cand] == "all" else MEMORY[cand])
+            t = ablate(add_memory(_copy(base), MEMORY[cand]), cand)
             for seed in SEEDS:
                 path = out / f"s{seed}.npz"
                 if path.exists():
@@ -442,13 +490,121 @@ def report(folds, cands):
                 )
 
 
+# ----------------------------------------------------------------------------- V14 multi-year horizons
+ORIGINS = [  # (observing family, last observed year, targets)
+    ("cenacom", 2015, [2016, 2017]),
+    ("cenacom", 2014, [2015, 2016, 2017]),
+    ("onsv", 2023, [2024]),
+    ("onsv", 2022, [2023, 2024]),
+    ("onsv", 2021, [2022, 2023, 2024]),
+]
+
+
+def ha_until(t, s, ti, last):
+    prior = [p for p in range(last + 1) if t.cover[s, p].max() > 0]
+    cell = np.mean(
+        [
+            t.y_cell[s, p] / (t.cover[s, p][:, None, None] * max(float(t.located[s, p]), 1e-6))
+            for p in prior
+        ],
+        axis=0,
+    )
+    dist = np.mean([t.events_total[s, p] / t.cover[s, p][:, None] for p in prior], axis=0)
+    return cell * (t.cover[s, ti][:, None, None] * t.located[s, ti]), dist * t.cover[s, ti][:, None]
+
+
+def chained(models, t, s, last, final):
+    """Ensemble estimates where every year after ``last`` gets its history inputs from the
+    ensemble's own estimate of the year before, never from its observations."""
+    X = t.X.copy()
+    base = len(t.context_order) + 1
+    d_area = np.einsum("dhw,hw->d", t.frac, t.area_km2)
+    xt = torch.from_numpy(X)
+    valid = t.valid.astype(np.float32)
+    for h in range(last + 2, final + 1):
+        exps = []
+        with torch.no_grad():
+            for m in models:
+                lam = (torch.exp(m(torch.from_numpy(X))) * torch.from_numpy(valid)).numpy()
+                exps.append(lam[h - 1].sum(axis=0) * float(m.reporting_factors().exp()[s]))
+        expected = np.mean(exps, axis=0)
+        spread = np.tensordot(
+            np.einsum("hw,dhw->d", expected, t.frac) / d_area, t.frac, axes=(0, 0)
+        )
+        X[h, base + 3 * s] = np.log1p(expected) * valid
+        X[h, base + 3 * s + 1] = np.log1p(spread) * valid
+        X[h, base + 3 * s + 2] = valid
+    del xt
+    tp = _copy(t)
+    tp.X = X
+    preds = [predict(m, tp) for m in models]
+    return np.mean([p["mu_cell"] for p in preds], axis=0), np.mean(
+        [p["mu_district_total"] for p in preds], axis=0
+    )
+
+
+def horizons():
+    out = Path("evidence/benchmarking/performance-v14")
+    out.mkdir(parents=True, exist_ok=True)
+    report = []
+    for fam, last, targets in ORIGINS:
+        s = SOURCE_FAMILIES.index(fam)
+        years = list(range(2011, targets[-1] + 1))
+        train = {"cenacom": [y for y in CEN if y <= last]}
+        if fam == "onsv":
+            train["onsv"] = [y for y in range(2021, last + 1)]
+        norm = sorted({y for ys in train.values() for y in ys})
+        t = load_dataset(DATASET, years, norm_years=norm, covariates_asof=last)
+        fold = {"train": train, "stop": None, "epochs": 150}
+        models = []
+        for seed in SEEDS:
+            _, _, m = fit_candidate(t, fold, "C0", seed, return_model=True)
+            models.append(m)
+            torch.cuda.empty_cache()
+        li = t.years.index(last)
+        mc, md = chained(models, t, s, li, t.years.index(targets[-1]))
+        for target in targets:
+            ti = t.years.index(target)
+            strata = strata_targets(t, fam, target)
+            hc, hd = ha_until(t, s, ti, li)
+            row = {
+                "family": fam,
+                "last_observed": last,
+                "target": target,
+                "horizon": target - last,
+                "model": score_unit(t, strata, s, ti, mc[s, ti], md[s, ti]),
+                "historical": score_unit(t, strata, s, ti, hc, hd),
+            }
+            report.append(row)
+            m_, h_ = row["model"], row["historical"]
+            print(
+                fam,
+                last,
+                "->",
+                target,
+                f"h={target - last}",
+                f"MAE {m_['district']['mae']:.3f} vs {h_['district']['mae']:.3f}",
+                f"rho {m_['district']['spearman']:.3f} vs {h_['district']['spearman']:.3f}",
+                f"AUC {m_['all_located']['auc']:.3f} vs {h_['all_located']['auc']:.3f}"
+                if m_.get("all_located")
+                else "",
+                f"AP {m_['all_located']['average_precision']:.3f} vs {h_['all_located']['average_precision']:.3f}"
+                if m_.get("all_located")
+                else "",
+                flush=True,
+            )
+            (out / "horizons.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("action", choices=("train", "report"))
+    ap.add_argument("action", choices=("train", "report", "horizons"))
     ap.add_argument("--folds", default="D1,D2,D3")
     ap.add_argument("--cands", default="C0,C1,C2,C3,C4")
     a = ap.parse_args()
     folds, cands = a.folds.split(","), a.cands.split(",")
+    if a.action == "horizons":
+        return horizons()
     (train if a.action == "train" else report)(folds, cands)
 
 

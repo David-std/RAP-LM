@@ -75,3 +75,32 @@ average in cell AP (all located) and district MAE; precise-location AP reported.
 T1f train CENACOM 2011-2016, evaluate 2017; T2f train CENACOM and ONSV 2021-2023,
 evaluate ONSV 2024. Fixed 150 epochs, seeds 1-5. Both years were consulted in earlier
 iterations; they are reported as such, not as untouched tests.
+
+## Findings before A2 (no training involved)
+
+- Poisson deviance, ONSV 2024: 82.5 % of the historical average's deviance comes from
+  the 132 of 344 district-subperiods where it predicts exactly zero (27 of them have
+  events). Excluding them: historical 1.285, C0 1.118 (-13 %); with the historical
+  average floored at its smallest positive value: 1.118 vs C0 0.935 (-16 %). The raw
+  -79 % reduction is not reported as a model gain. CENACOM 2017 without those units:
+  historical 2.523, C0 2.730 (C0 worse).
+- CENACOM 2017. Same months (January-June) of the fused Lima events: 2015 964,
+  2016 963, 2017 1,629 records. Median survey expansion factor per record: 2015 2.53,
+  2016 4.95, 2017 2.60; weighted annual totals oscillate between about 5,500 and
+  11,700 across 2011-2017. The 2017 increase coincides with a change in the census
+  sampling fraction, but neither the weighted nor the unweighted counts form a
+  comparable series, so no cause is asserted. Level-free ranking measures are not
+  affected; the 2017 district MAE measures an unidentifiable change of level.
+
+## Amendment A2: ablation and multi-year horizons (V14)
+
+Ablation on D2b and D3b, five seeds, fixed 150 epochs: A_cnn (convolution per year,
+no recurrence), A_rnn (per-cell LSTM, no spatial convolution), A_noctx (C0 with every
+context variable at its standardised mean), A_nohist (C0 without previous-year history).
+
+V14: C0 trained through a last observed year (fixed 150 epochs, covariates frozen at
+that year), then chained: every later year receives its history inputs from the
+ensemble's estimate of the previous year, never from observations. Origins:
+CENACOM 2015 -> 2016, 2017; CENACOM 2014 -> 2015, 2016, 2017; ONSV 2023 -> 2024;
+ONSV 2022 -> 2023, 2024; ONSV 2021 -> 2022, 2023, 2024. Reference: historical average
+of the years up to the origin only. Same district and cell measures by horizon.
