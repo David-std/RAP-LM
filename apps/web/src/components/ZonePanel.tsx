@@ -4,7 +4,7 @@
 // of which type and severity, what drives the estimate, what if the context
 // changed, which streets concentrate the record and where the data comes from.
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import type { CorridorCollection, Explanation, RiskResult } from "../api/types";
@@ -13,7 +13,7 @@ import { BANDS, DAY_LABEL, fmtCount, fmtIndex, fmtValue, PARTITION_LABEL, period
 import { colorFor, inkOn, LEVEL_LABEL, type ClassBand } from "../lib/levels";
 import { useQuery } from "../state/QueryContext";
 import { DivergingBars, LineChart, YearSeriesChart } from "./charts";
-import { Notice } from "./Controls";
+import { Disclosure, InfoTip, Notice } from "./Controls";
 
 export const GROUP_LABEL: Record<string, string> = {
   occurrence: "Ocurrencia",
@@ -61,9 +61,11 @@ interface Props {
   onCompareZones: () => void;
   onComparePeriods: () => void;
   onOpenCorridors: (districtId: string) => void;
+  /** Results of the active period, shown as an entry point while no zone is selected. */
+  periodResults?: RiskResult[];
 }
 
-export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePeriods, onOpenCorridors }: Props) {
+export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePeriods, onOpenCorridors, periodResults }: Props) {
   const q = useQuery();
   const unitId = q.selectedUnitId;
   const year = q.active.year;
@@ -90,13 +92,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
   if (!unitId) {
     return (
       <aside className="zone-panel" aria-label="Panel de zona">
-        <div className="zone-empty">
-          <strong>Seleccione una zona en el mapa</strong>
-          <span>
-            Verá su índice, cómo lo estimó la red año a año, a qué hora se concentra, qué variables lo impulsan, una
-            simulación de contexto y las calles con más atropellos registrados.
-          </span>
-        </div>
+        <PeriodSummary rows={periodResults ?? []} bands={bands} onPick={(id) => q.select(id)} />
       </aside>
     );
   }
@@ -118,11 +114,11 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
           </button>
         </div>
         {result && (
-          <div className="zone-chips">
-            <span className="chip accent">{periodLabel(result.period)}</span>
-            <span className="chip">Partición: {PARTITION_LABEL[result.period.partition] ?? result.period.partition}</span>
-            <span className="chip">{result.period.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")}</span>
-          </div>
+          <dl className="zone-meta">
+            <dt>Periodo</dt><dd>{periodLabel(result.period)}</dd>
+            <dt>Partición</dt><dd>{PARTITION_LABEL[result.period.partition] ?? result.period.partition}</dd>
+            <dt>Fuente</dt><dd>{result.period.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")}</dd>
+          </dl>
         )}
       </section>
 
@@ -131,8 +127,8 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
       <section className="card">
         <header>
           <div>
-            <h3>La red año a año</h3>
-            <p className="card-sub">Atropellos que la red CNN-RNN esperaba registrar frente a los registrados, {DAY_LABEL[q.active.dayType].toLowerCase()} y fin de semana, todas las franjas</p>
+            <h3>La red año a año <InfoTip text="Barras: atropellos registrados por la fuente de cada año. Línea: lo que la red esperaba registrar sin conocer ese año. Hasta 2017 la fuente es el censo de comisarías (todas las severidades); desde 2021, el ONSV (solo siniestros con fallecido)." /></h3>
+            <p className="card-sub">Esperado frente a registrado, todas las franjas</p>
           </div>
         </header>
         {explanation.loading && <Notice>Cargando…</Notice>}
@@ -142,7 +138,7 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
 
       <section className="card">
         <header>
-          <h3>Perfil horario {year}</h3>
+          <h3>Perfil horario {year} <InfoTip text="Índice de riesgo de la zona en cada tipo de día y franja de seis horas. Haga clic en una casilla para ver ese periodo en el mapa." /></h3>
           <span className="card-sub">índice, clic para cambiar de franja</span>
         </header>
         <table className="heat">
@@ -190,16 +186,16 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
         <section className="card">
           <header>
             <div>
-              <h3>Qué impulsa la estimación</h3>
+              <h3>Qué impulsa la estimación <InfoTip text="Cuánto cambia el riesgo estimado si un grupo de variables se reemplaza por el promedio de Lima. Positivo: ese grupo eleva el riesgo de la zona." /></h3>
               <p className="card-sub">
-                Cambio en la estimación {explanation.data.attribution_year} si se retira cada grupo de variables (oclusión). Rojo: eleva el riesgo; petróleo: lo reduce.
+                Cambio en {explanation.data.attribution_year} al retirar cada grupo de variables
               </p>
             </div>
           </header>
           <DivergingBars
             items={explanation.data.attribution_groups.map((g, i) => ({ label: DRIVER_LABEL[g] ?? g, value: explanation.data!.attribution_pct[i] }))}
           />
-          <p className="card-note">Incluye el efecto del vecindario de 5 × 5 km que lee la CNN. Asociación del modelo, no causalidad.</p>
+          <p className="card-note">Asociación aprendida por la red, no causalidad.</p>
         </section>
       )}
 
@@ -222,28 +218,17 @@ export function ZonePanel({ result, bands, onClose, onCompareZones, onComparePer
       )}
 
       <section className="card">
-        <details>
-          <summary>Procedencia y limitaciones</summary>
-          {prov.data && (
-            <>
-              <dl className="kv">
-                <dt>Corrida</dt>
-                <dd className="mono">{prov.data.run.run_id}</dd>
-                <dt>Dataset</dt>
-                <dd className="mono">{prov.data.meta.run.dataset_version_id}</dd>
-                <dt>Fuentes del periodo</dt>
-                <dd>{prov.data.result_context?.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")}</dd>
-              </dl>
-              <ul className="steps" style={{ marginTop: 8 }}>
-                {prov.data.limitations.map((l) => (
-                  <li key={l.limitation_id}>
-                    <b>{l.dimension}.</b> {l.description}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </details>
+        {prov.data && (
+          <Disclosure
+            summary="Procedencia y limitaciones"
+            items={[
+              ["Corrida", prov.data.run.run_id],
+              ["Dataset", prov.data.meta.run.dataset_version_id],
+              ["Fuentes del periodo", prov.data.result_context?.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ")],
+              ...prov.data.limitations.map((l): [string, string] => [l.dimension, l.description]),
+            ]}
+          />
+        )}
       </section>
 
       <div className="zone-actions">
@@ -261,7 +246,7 @@ function RiskCard({ result, bands }: { result: RiskResult; bands: ClassBand[] })
   return (
     <section className="card">
       <header>
-        <h3>Riesgo estimado</h3>
+        <h3>Riesgo estimado <InfoTip text="Índice: posición de 0 a 100 frente a todas las zonas y periodos de referencia; 70 o más es nivel alto. Valor: la cantidad estimada que da origen al índice. Frente al contexto: 1× significa lo que predicen solo las condiciones urbanas." /></h3>
         {result.risk_level ? (
           <span className="level-chip" style={{ background: color ?? undefined, color: color ? inkOn(color) : undefined }}>
             {LEVEL_LABEL[result.risk_level]}
@@ -270,23 +255,28 @@ function RiskCard({ result, bands }: { result: RiskResult; bands: ClassBand[] })
           <span className="chip warn">Sin resultado</span>
         )}
       </header>
-      <div className="kpi-row">
-        <div className="kpi" title="Índice de frecuencia (0 a 100): posición del valor estimado frente a la distribución de referencia">
-          <span className="kpi-label">Frecuencia, índice</span>
-          <span className="kpi-value">{fmtIndex(result.risk_index)}</span>
-          <span className="kpi-foot">valor: {fmtValue(result.indicator_value, 3)} atropellos esperados por km² al año</span>
-        </div>
-        <div className="kpi" title="Atropellos esperados con desenlace fatal (frecuencia × probabilidad de fallecido de la zona)">
-          <span className="kpi-label">Severidad, índice</span>
-          <span className="kpi-value">{result.severity.index === null ? "–" : Math.round(result.severity.index)}</span>
-          <span className="kpi-foot">{result.severity.value === null ? "no disponible" : `${fmtValue(result.severity.value, 3)} fatales/km²`}</span>
-        </div>
-        <div className="kpi" title="Razón entre la frecuencia estimada y la que predice un modelo estadístico solo con variables de contexto (población, comercio, transporte, veredas, arterias). No es una tasa por peatón: no hay aforos peatonales.">
-          <span className="kpi-label">Frente al contexto</span>
-          <span className="kpi-value">{result.exposure.value === null ? "–" : `${fmtValue(result.exposure.value, 2)}×`}</span>
-          <span className="kpi-foot">{result.exposure.index === null ? "no disponible" : `1× = lo que predice el contexto; índice ${Math.round(result.exposure.index)}`}</span>
-        </div>
-      </div>
+      <table className="panel-table static risk-table">
+        <thead>
+          <tr><th scope="col">Indicador</th><th scope="col" className="num">Índice</th><th scope="col" className="num">Valor</th></tr>
+        </thead>
+        <tbody>
+          <tr title="Atropellos esperados por km² al año">
+            <td>Frecuencia</td>
+            <td className="num strong big">{fmtIndex(result.risk_index)}</td>
+            <td className="num">{fmtValue(result.indicator_value, 3)} por km² al año</td>
+          </tr>
+          <tr title="Frecuencia × probabilidad de desenlace fatal de la zona">
+            <td>Severidad</td>
+            <td className="num strong">{result.severity.index === null ? "–" : Math.round(result.severity.index)}</td>
+            <td className="num">{result.severity.value === null ? "–" : `${fmtValue(result.severity.value, 3)} fatales por km²`}</td>
+          </tr>
+          <tr title="Frecuencia estimada frente a la que predice solo el contexto urbano; 1× = igual. No es una tasa por peatón.">
+            <td>Frente al contexto</td>
+            <td className="num strong">{result.exposure.index === null ? "–" : Math.round(result.exposure.index)}</td>
+            <td className="num">{result.exposure.value === null ? "–" : `${fmtValue(result.exposure.value, 2)}×`}</td>
+          </tr>
+        </tbody>
+      </table>
       {result.risk_index !== null && (
         <>
           <div className="index-bar" aria-hidden="true">
@@ -305,20 +295,14 @@ function RiskCard({ result, bands }: { result: RiskResult; bands: ClassBand[] })
           </div>
         </>
       )}
-      <p className="card-note">
-        Supera al {fmtIndex(result.risk_index)} % de las {result.unit.unit_type === "cell" ? "celdas" : "distritos"} y franjas de referencia.
-        {delta !== null && (
-          <>
-            {" "}Frente al promedio histórico de la misma fuente:{" "}
-            <b className={delta > 0 ? "delta-up" : "delta-down"}>
-              {delta > 0 ? "+" : ""}
-              {delta.toFixed(0)} %
-            </b>
-            .
-          </>
-        )}{" "}
-        Valores estimados por el modelo, no conteos ni probabilidades.
-      </p>
+      {delta !== null && (
+        <dl className="kv compact">
+          <dt>Frente al histórico</dt>
+          <dd>
+            <b className={delta > 0 ? "delta-up" : "delta-down"}>{delta > 0 ? "+" : "−"}{fmtValue(Math.abs(delta), 0)} %</b> en la misma fuente
+          </dd>
+        </dl>
+      )}
     </section>
   );
 }
@@ -339,11 +323,10 @@ function YearCard({ e, year, onYear }: { e: Explanation; year: number; onYear: (
         observedLabel="Registrado"
         onSelectYear={onYear}
       />
-      <p className="card-note">
-        Cada año la parte recurrente de la red solo ve los años anteriores y el contexto. 2011-2017 se compara con el censo de comisarías (todas
-        las severidades); 2021-2024, con el ONSV (fatales), escalado por su factor de registro. Error medio absoluto en
-        esta zona: {err.toFixed(2)} eventos por año.
-      </p>
+      <dl className="kv compact">
+        <dt>Error medio</dt><dd>{fmtValue(err, 2)} eventos por año</dd>
+        <dt>Fuente</dt><dd>Estimación de la corrida publicada; registros CENACOM 2011–2017 y ONSV 2021–2024</dd>
+      </dl>
     </>
   );
 }
@@ -382,7 +365,7 @@ function RecordCard({ result }: { result: RiskResult }) {
     <section className="card">
       <header>
         <div>
-          <h3>Registro histórico del periodo</h3>
+          <h3>Registro histórico del periodo <InfoTip text="Conteos anotados por las fuentes para esta zona y periodo. Sirven de referencia; no son la estimación de riesgo." /></h3>
           <p className="card-sub">Conteos de las fuentes, no el riesgo estimado</p>
         </div>
         <span className="kpi-value" style={{ fontSize: 20 }}>{fmtCount(total)}</span>
@@ -390,28 +373,25 @@ function RecordCard({ result }: { result: RiskResult }) {
       {b ? (
         <>
           <div className="grid cols-2" style={{ gap: 10 }}>
-            <Breakdown title="Por subtipo" data={b.type} labels={TYPE_LABEL} color="var(--chart-2)" />
-            <Breakdown title="Por severidad" data={b.severity} labels={SEVERITY_LABEL} color="#bf3a2e" />
-            {b.vehicle && <Breakdown title="Por vehículo involucrado" data={b.vehicle} labels={VEHICLE_LABEL} color="var(--chart-3)" />}
-            {b.service && <Breakdown title="Por servicio de transporte" data={b.service} labels={SERVICE_LABEL} color="var(--chart-1)" />}
+            <Breakdown title="Subtipo" data={b.type} labels={TYPE_LABEL} color="var(--chart-2)" hideZero />
+            <Breakdown title="Severidad" data={b.severity} labels={SEVERITY_LABEL} color="#bf3a2e" hideZero />
+            {b.vehicle && <Breakdown title="Vehículo" data={b.vehicle} labels={VEHICLE_LABEL} color="var(--chart-3)" hideZero />}
+            {b.service && <Breakdown title="Servicio" data={b.service} labels={SERVICE_LABEL} color="var(--chart-1)" hideZero />}
           </div>
           {b.factor && total > 0 && (
             <div>
-              <Breakdown title="Factores registrados por la policía" data={b.factor} labels={FACTOR_LABEL} color="#5b6472" hideZero />
-              <p className="card-note">
-                Un atropello puede tener varios factores. Son causas anotadas después del hecho: describen el registro,
-                no entran a la estimación de la red.
-              </p>
+              <Breakdown title="Factores anotados por la policía (no entran a la red)" data={b.factor} labels={FACTOR_LABEL} color="#5b6472" hideZero />
             </div>
           )}
         </>
       ) : (
         <p className="muted small">Desglose no disponible para esta corrida.</p>
       )}
-      <p className="card-note">
-        Peatones lesionados: {fmtCount(result.observed.pedestrians_injured)}; fallecidos: {fmtCount(result.observed.pedestrians_deceased)}.
-        {result.unit.unit_type === "cell" && " En celdas solo cuentan eventos ubicados por punto o calle."}
-      </p>
+      <dl className="kv compact">
+        <dt>Peatones lesionados</dt><dd>{fmtCount(result.observed.pedestrians_injured)}</dd>
+        <dt>Peatones fallecidos</dt><dd>{fmtCount(result.observed.pedestrians_deceased)}</dd>
+        <dt>Fuente</dt><dd>{result.period.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ") || "sin fuente en este año"}</dd>
+      </dl>
     </section>
   );
 }
@@ -454,9 +434,9 @@ function EnvironmentCard({ profile, view }: { profile: [string, number, number][
     <section className="card">
       <header>
         <div>
-          <h3>Entorno de la zona</h3>
+          <h3>Entorno de la zona <InfoTip text="Condiciones urbanas que lee la red. La marca indica la posición de la zona frente al resto de Lima: bajo es el cuarto inferior y alto el cuarto superior." /></h3>
           <p className="card-sub">
-            Condiciones previas que lee la red, frente a {view === "cell" ? "las 2.899 celdas" : "los 43 distritos"} de Lima
+            Posición frente a {view === "cell" ? "las 2 899 celdas" : "los 43 distritos"} de Lima
           </p>
         </div>
       </header>
@@ -469,15 +449,12 @@ function EnvironmentCard({ profile, view }: { profile: [string, number, number][
               <span className="env-mark" style={{ left: `${pct}%` }} />
             </span>
             <span className="small num" title={`Percentil ${pct.toFixed(0)} en Lima`}>
-              {value >= 100 ? value.toFixed(0) : value.toFixed(2).replace(".", ",")} {unit}, <b>{tag(pct)}</b>
+              {fmtValue(value, value >= 100 ? 0 : 2)} {unit}, <b>{tag(pct)}</b>
             </span>
           </div>
         );
       })}
-      <p className="card-note">
-        Bajo: en el cuarto inferior de Lima; alto: en el cuarto superior. Datos de OpenStreetMap, MINAM y WorldPop: describen el
-        entorno, no recomiendan intervenciones.
-      </p>
+      <p className="card-note">Bajo y alto: cuartil inferior y superior. Fuente: OpenStreetMap (extracto 2026), MINAM GeoServidor (2021) y WorldPop (población del año).</p>
     </section>
   );
 }
@@ -493,8 +470,8 @@ function WhatIfCard({ e }: { e: Explanation }) {
     <section className="card">
       <header>
         <div>
-          <h3>Simular contexto del distrito</h3>
-          <p className="card-sub">Respuesta precalculada de la red al multiplicar una variable en las celdas de {e.unit_id}</p>
+          <h3>Simular contexto del distrito <InfoTip text="Multiplica una variable en todas las celdas del distrito y muestra cómo responde la red. Describe la sensibilidad del modelo, no el efecto de una obra real." /></h3>
+          <p className="card-sub">Respuesta de la red al multiplicar una variable</p>
         </div>
       </header>
       <label className="field-label" htmlFor="whatif-var">Variable</label>
@@ -511,7 +488,7 @@ function WhatIfCard({ e }: { e: Explanation }) {
         Riesgo estimado del distrito:{" "}
         <b className={change > 0 ? "delta-up" : change < 0 ? "delta-down" : ""}>
           {change > 0 ? "+" : ""}
-          {change.toFixed(1)} %
+          {fmtValue(change, 1)} %
         </b>
       </p>
       <LineChart
@@ -522,7 +499,7 @@ function WhatIfCard({ e }: { e: Explanation }) {
         yFormat={(v) => `${v.toFixed(0)} %`}
         marker={{ x: factors[fi], label: "" }}
       />
-      <p className="card-note">Dependencia parcial (como en el What-If Tool): las demás variables se mantienen. Describe al modelo; no es una recomendación de intervención.</p>
+      <p className="card-note">Las demás variables se mantienen. Describe al modelo, no recomienda intervenciones.</p>
     </section>
   );
 }
@@ -535,11 +512,71 @@ function CorridorList({ data }: { data: CorridorCollection | null }) {
         <li key={f.id}>
           <span>
             <b>{f.properties.street}</b>
-            <span className="muted small"> {f.properties.length_km.toFixed(1)} km</span>
+            <span className="muted small"> {fmtValue(f.properties.length_km, 1)} km</span>
           </span>
           <span className="num">{fmtCount(f.properties.events)} eventos</span>
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Entry point while no zone is selected: level distribution and the highest-risk zones. */
+function PeriodSummary({ rows, bands, onPick }: { rows: RiskResult[]; bands: ClassBand[]; onPick: (id: string) => void }) {
+  const q = useQuery();
+  const scored = rows.filter((r) => r.risk_index !== null);
+  const top = [...scored].sort((a, b) => (b.risk_index ?? 0) - (a.risk_index ?? 0)).slice(0, 10);
+  const levels = (["high", "medium", "low"] as const).map((l) => ({ l, n: scored.filter((r) => r.risk_level === l).length }));
+  const cell = q.unitType === "cell";
+  return (
+    <>
+      <section className="card">
+        <header>
+          <h2>Resumen del periodo</h2>
+        </header>
+        <p className="panel-text">{periodLabel({ year: q.active.year, day_type: q.active.dayType, time_band: q.active.band })}. Seleccione una zona en el mapa o en la lista para ver su detalle.</p>
+        {scored.length > 0 && (
+          <div className="level-bar" role="img" aria-label={levels.map((x) => `${LEVEL_LABEL[x.l]}: ${x.n}`).join(", ")}>
+            {levels.map((x) => (
+              <span key={x.l} style={{ flex: x.n, background: colorFor(x.l === "high" ? 85 : x.l === "medium" ? 55 : 20, bands) ?? undefined }} title={`${LEVEL_LABEL[x.l]}: ${x.n}`} />
+            ))}
+          </div>
+        )}
+        <dl className="kv compact">
+          {levels.map((x) => (
+            <Fragment key={x.l}>
+              <dt>{LEVEL_LABEL[x.l]}</dt>
+              <dd>{fmtCount(x.n)} {cell ? "celdas" : "distritos"}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      </section>
+      {top.length > 0 && (
+        <section className="card">
+          <header>
+            <h2>{cell ? "Celdas" : "Distritos"} con mayor riesgo</h2>
+          </header>
+          <table className="panel-table">
+            <thead>
+              <tr><th scope="col">{cell ? "Celda" : "Distrito"}</th><th scope="col" className="num">Índice</th><th scope="col">Nivel</th></tr>
+            </thead>
+            <tbody>
+              {top.map((r) => (
+                <tr key={r.unit.unit_id} onClick={() => onPick(r.unit.unit_id)}>
+                  <td>
+                    <button type="button" className="link-btn" onClick={(e) => { e.stopPropagation(); onPick(r.unit.unit_id); }}>
+                      {cell ? r.unit.unit_id : r.unit.display_name}
+                    </button>
+                    {cell && <span className="sub">{r.unit.district_name}</span>}
+                  </td>
+                  <td className="num strong">{fmtIndex(r.risk_index)}</td>
+                  <td><span className="swatch" style={{ background: colorFor(r.risk_index, bands) ?? undefined }} /> {r.risk_level ? LEVEL_LABEL[r.risk_level] : "–"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+    </>
   );
 }

@@ -23,6 +23,8 @@ registra la aprobación del equipo.
 | D-14 | 2026-11-23 | Política espacial de eventos con solo distrito de comisaría (dataset v1.4, iteración v4) | Aprobada por el PM (2026-11-23) |
 | D-15 | 2026-11-23 | Solicitud de cambio (meta de M-09: p95 ≤ 2,5 s bajo carga concurrente) | Aprobada por el PM (2026-11-23) |
 | D-16 | 2026-11-23 | Pronóstico anual encadenado 2025–2027 | Aprobada por el PM (2026-11-23) |
+| D-17 | 2026-11-24 | Solicitud de cambio (metodología de evaluación del modelo, M-05) | Aprobada por el PM (2026-11-24) |
+| D-18 | 2026-11-24 | Modelo v5: reajuste final con todos los años observados | Aprobada por el PM (2026-11-24) |
 
 ---
 
@@ -257,3 +259,39 @@ La tabla existente admite varios horizontes; la API selecciona uno y la vista pe
 **Limitación:** la validación de 2024 corresponde a un paso y a siniestros fatales. No demuestra exactitud a
 dos o tres años; el desacuerdo entre miembros no es un intervalo de predicción calibrado ni representa toda
 la incertidumbre acumulada. No se introducen datos futuros observados ni inferencia en tiempo real.
+
+## D-17. Metodología de evaluación del modelo (M-05)
+
+**Contexto:** M-05 mide la mejora del error absoluto medio por distrito y franja frente al promedio histórico.
+El producto prioriza zonas y periodos; no necesita acertar el número exacto de atropellos. Con conteos bajos
+(0,7 eventos por distrito y franja en ONSV) el error de conteo varía poco entre métodos, y en CENACOM 2017 mide
+un cambio de nivel no identificable con los años previos (`docs/ml/performance-v10.md`).
+**Decisión:** M-05 conserva su medición original y sus resultados como historial: v4, +6,29 % en ONSV 2024 y
+−3,28 % en CENACOM 2017 (no cumple). La evaluación del modelo pasa a cinco dimensiones, con los atropellos de
+todas las severidades (CENACOM) como evaluación principal y ONSV como complementaria:
+
+| Dimensión | Medida | Criterio |
+|---|---|---|
+| Priorización (principal) | Precisión promedio celda-año, masa ubicada, empates agrupados | Superior a la del promedio histórico en la prueba de todas las severidades |
+| Priorización | AUC celda-año | Se reporta frente al histórico y al azar |
+| Utilidad territorial | Captura en el 5, 10 y 20 % de celdas; estrato de ubicación precisa | Se reporta frente al histórico y al azar |
+| Precisión cuantitativa | MAE distrito-franja y deviance de Poisson (ceros del histórico aparte) | Se reporta frente al histórico, favorable o no |
+| Generalización temporal | Las medidas anteriores a uno, dos y tres años, encadenadas | Se reporta frente al histórico hasta el año de origen |
+
+Resultado con el procedimiento seleccionado (red sola, `evidence/benchmarking/performance-v10`): precisión
+promedio 0,898 frente a 0,887 en CENACOM 2017 (cumple) y 0,355 frente a 0,294 en ONSV 2024.
+**Trazabilidad:** el cambio se aprobó después de conocer los resultados experimentales. Los años 2017 y 2024
+se consultaron en varias iteraciones; sus resultados no constituyen una validación independiente.
+**Impacto:** indicador OE4-I1 y Tabla 35 (M-05) del informe; no cambia objetivos, alcance ni arquitectura.
+
+## D-18. Modelo v5: reajuste final con todos los años observados
+
+**Decisión:** la arquitectura publicada (ConvLSTM, 32 canales, ensamble de 5 semillas), seleccionada en los pliegues
+de desarrollo de v10, se entrena con CENACOM 2011–2017 y ONSV 2021–2024 durante 150 épocas fijas
+(`ml/configs/v5-final.json`). La v4 no había entrenado con ONSV 2023–2024.
+**Evidencia:** fuera de muestra, la de los modelos entrenados igual sin el año evaluado (v10, V14). Las
+estimaciones de v5 para 2011–2024 son reconstrucciones dentro de la muestra, no predicciones.
+**Efectos verificados** (`docs/ml/v5-final-refit.md`): el nivel alto cubre el 16,5 % de las celdas-franja de 2024
+(13,9 % en v4) porque la distribución de referencia incluye todos los años de entrenamiento; los índices de v4 y
+v5 no se comparan entre sí. Los atropellos esperados del pronóstico están en la escala de registro del censo de
+comisarías, no son el total real de Lima. Grad-CAM cubre los 43 distritos y las 400 celdas de mayor riesgo de 2024.

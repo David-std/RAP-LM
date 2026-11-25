@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page) {
   await page.goto("/");
-  await expect(page.getByText(/Corrida publicada|Datos de ejemplo/)).toBeVisible();
+  await expect(page.getByText(/Modelo v\d+, dataset|Datos de ejemplo/)).toBeVisible();
   await expect(page.locator(".leaflet-overlay-pane path").first()).toBeAttached();
 }
 
@@ -34,7 +34,7 @@ test("E2E-03 RF-02 RF-08 HU-06 HU-07 HU-23: zone panel with risk, network series
   await expect(panel).toContainText("Riesgo estimado");
   await expect(panel).toContainText("La red año a año");
   await expect(panel).toContainText("Registro histórico del periodo");
-  await expect(panel).toContainText("no conteos ni probabilidades");
+  await expect(panel).toContainText("Frente al contexto");
   await panel.getByText("Procedencia y limitaciones").click();
   await expect(panel).toContainText("Fuentes del periodo");
   await panel.getByRole("button", { name: "Cerrar panel" }).click();
@@ -83,24 +83,25 @@ test("E2E-06 RF-06 HU-20: compare one district between two periods", async ({ pa
 test("E2E-07 RF-08 HU-24..HU-26: methodology lists sources, variables, limitations and evaluation", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Metodología y fuentes" }).click();
-  await expect(page.getByRole("heading", { name: "Fuentes", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Fuentes$/ })).toBeVisible();
   await expect(page.getByText("No incorporada").first()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Limitaciones" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Limitaciones$/ })).toBeVisible();
 });
 
-test("E2E-09 RM-01 RM-05: model view shows architecture, benchmark and high-level errors", async ({ page }) => {
+test("E2E-09 RM-01 RM-05 D-17: model view shows architecture, out-of-sample evaluation, horizons and ablation", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Modelo" }).click();
-  await expect(page.getByRole("heading", { name: "Arquitectura" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Benchmark en la prueba independiente" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Errores del nivel alto" })).toBeVisible();
-  await expect(page.getByText("Mejora frente al promedio histórico (M-05)")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Arquitectura$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Evaluación fuera de muestra$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Pronóstico a varios años$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Aporte de cada componente$/ })).toBeVisible();
+  await expect(page.getByText("Precisión promedio, masa ubicada")).toBeVisible();
 });
 
 test("E2E-10 D-09: critical streets view ranks streets and opens a street detail", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Vías críticas" }).click();
-  const first = page.getByLabel("Detalle de vías críticas").getByRole("button").first();
+  const first = page.getByLabel("Detalle de vías críticas").locator("tbody button").first();
   await expect(first).toBeVisible();
   await first.click();
   await expect(page.getByText("Atropellos por año")).toBeVisible();
@@ -115,7 +116,7 @@ test("E2E-11 D-09: recorded density, continuous heat view and Grad-CAM layer", a
   await page.getByRole("radio", { name: "Distritos" }).click();
   await page.getByRole("radio", { name: /Grad-CAM/ }).click();
   await page.locator(".leaflet-overlay-pane path").nth(10).dispatchEvent("click");
-  await expect(page.getByText(/Grad-CAM: celdas/)).toBeVisible();
+  await expect(page.getByText(/Celdas que más pesaron en la estimación/)).toBeVisible();
 });
 
 test("E2E-08 analyst ranking exports CSV with run and scope", async ({ page }) => {
@@ -134,8 +135,8 @@ test("E2E-12 D-11: forecast view with ranking, ensemble range and 2024 validatio
   await ready(page);
   await page.getByRole("button", { name: "Pronóstico" }).click();
   await expect(page.getByRole("heading", { name: /Riesgo esperado en \d{4}/ })).toBeVisible();
-  await expect(page.getByText("¿Es confiable?")).toBeVisible();
-  const first = page.getByLabel("Detalle del pronóstico").locator("tbody tr").first();
+  await expect(page.getByRole("heading", { name: "Fiabilidad" })).toBeVisible();
+  const first = page.getByLabel("Detalle del pronóstico").locator("table").nth(1).locator("tbody tr").first();
   await expect(first).toBeVisible();
   await first.click();
   await expect(page.getByLabel("Detalle del pronóstico").locator("tbody tr.on")).toHaveCount(1);

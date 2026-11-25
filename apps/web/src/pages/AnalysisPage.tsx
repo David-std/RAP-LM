@@ -40,6 +40,7 @@ export function AnalysisPage(props: Props) {
         <h2 className="rail-title">Análisis</h2>
         <Segmented<Tool>
           label="Herramienta"
+          hint="Ranking: ordena todas las zonas del periodo por índice, indicador o registro; respeta los filtros del mapa. Cambio: diferencia de índice de cada zona entre dos periodos. Persistencia: cuántos años publicados estuvo cada zona en nivel alto, para el mismo tipo de día y franja. Distritos: cuántas celdas de cada distrito están en cada nivel."
           wrap
           value={tool}
           options={[
@@ -50,7 +51,6 @@ export function AnalysisPage(props: Props) {
           ]}
           onChange={setTool}
         />
-        <p className="muted small">{TOOL_HELP[tool]}</p>
         {tool !== "districts" && (
           <Segmented
             label="Unidad de análisis"
@@ -88,12 +88,6 @@ export function AnalysisPage(props: Props) {
   );
 }
 
-const TOOL_HELP: Record<Tool, string> = {
-  ranking: "Ordena todas las unidades del periodo activo por índice, indicador o registro histórico. Respeta los filtros de nivel y distrito del mapa.",
-  change: "Diferencia de índice entre dos periodos para cada unidad, con la misma corrida y escala.",
-  persistence: "Cuántos años publicados estuvo cada unidad en nivel alto para el mismo tipo de día y franja.",
-  districts: "Cuántas celdas de cada distrito están en cada nivel en el periodo activo.",
-};
 
 type Sort = { key: string; dir: 1 | -1 };
 
@@ -234,7 +228,7 @@ function Ranking({ meta, units, districts, bands, openUnit }: Props & { bands: C
                 <td className="num">{fmtValue(r.historical_average)}</td>
                 <td className="num">{fmtCount(r.observed.events)}</td>
                 <td>
-                  <button type="button" className="btn small" onClick={() => openUnit(r.unit.unit_id)}>
+                  <button type="button" className="link-btn small" onClick={() => openUnit(r.unit.unit_id)}>
                     Ver en mapa
                   </button>
                 </td>
