@@ -187,7 +187,7 @@ export function CorridorsPage({ districts, meta, bands, initialDistrict }: Props
                 ))}
               </tbody>
             </table>
-            <p className="card-note">Por km: tasa ajustada. Clic en una calle para ver su detalle.</p>
+            <p className="card-note">Por km: tasa ajustada. Clic en una calle para ver su detalle. Fuente: atropellos CENACOM 2011–2017 y ONSV 2021–2024 ubicados sobre calles de OpenStreetMap.</p>
           </section>
         )}
         {summary && !current && (

@@ -462,3 +462,14 @@ button.brand { border: 0; background: none; color: inherit; cursor: pointer; pad
 .disclosure.compact .disclosure-body dl { gap: 7px; }
 .disclosure.compact { font-size: 11.5px; margin: 4px 0 8px; }
 @media (prefers-reduced-motion: reduce) { .disclosure > summary::before { transition: none; } }
+.panel-table .group-row td { font-size: 11.5px; font-weight: 600; color: var(--ink); padding-top: 12px; border-bottom: 1px solid var(--line); }
+.doc-section p.doc-source, p.doc-source { font: 11.5px/1.5 var(--font); color: var(--muted); margin-top: 6px; }
+.doc-source a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--line); }
+.doc-source a:hover { color: var(--accent); }
+.doc-source code { font-size: 11px; background: none; border: 0; padding: 0; }
+.source-note { font-size: 11.5px; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+.doc-refs { list-style: none; padding-left: 0 !important; }
+.doc-refs li { font-size: 13.5px !important; padding-left: 22px; text-indent: -22px; }
+.doc-refs a { word-break: break-all; font-family: var(--font); font-size: 12.5px; }
+.step-src { margin-left: 4px; font-size: 11px; color: var(--muted) !important; }
+.step-src code { font-size: 11px; background: none !important; border: 0 !important; padding: 0 !important; color: var(--muted); }

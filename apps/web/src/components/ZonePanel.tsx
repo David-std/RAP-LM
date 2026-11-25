@@ -325,7 +325,7 @@ function YearCard({ e, year, onYear }: { e: Explanation; year: number; onYear: (
       />
       <dl className="kv compact">
         <dt>Error medio</dt><dd>{fmtValue(err, 2)} eventos por año</dd>
-        <dt>Referencia</dt><dd>CENACOM 2011–2017, ONSV 2021–2024</dd>
+        <dt>Fuente</dt><dd>Estimación de la corrida publicada; registros CENACOM 2011–2017 y ONSV 2021–2024</dd>
       </dl>
     </>
   );
@@ -390,6 +390,7 @@ function RecordCard({ result }: { result: RiskResult }) {
       <dl className="kv compact">
         <dt>Peatones lesionados</dt><dd>{fmtCount(result.observed.pedestrians_injured)}</dd>
         <dt>Peatones fallecidos</dt><dd>{fmtCount(result.observed.pedestrians_deceased)}</dd>
+        <dt>Fuente</dt><dd>{result.period.observing_sources.map((s) => SOURCE_LABEL[s] ?? s).join(", ") || "sin fuente en este año"}</dd>
       </dl>
     </section>
   );
@@ -453,7 +454,7 @@ function EnvironmentCard({ profile, view }: { profile: [string, number, number][
           </div>
         );
       })}
-      <p className="card-note">Bajo y alto: cuartil inferior y superior. OpenStreetMap, MINAM y WorldPop.</p>
+      <p className="card-note">Bajo y alto: cuartil inferior y superior. Fuente: OpenStreetMap (extracto 2026), MINAM GeoServidor (2021) y WorldPop (población del año).</p>
     </section>
   );
 }

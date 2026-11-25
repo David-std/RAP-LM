@@ -88,13 +88,14 @@ test("E2E-07 RF-08 HU-24..HU-26: methodology lists sources, variables, limitatio
   await expect(page.getByRole("heading", { name: /^\d+\s*Limitaciones$/ })).toBeVisible();
 });
 
-test("E2E-09 RM-01 RM-05: model view shows architecture, benchmark and high-level errors", async ({ page }) => {
+test("E2E-09 RM-01 RM-05 D-17: model view shows architecture, out-of-sample evaluation, horizons and ablation", async ({ page }) => {
   await ready(page);
   await page.getByRole("button", { name: "Modelo" }).click();
   await expect(page.getByRole("heading", { name: /^\d+\s*Arquitectura$/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /^\d+\s*Error de conteo$/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /^\d+\s*Nivel alto$/ })).toBeVisible();
-  await expect(page.getByText("Mejora del error por distrito (M-05)")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Evaluación fuera de muestra$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Pronóstico a varios años$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^\d+\s*Aporte de cada componente$/ })).toBeVisible();
+  await expect(page.getByText("Precisión promedio, masa ubicada")).toBeVisible();
 });
 
 test("E2E-10 D-09: critical streets view ranks streets and opens a street detail", async ({ page }) => {

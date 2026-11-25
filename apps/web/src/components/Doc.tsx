@@ -77,18 +77,39 @@ export function DocPage({ title, lead, meta, sections }: { title: string; lead: 
   );
 }
 
-export function Figure({ n, caption, children, wide }: { n: number; caption: ReactNode; children: ReactNode; wide?: boolean }) {
+/** Public repository; every cited file is versioned there. */
+export const REPO = "https://github.com/David-std2/RAP-LM/blob/main/";
+
+/** "Fuente:" line with links to the repository files a table or figure comes from. */
+export function Source({ files, children }: { files?: string[]; children?: ReactNode }) {
+  return (
+    <p className="doc-source">
+      Fuente: {children}
+      {children && files?.length ? "; " : ""}
+      {files?.map((f, i) => (
+        <span key={f}>
+          {i > 0 && ", "}
+          <a href={REPO + f} target="_blank" rel="noreferrer"><code>{f}</code></a>
+        </span>
+      ))}
+      .
+    </p>
+  );
+}
+
+export function Figure({ n, caption, children, wide, source }: { n: number; caption: ReactNode; children: ReactNode; wide?: boolean; source?: ReactNode }) {
   return (
     <figure className={wide ? "doc-figure wide" : "doc-figure"}>
       {children}
       <figcaption>
         <b>Figura {n}.</b> {caption}
       </figcaption>
+      {source}
     </figure>
   );
 }
 
-export function DocTable({ n, caption, children, note, wide }: { n: number; caption: ReactNode; children: ReactNode; note?: ReactNode; wide?: boolean }) {
+export function DocTable({ n, caption, children, note, wide, source }: { n: number; caption: ReactNode; children: ReactNode; note?: ReactNode; wide?: boolean; source?: ReactNode }) {
   return (
     <div className={wide ? "doc-table wide" : "doc-table"}>
       <p className="doc-table-caption">
@@ -98,6 +119,7 @@ export function DocTable({ n, caption, children, note, wide }: { n: number; capt
         <table>{children}</table>
       </div>
       {note && <p className="doc-table-note">{note}</p>}
+      {source}
     </div>
   );
 }

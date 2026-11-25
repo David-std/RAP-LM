@@ -2,11 +2,11 @@
 // Every number comes from /model (model card of the published run).
 
 import { api } from "../api/client";
-import type { ModelCardDto, NoiseCeilingRow, PrioritisationRow, RankingScores } from "../api/types";
+import type { EvalScores, EvaluationBlock, ModelCardDto } from "../api/types";
 import { useApi } from "../api/useApi";
 import { LineChart } from "../components/charts";
 import { Notice } from "../components/Controls";
-import { DocPage, DocTable, Figure, type DocSection } from "../components/Doc";
+import { DocPage, DocTable, Figure, Source, type DocSection } from "../components/Doc";
 import { VARIABLE_LABEL } from "../components/ZonePanel";
 import { fmtNumber } from "../lib/format";
 
@@ -20,10 +20,6 @@ const VARIANT_LABEL: Record<string, string> = {
   poisson_glm: "GLM de Poisson",
 };
 const FAMILY_LABEL: Record<string, string> = { cenacom: "CENACOM", onsv: "ONSV" };
-const FAMILY_POPULATION: Record<string, string> = {
-  cenacom: "atropellos de todas las severidades",
-  onsv: "siniestros fatales con peatón",
-};
 const CHANNEL_LABEL: Record<string, string> = {
   valid_cell: "Celda dentro de los 43 distritos",
   cenacom_prev_cell_rate: "CENACOM del año anterior, por celda",
@@ -34,10 +30,19 @@ const CHANNEL_LABEL: Record<string, string> = {
   onsv_prev_observed: "Año anterior observado por ONSV",
 };
 
+const REFERENCES = [
+  { key: "lstm", text: "Hochreiter, S. y Schmidhuber, J. (1997). Long short-term memory. Neural Computation, 9(8), 1735–1780.", url: "https://doi.org/10.1162/neco.1997.9.8.1735" },
+  { key: "convlstm", text: "Shi, X., Chen, Z., Wang, H., Yeung, D.-Y., Wong, W. y Woo, W. (2015). Convolutional LSTM network: a machine learning approach for precipitation nowcasting. NeurIPS 28.", url: "https://arxiv.org/abs/1506.04214" },
+  { key: "adam", text: "Kingma, D. P. y Ba, J. (2015). Adam: a method for stochastic optimization. ICLR.", url: "https://arxiv.org/abs/1412.6980" },
+  { key: "gradcam", text: "Selvaraju, R. R. et al. (2017). Grad-CAM: visual explanations from deep networks via gradient-based localization. ICCV, 618–626.", url: "https://doi.org/10.1109/ICCV.2017.74" },
+  { key: "hirescam", text: "Draelos, R. L. y Carin, L. (2020). Use HiResCAM instead of Grad-CAM for faithful explanations of convolutional neural networks.", url: "https://arxiv.org/abs/2011.08891" },
+  { key: "whatif", text: "Wexler, J. et al. (2019). The What-If Tool: interactive probing of machine learning models. IEEE TVCG, 26(1), 56–65.", url: "https://doi.org/10.1109/TVCG.2019.2934619" },
+  { key: "pr", text: "Davis, J. y Goadrich, M. (2006). The relationship between precision-recall and ROC curves. ICML, 233–240.", url: "https://doi.org/10.1145/1143844.1143874" },
+  { key: "d17", text: "RAP-LM (2026). Registro de decisiones D-17 (metodología de evaluación) y D-18 (modelo v5).", url: "https://github.com/David-std2/RAP-LM/blob/main/docs/architecture/registro-de-decisiones.md" },
+];
+
 const dec = (v: number | null | undefined, d = 2) => (v == null ? "n/a" : v.toFixed(d).replace(".", ","));
 const pct = (v: number | null | undefined, d = 1) => (v == null ? "n/a" : `${(v * 100).toFixed(d).replace(".", ",")} %`);
-const signed = (v: number | null | undefined, d = 1) =>
-  v == null ? "n/a" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(d).replace(".", ",")} %`;
 const int = (v: number) => fmtNumber(v);
 
 export function ModelPage() {
@@ -56,14 +61,15 @@ export function ModelPage() {
 }
 
 function ModelDoc({ data }: { data: ModelCardDto }) {
-  const { card, benchmark } = data;
-  const prio = card.prioritisation ?? [];
-  const ceiling = card.noise_ceiling ?? [];
-  const main = benchmark.test?.[0];
-  const onsv = prio.find((r) => r.fold === "onsv");
+  const { card } = data;
+  const ev = card.evaluation ?? null;
+  const all = ev?.tests.find((x) => x.family === "cenacom");
+  const fatal = ev?.tests.find((x) => x.family === "onsv");
   const gpu = String(card.config.device ?? "cpu").startsWith("cuda");
   const trainYears = (fam: string) => card.split.train?.[fam] ?? [];
   const span = (ys: number[]) => (ys.length ? `${ys[0]}–${ys[ys.length - 1]}` : "—");
+  const finalRefit = Object.keys(card.split.test ?? {}).length === 0;
+  const epochs = Object.values(card.training_curves).find((c) => c && c.length)?.length ?? 0;
 
   const sections: DocSection[] = [
     {
@@ -72,27 +78,28 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
       body: (
         <>
           <p>
-            El modelo estima la intensidad esperada de atropellos de peatones en cada celda de 1 km de los 43 distritos
-            de Lima Metropolitana, por año, tipo de día y franja de seis horas. Es un ensamble de {card.members} redes{" "}
-            {VARIANT_LABEL[card.variant] ?? card.variant}: una parte convolucional lee el entorno de cada celda y una parte
-            recurrente recorre los años en orden, usando solo información anterior al año que estima.
+            El modelo estima la intensidad esperada de atropellos de peatones de todas las severidades en cada celda de 1 km
+            de los 43 distritos de Lima Metropolitana, por año, tipo de día y franja de seis horas. Es un ensamble de{" "}
+            {card.members} redes {VARIANT_LABEL[card.variant] ?? card.variant}: una parte convolucional lee el entorno de cada
+            celda y una parte recurrente recorre los años en orden, usando solo información anterior al año que estima.
           </p>
-          {onsv && (
+          {all && all.model.all_located && all.historical.all_located && (
             <p>
-              En {onsv.test_year}, año que no intervino en el entrenamiento ni en la elección del modelo, el 20 % de las
-              celdas con mayor riesgo estimado concentró el <strong>{pct(onsv.cell_year.model.capture_top20, 0)}</strong>{" "}
-              de los {FAMILY_POPULATION.onsv} registrados, frente al {pct(onsv.cell_year.historical_average.capture_top20, 0)}{" "}
-              del promedio histórico. El área bajo la curva ROC fue {dec(onsv.cell_year.model.auc)} (promedio histórico{" "}
-              {dec(onsv.cell_year.historical_average.auc)}; azar 0,50).
+              Entrenado sin conocer {all.year}, el modelo ordenó las celdas por riesgo con una precisión promedio de{" "}
+              <strong>{dec(all.model.all_located.average_precision)}</strong> frente a{" "}
+              {dec(all.historical.all_located.average_precision)} del promedio histórico, en atropellos de todas las
+              severidades. En los siniestros fatales de {fatal?.year}, el 20 % de celdas con mayor riesgo concentró el{" "}
+              {pct(fatal?.model.all_located?.capture_top20, 0)} de los registrados, frente al{" "}
+              {pct(fatal?.historical.all_located?.capture_top20, 0)} del histórico.
             </p>
           )}
-          {onsv && <SummaryTable row={onsv} m05={main?.relative_improvement_pct ?? null} />}
+          {ev && <SummaryTable ev={ev} />}
         </>
       ),
     },
     {
       id: "datos",
-      title: "Datos y partición",
+      title: "Datos y entrenamiento",
       body: (
         <>
           <p>
@@ -103,10 +110,11 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
             cubren.
           </p>
           <p>
-            La partición es cronológica. Los años de prueba no se usan para entrenar, detener el entrenamiento ni elegir la
-            configuración.
+            {finalRefit
+              ? "La versión publicada entrena con todos los años observados, para que el pronóstico parta de los datos más recientes. Por eso sus valores de 2011 a 2024 son reconstrucciones, no predicciones: la evaluación de la sección 5 proviene de modelos entrenados igual, pero sin el año evaluado."
+              : "La partición es cronológica. Los años de prueba no se usan para entrenar, detener el entrenamiento ni elegir la configuración."}
           </p>
-          <Figure n={1} caption="Uso de cada año por fuente. Entre 2018 y 2020 no hay registro disponible.">
+          <Figure n={1} source={<Source files={["ml/configs/v5-final.json"]} />} caption="Años con que entrena la versión publicada, por fuente. Entre 2018 y 2020 no hay registro disponible.">
             <Partitions split={card.split} />
           </Figure>
         </>
@@ -123,20 +131,20 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
             {card.variant === "convlstm"
               ? "En cada año, la ConvLSTM aplica una convolución 3 × 3 sobre la entrada y sobre su propio estado del año anterior; cada celda combina así su vecindario inmediato con una memoria que se extiende un kilómetro más por cada año previo."
               : "Dos convoluciones 3 × 3 por año dan a cada celda un vecindario de 5 × 5 km; una LSTM por celda recorre luego los años."}{" "}
-            La salida λ es la intensidad latente en las 8 combinaciones de tipo de día y franja.
-            El operador de observación convierte λ en los conteos esperados de cada fuente, a nivel de celda para los
-            eventos ubicados y de distrito para los que solo tienen distrito.
+            La salida λ es la intensidad latente en las 8 combinaciones de tipo de día y franja. El operador de observación
+            convierte λ en los conteos esperados de cada fuente, a nivel de celda para los eventos ubicados y de distrito
+            para los que solo tienen distrito.
           </p>
-          <Figure n={2} caption={<>Flujo de los datos por la red. Las dimensiones se leen años × canales × filas × columnas.</>}>
+          <Figure n={2} source={<Source files={["ml/fused/model.py"]}>Shi et al. (2015) para la ConvLSTM</Source>} caption={<>Flujo de los datos por la red. Las dimensiones se leen años × canales × filas × columnas.</>}>
             <Architecture card={card} />
           </Figure>
-          <DocTable n={2} caption="Configuración del modelo publicado.">
+          <DocTable n={2} source={<Source files={["ml/configs/v5-final.json", "docs/architecture/registro-de-decisiones.md"]}>decisión D-18</Source>} caption="Configuración del modelo publicado.">
             <tbody>
               <tr><th scope="row">Variante</th><td>{VARIANT_LABEL[card.variant] ?? card.variant}, {card.config.hidden} canales ocultos</td></tr>
               <tr><th scope="row">Parámetros entrenables</th><td>{int(card.parameters)} por red, ensamble de {card.members}</td></tr>
               <tr><th scope="row">Optimización</th><td>Adam, tasa {String(card.config.lr).replace(".", ",")}, decaimiento de pesos {String(card.config.weight_decay).replace(".", ",")}{card.variant === "convlstm" ? "" : `, dropout ${String(card.config.dropout).replace(".", ",")}`}</td></tr>
               <tr><th scope="row">Pérdida</th><td>Verosimilitud de Poisson de los conteos observados, por evento</td></tr>
-              <tr><th scope="row">Detención</th><td>Hasta {card.config.max_epochs} épocas; se conserva la de menor pérdida de validación (paciencia {card.config.patience})</td></tr>
+              <tr><th scope="row">Duración</th><td>{finalRefit ? `${epochs} épocas fijas, definidas en los pliegues de desarrollo` : `Hasta ${card.config.max_epochs} épocas; se conserva la de menor pérdida de validación (paciencia ${card.config.patience})`}</td></tr>
               <tr><th scope="row">Factor de registro</th><td>ONSV respecto a CENACOM: {dec(card.reporting_factor.onsv, 3)}</td></tr>
             </tbody>
           </DocTable>
@@ -149,57 +157,68 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
       body: (
         <>
           <p>
-            Cada red del ensamble parte de una semilla distinta. El entrenamiento completo, con la búsqueda de
-            configuración y el ensamble, tomó {Math.round(card.elapsed_seconds / 60)} minutos en{" "}
-            {gpu ? "GPU" : `CPU (${card.config.threads} hilos)`} con PyTorch {card.torch}. Repetirlo produce pesos idénticos
-            byte a byte.
+            Cada red del ensamble parte de una semilla distinta. El entrenamiento tomó {Math.max(1, Math.round(card.elapsed_seconds / 60))}{" "}
+            minutos en {gpu ? "GPU" : `CPU (${card.config.threads} hilos)`} con PyTorch {card.torch}. Repetirlo en el mismo
+            equipo produce pesos idénticos.
           </p>
-          <Figure n={3} caption="Pérdida de Poisson por época de la primera red del ensamble. La línea vertical marca la época conservada.">
+          <Figure n={3} source={<Source files={["ml/fused/train.py"]}>historial registrado en la ficha de la corrida</Source>} caption="Pérdida de Poisson por época de la primera red del ensamble.">
             <TrainingCurves card={card} />
           </Figure>
         </>
       ),
     },
-    {
-      id: "priorizacion",
-      title: "Priorización espacial",
-      body: (
-        <>
-          <p>
-            La pregunta operativa es dónde intervenir primero. Para responderla se ordenan las 2 899 celdas por su riesgo
-            estimado en el año de prueba y se mide cuántos de los atropellos registrados caen en las primeras. Estas medidas
-            no dependen del volumen total registrado, solo del orden.
-          </p>
-          {prio.length > 0 ? <PrioritisationTable rows={prio} /> : <p>La corrida publicada no incluye este reporte.</p>}
-          <p>
-            En la serie fatal de 2024 la red ordena mejor que el promedio histórico en todas las medidas. En la serie de
-            todas las severidades de 2017 ambos ordenan casi igual de bien: allí el historial de cada celda ya explica la
-            mayor parte de la distribución.
-          </p>
-        </>
-      ),
-    },
-    {
-      id: "conteo",
-      title: "Error de conteo",
-      body: (
-        <>
-          <p>
-            El indicador M-05 del plan compara el error absoluto medio de atropellos por distrito y franja con el del
-            promedio histórico de la misma fuente. Con conteos tan bajos (0,7 eventos por distrito y franja en ONSV), una
-            parte del error es variación aleatoria que ningún modelo puede anticipar. La última columna estima la mejora
-            máxima posible si la intensidad estimada fuera exacta.
-          </p>
-          {ceiling.length > 0 && <CeilingTable rows={ceiling} />}
-          <p>
-            En ONSV 2024 la red obtiene la mayor parte de la mejora alcanzable. En CENACOM 2017 ambos métodos subestiman el
-            total: el registro policial de Lima pasó de unos 710 accidentes mensuales en 2016 a unos 1 230 en el primer
-            semestre de 2017, y ningún dato anterior anticipa ese cambio. La red, que sigue la tendencia descendente de
-            2012–2016, estima un total algo menor que el promedio histórico y por eso su error es mayor.
-          </p>
-        </>
-      ),
-    },
+    ...(ev
+      ? [
+          {
+            id: "evaluacion",
+            title: "Evaluación fuera de muestra",
+            body: (
+              <>
+                <p>
+                  Cada año se evalúa con una red entrenada de la misma forma pero sin ese año, y se compara con el promedio
+                  histórico de la misma fuente. La evaluación principal es la de todas las severidades. Se muestran todas las
+                  medidas, también las desfavorables.
+                </p>
+                <EvaluationTable ev={ev} />
+                <p>
+                  La red ordena mejor las celdas en ambos años, también en el estrato de ubicación precisa. En CENACOM 2017
+                  pierde en error por distrito: el censo de ese año registra muchos más eventos por mes que los anteriores,
+                  junto con un cambio en su factor de expansión muestral, y ese cambio de nivel no se puede anticipar con los
+                  años previos. Los años 2017 y 2024 se consultaron en iteraciones anteriores del desarrollo, por lo que no
+                  constituyen una validación independiente.
+                </p>
+              </>
+            ),
+          },
+          {
+            id: "horizontes",
+            title: "Pronóstico a varios años",
+            body: (
+              <>
+                <p>
+                  Para estimar 2026 y 2027 el modelo usa su propia estimación del año previo como entrada. Este ensayo repite
+                  ese encadenamiento con años conocidos: la red se entrena hasta un año y pronostica uno, dos y tres años
+                  después sin ver los años intermedios.
+                </p>
+                <HorizonsTable ev={ev} />
+              </>
+            ),
+          },
+          {
+            id: "ablacion",
+            title: "Aporte de cada componente",
+            body: (
+              <>
+                <p>
+                  Se entrena la misma red quitando un componente a la vez. Las tres partes aportan; el contexto urbano es la
+                  que más influye en la priorización.
+                </p>
+                <AblationTable ev={ev} />
+              </>
+            ),
+          },
+        ]
+      : []),
     ...(card.high_level
       ? [
           {
@@ -286,6 +305,7 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
             <dt>SHA-256 de los pesos</dt><dd><code>{card.weights_sha256}</code></dd>
             <dt>Entorno</dt><dd>PyTorch {card.torch}, {gpu ? "GPU" : "CPU"}, semilla {card.config.seed}</dd>
           </dl>
+          <Source files={["evidence/metrics/M-04.json", "evidence/benchmarking/gpu_determinism.json"]}>reentrenamiento independiente con resultados idénticos (M-04)</Source>
           <details className="doc-details">
             <summary>Capas de la red ({card.layers.length})</summary>
             <div className="doc-mono">{card.layers.join("\n")}</div>
@@ -294,6 +314,20 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
       ),
     },
   ];
+
+  sections.push({
+    id: "referencias",
+    title: "Referencias",
+    body: (
+      <ul className="doc-refs">
+        {REFERENCES.map((r) => (
+          <li key={r.key}>
+            {r.text} <a href={r.url} target="_blank" rel="noreferrer">{r.url.replace("https://", "")}</a>
+          </li>
+        ))}
+      </ul>
+    ),
+  });
 
   return (
     <DocPage
@@ -305,114 +339,67 @@ function ModelDoc({ data }: { data: ModelCardDto }) {
   );
 }
 
-function SummaryTable({ row, m05 }: { row: PrioritisationRow; m05: number | null }) {
-  const m = row.cell_year.model;
-  const h = row.cell_year.historical_average;
-  const r = row.cell_year.random_expected;
-  const line = (label: string, a: string, b: string, c: string, best: boolean) => (
-    <tr>
-      <th scope="row">{label}</th>
-      <td className={best ? "num best" : "num"}>{a}</td>
-      <td className="num">{b}</td>
-      <td className="num">{c}</td>
-    </tr>
-  );
-  return (
-    <DocTable
-      n={1}
-      caption={<>Resultados en {FAMILY_LABEL[row.fold]} {row.test_year}, {FAMILY_POPULATION[row.fold]}.</>}
-      note="Captura: porcentaje de los eventos registrados que cae en el porcentaje indicado de celdas, ordenadas de mayor a menor riesgo estimado."
-    >
-      <thead>
-        <tr><th scope="col">Medida</th><th scope="col" className="num">Red</th><th scope="col" className="num">Promedio histórico</th><th scope="col" className="num">Azar</th></tr>
-      </thead>
-      <tbody>
-        {line("Captura en el 10 % de celdas", pct(m.capture_top10, 0), pct(h.capture_top10, 0), "10 %", m.capture_top10 > h.capture_top10)}
-        {line("Captura en el 20 % de celdas", pct(m.capture_top20, 0), pct(h.capture_top20, 0), "20 %", (m.capture_top20 ?? 0) > (h.capture_top20 ?? 0))}
-        {line("Área bajo la curva ROC", dec(m.auc), dec(h.auc), "0,50", m.auc > h.auc)}
-        {line("Precisión promedio", dec(m.average_precision), dec(h.average_precision), dec(r.average_precision), m.average_precision > h.average_precision)}
-        {m05 != null && line("Mejora del error por distrito (M-05)", signed(m05), "referencia", "—", m05 > 0)}
-      </tbody>
-    </DocTable>
-  );
-}
-
-function PrioritisationTable({ rows }: { rows: PrioritisationRow[] }) {
-  const measures: [string, (s: RankingScores) => string][] = [
-    ["Captura en el 5 %", (s) => pct(s.capture_top5, 0)],
-    ["Captura en el 10 %", (s) => pct(s.capture_top10, 0)],
-    ["Captura en el 20 %", (s) => pct(s.capture_top20, 0)],
-    ["Área bajo la curva ROC", (s) => dec(s.auc)],
-    ["Precisión promedio", (s) => dec(s.average_precision)],
+function SummaryTable({ ev }: { ev: EvaluationBlock }) {
+  const tests = [...ev.tests].sort((a) => (a.family === "cenacom" ? -1 : 1));
+  const rows: [string, (s: EvalScores) => number | undefined, (v: number | undefined) => string, boolean][] = [
+    ["Precisión promedio", (s) => s.all_located?.average_precision, (v) => dec(v), true],
+    ["Área bajo la curva ROC", (s) => s.all_located?.auc, (v) => dec(v), true],
+    ["Captura en el 20 % de celdas", (s) => s.all_located?.capture_top20, (v) => pct(v, 0), true],
   ];
   return (
-    <DocTable
-      n={3}
-      caption="Priorización de celdas de 1 km en los años de prueba."
-      note="Celda positiva: al menos un evento ubicado en el año. Azar: valor esperado de un orden aleatorio."
-    >
+    <DocTable n={1} source={<Source files={["evidence/benchmarking/performance-v10/evaluation-T1f-T2f.json", "docs/ml/performance-v10.md"]} />} caption="Priorización de celdas en años no usados para entrenar." note="Captura: parte de los eventos registrados que cae en el 20 % de celdas con mayor riesgo estimado. Azar: 0,50 de AUC y 20 % de captura.">
       <thead>
-        <tr><th scope="col">Medida</th>{rows.map((r) => <th key={r.fold} scope="col" className="num" colSpan={3}>{FAMILY_LABEL[r.fold]} {r.test_year}</th>)}</tr>
         <tr>
-          <th scope="col" />
-          {rows.map((r) => [
-            <th key={`${r.fold}m`} scope="col" className="num">Red</th>,
-            <th key={`${r.fold}h`} scope="col" className="num">Histórico</th>,
-            <th key={`${r.fold}r`} scope="col" className="num">Azar</th>,
-          ])}
+          <th scope="col">Medida</th>
+          {tests.map((x) => <th key={x.family} scope="col" className="num" colSpan={2}>{x.population.split(" ")[0]} {x.year}<span className="sub">{x.population}</span></th>)}
         </tr>
+        <tr><th scope="col" />{tests.map((x) => [<th key={`${x.family}m`} scope="col" className="num">Red</th>, <th key={`${x.family}h`} scope="col" className="num">Histórico</th>])}</tr>
       </thead>
       <tbody>
-        {measures.map(([label, f], i) => (
+        {rows.map(([label, get, fmt, higher]) => (
           <tr key={label}>
             <th scope="row">{label}</th>
-            {rows.map((r) => {
-              const random = r.cell_year.random_expected;
-              const rand = i < 3 ? ["5 %", "10 %", "20 %"][i] : i === 3 ? "0,50" : dec(random.average_precision);
-              return [
-                <td key={`${r.fold}m`} className="num">{f(r.cell_year.model)}</td>,
-                <td key={`${r.fold}h`} className="num">{f(r.cell_year.historical_average)}</td>,
-                <td key={`${r.fold}r`} className="num">{rand}</td>,
-              ];
+            {tests.map((x) => {
+              const m = get(x.model), h = get(x.historical);
+              const best = m != null && h != null && (higher ? m > h : m < h);
+              return [<td key={`${x.family}m`} className={best ? "num best" : "num"}>{fmt(m)}</td>, <td key={`${x.family}h`} className="num">{fmt(h)}</td>];
             })}
           </tr>
         ))}
-        <tr className="group-start">
-          <th scope="row">Celdas con evento</th>
-          {rows.map((r) => <td key={r.fold} className="num" colSpan={3}>{int(r.positive_cells)} de {int(r.cells)}</td>)}
-        </tr>
       </tbody>
     </DocTable>
   );
 }
 
-function CeilingTable({ rows }: { rows: NoiseCeilingRow[] }) {
+function EvaluationTable({ ev }: { ev: EvaluationBlock }) {
+  const tests = [...ev.tests].sort((a) => (a.family === "cenacom" ? -1 : 1));
+  const rows: [string, (s: EvalScores) => number | undefined, (v: number | undefined) => string, boolean][] = [
+    ["Precisión promedio, masa ubicada", (s) => s.all_located?.average_precision, (v) => dec(v), true],
+    ["AUC, masa ubicada", (s) => s.all_located?.auc, (v) => dec(v), true],
+    ["Captura en 10 % de celdas", (s) => s.all_located?.capture_top10, (v) => pct(v, 1), true],
+    ["Captura en 20 % de celdas", (s) => s.all_located?.capture_top20, (v) => pct(v, 1), true],
+    ["Precisión promedio, ubicación precisa", (s) => s.precise?.average_precision, (v) => dec(v), true],
+    ["Captura en 10 %, ubicación precisa", (s) => s.precise?.capture_top10, (v) => pct(v, 1), true],
+    ["Error absoluto medio, distrito y franja", (s) => s.district.mae, (v) => dec(v, 3), false],
+    ["Correlación de rangos entre distritos", (s) => s.district.spearman, (v) => dec(v, 3), true],
+    ["Captura en 20 % de distritos", (s) => s.district.capture_top20, (v) => pct(v, 1), true],
+  ];
   return (
-    <DocTable
-      n={4}
-      caption="Error absoluto medio por distrito y franja."
-      note="Mejora máxima: la que tendría una intensidad exacta, dada la variación aleatoria de conteos tan bajos; en CENACOM 2017 incluye conocer de antemano el aumento del registro de ese año. Validación: año usado para elegir el modelo."
-    >
+    <DocTable n={3} source={<Source files={["evidence/benchmarking/performance-v10/evaluation-T1f-T2f.json", "docs/ml/performance-v10.md", "ml/experiments/v10.py"]} />} caption="Evaluación completa por año. En negrita, el mejor valor de cada par." note="Masa ubicada: eventos asignados a la malla por cruce, calle o coordenada. Ubicación precisa: solo cruces (CENACOM) o coordenadas (ONSV).">
       <thead>
-        <tr>
-          <th scope="col">Serie y año</th>
-          <th scope="col" className="num">Promedio histórico</th>
-          <th scope="col" className="num">Red</th>
-          <th scope="col" className="num">Mejora</th>
-          <th scope="col" className="num">Mejora máxima</th>
-        </tr>
+        <tr><th scope="col">Medida</th>{tests.map((x) => <th key={x.family} scope="col" className="num" colSpan={2}>{x.family === "cenacom" ? "CENACOM" : "ONSV"} {x.year}</th>)}</tr>
+        <tr><th scope="col" />{tests.map((x) => [<th key={`${x.family}m`} scope="col" className="num">Red</th>, <th key={`${x.family}h`} scope="col" className="num">Histórico</th>])}</tr>
       </thead>
       <tbody>
-        {rows.map((r, i) => (
-          <tr key={`${r.fold}${r.year}`} className={i > 0 && rows[i - 1].fold !== r.fold ? "group-start" : undefined}>
-            <th scope="row">
-              {FAMILY_LABEL[r.fold]} {r.year}
-              <span className="sub">{isValidation(r) ? "validación" : "prueba"}</span>
-            </th>
-            <td className="num">{dec(r.baseline_mean, 3)}</td>
-            <td className="num">{dec(r.model_mean, 3)}</td>
-            <td className="num">{signed(r.achieved_improvement_pct)}</td>
-            <td className="num">{signed(r.max_improvement_pct)}</td>
+        {rows.map(([label, get, fmt, higher]) => (
+          <tr key={label}>
+            <th scope="row">{label}</th>
+            {tests.map((x) => {
+              const m = get(x.model), h = get(x.historical);
+              const mBest = m != null && h != null && (higher ? m > h : m < h);
+              const hBest = m != null && h != null && (higher ? h > m : h < m);
+              return [<td key={`${x.family}m`} className={mBest ? "num best" : "num"}>{fmt(m)}</td>, <td key={`${x.family}h`} className={hBest ? "num best" : "num"}>{fmt(h)}</td>];
+            })}
           </tr>
         ))}
       </tbody>
@@ -420,7 +407,66 @@ function CeilingTable({ rows }: { rows: NoiseCeilingRow[] }) {
   );
 }
 
-const isValidation = (r: NoiseCeilingRow) => (r.fold === "onsv" ? r.year === 2023 : r.year === 2016);
+function HorizonsTable({ ev }: { ev: EvaluationBlock }) {
+  const rows = [...ev.horizons].sort((a, b) => (a.family === b.family ? a.last_observed - b.last_observed || a.horizon - b.horizon : a.family === "cenacom" ? -1 : 1));
+  return (
+    <DocTable n={4} wide source={<Source files={["evidence/benchmarking/performance-v14/horizons.json", "evidence/benchmarking/performance-v14/README.md"]} />} caption="Pronóstico encadenado: red frente al promedio histórico de los años hasta el último con datos. Error: absoluto medio por distrito y franja." note="Desde 2014 el histórico no tiene años con eventos ubicados en la malla, por lo que su orden de celdas equivale al azar (AUC 0,50).">
+      <thead>
+        <tr>
+          <th scope="col">Fuente</th>
+          <th scope="col" className="num">Último año con datos</th>
+          <th scope="col" className="num">Año estimado</th>
+          <th scope="col" className="num">Años</th>
+          <th scope="col" className="num">AUC red</th>
+          <th scope="col" className="num">AUC hist.</th>
+          <th scope="col" className="num">Error red</th>
+          <th scope="col" className="num">Error hist.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((h, i) => (
+          <tr key={`${h.family}${h.last_observed}${h.target}`} className={i > 0 && rows[i - 1].family !== h.family ? "group-start" : undefined}>
+            <th scope="row">{h.family === "cenacom" ? "CENACOM" : "ONSV"}</th>
+            <td className="num">{h.last_observed}</td>
+            <td className="num">{h.target}</td>
+            <td className="num">{h.horizon}</td>
+            <td className={(h.model.all_located?.auc ?? 0) > (h.historical.all_located?.auc ?? 0) ? "num best" : "num"}>{dec(h.model.all_located?.auc, 3)}</td>
+            <td className="num">{dec(h.historical.all_located?.auc, 3)}</td>
+            <td className={h.model.district.mae < h.historical.district.mae ? "num best" : "num"}>{dec(h.model.district.mae, 3)}</td>
+            <td className={h.historical.district.mae < h.model.district.mae ? "num best" : "num"}>{dec(h.historical.district.mae, 3)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </DocTable>
+  );
+}
+
+function AblationTable({ ev }: { ev: EvaluationBlock }) {
+  return (
+    <DocTable n={5} source={<Source files={["evidence/benchmarking/performance-v10/evaluation-D2b-D3b.json", "evidence/benchmarking/performance-v10/README.md"]} />} caption="Ablación: misma red sin un componente. Desarrollo con CENACOM 2016 y ONSV 2023." note="Error: absoluto medio por distrito y franja (menor es mejor).">
+      <thead>
+        <tr>
+          <th scope="col">Variante</th>
+          <th scope="col" className="num">Precisión promedio 2016</th>
+          <th scope="col" className="num">Error 2016</th>
+          <th scope="col" className="num">Precisión promedio 2023</th>
+          <th scope="col" className="num">Error 2023</th>
+        </tr>
+      </thead>
+      <tbody>
+        {ev.ablation.map((a) => (
+          <tr key={a.arm} className={a.arm === "C0" ? "group-start" : undefined}>
+            <th scope="row" className={a.arm === "C0" ? "best" : undefined}>{a.label}</th>
+            <td className="num">{dec(a.cenacom_2016.average_precision, 3)}</td>
+            <td className="num">{dec(a.cenacom_2016.mae, 3)}</td>
+            <td className="num">{dec(a.onsv_2023.average_precision, 3)}</td>
+            <td className="num">{dec(a.onsv_2023.mae, 3)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </DocTable>
+  );
+}
 
 function HighLevelTable({ card }: { card: Card }) {
   const rows = (card.high_level ?? []).filter((r) => r.partition !== "validation");
@@ -499,7 +545,7 @@ function ChannelsTable({ card }: { card: Card }) {
         Las variables de contexto son fijas, salvo la población, que cambia cada año. Las de historial resumen los eventos
         del año anterior; el año estimado nunca entra en su propia entrada.
       </p>
-      <DocTable n={7} caption={`Canales de entrada (${card.input_channels.length}).`}>
+      <DocTable n={7} source={<Source files={["pipelines/fusion/context.py", "docs/data/feature-target-contract.md"]} />} caption={`Canales de entrada (${card.input_channels.length}).`}>
         <thead>
           <tr><th scope="col">Grupo</th><th scope="col">Variable</th></tr>
         </thead>
@@ -526,17 +572,18 @@ function TrainingCurves({ card }: { card: Card }) {
   const curves = Object.entries(card.training_curves).filter(([, c]) => c && c.length);
   if (!curves.length) return <p>Historial no registrado en esta corrida.</p>;
   const hist = curves[0][1]!;
-  const best = hist.reduce((b, h) => (h[2] < b[2] ? h : b), hist[0]);
+  const hasVal = hist.some((h) => h[2] !== null && h[2] !== undefined);
+  const best = hasVal ? hist.reduce((b, h) => (h[2] < b[2] ? h : b), hist[0]) : hist[hist.length - 1];
   return (
     <LineChart
       series={[
         { name: "Entrenamiento", color: "var(--chart-1)", points: hist.map((h) => [h[0], h[1]]) },
-        { name: "Validación", color: "var(--chart-2)", points: hist.map((h) => [h[0], h[2]]) },
+        ...(hasVal ? [{ name: "Validación", color: "var(--chart-2)", points: hist.map((h): [number, number] => [h[0], h[2]]) }] : []),
       ]}
       xLabel="época"
       xFormat={(v) => String(Math.round(v))}
-      yFormat={(v) => v.toFixed(2).replace(".", ",")}
-      marker={{ x: best[0], label: `época ${best[0]}` }}
+      yFormat={(v) => fmtNumber(v, 2)}
+      marker={{ x: best[0], label: hasVal ? `época ${best[0]}` : "última época" }}
       width={760}
       height={250}
     />

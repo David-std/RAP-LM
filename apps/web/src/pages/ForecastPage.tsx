@@ -1,6 +1,6 @@
 // Annual forecast view (D-11, D-16). Later horizons use model-generated lags.
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import type { DayType, ForecastRow, Legend as LegendDto, RiskResult, UnitCollection, UnitType } from "../api/types";
@@ -20,8 +20,6 @@ interface Props {
 
 const EMPTY = new Map<string, RiskResult>();
 const pct = (v: number | null | undefined) => (v == null ? "n/a" : `${(v * 100).toFixed(0)} %`);
-const signedPct = (v: number | null | undefined) =>
-  v == null ? "n/a" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmtValue(Math.abs(v), 1)} %`;
 
 function Change({ row }: { row: ForecastRow }) {
   const d = row.risk_index - row.previous_index;
@@ -48,8 +46,9 @@ export function ForecastPage({ units, districts, legend }: Props) {
   const last = fc.data?.last_observed_year;
   const previous = horizon == null ? last : horizon - 1;
   const chained = horizon != null && last != null && horizon > last + 1;
-  const test = model.data?.benchmark.test?.[0];
-  const prio = model.data?.card.prioritisation?.find((r) => r.fold === "onsv");
+  const ev = model.data?.card.evaluation ?? null;
+  const evTests = ev ? [...ev.tests].sort((a) => (a.family === "cenacom" ? -1 : 1)) : [];
+  const h3 = ev?.horizons.find((h) => h.family === "onsv" && h.horizon === 3);
   const totalExpected = rows.reduce((s, r) => s + (r.expected_events ?? 0), 0);
 
   const columns: ExportColumn<ForecastRow>[] = [
@@ -167,23 +166,30 @@ export function ForecastPage({ units, districts, legend }: Props) {
             <h2>Fiabilidad <InfoTip text="Medidas de un modelo entrenado sin el año evaluado. Captura: parte de los siniestros que cae en el 20 % de celdas con mayor riesgo estimado. AUC: 1 es un orden perfecto y 0,5 el azar." align="right" /></h2>
           </header>
           <p className="panel-text">
-            Probado sobre {prio?.test_year ?? test?.year ?? 2024} sin usar sus registros, con los siniestros fatales con
-            peatón del ONSV. Es una evaluación a un año: 2026 y 2027 no tienen con qué contrastarse.
+            Red entrenada sin el año evaluado, frente al promedio histórico. Todas las severidades primero; los fatales
+            son la serie más reciente.
           </p>
           <table className="panel-table static">
             <thead>
               <tr><th scope="col">Medida</th><th scope="col" className="num">Red</th><th scope="col" className="num">Histórico</th></tr>
             </thead>
             <tbody>
-              {prio && (
+              {evTests.map((x) => (
+                <Fragment key={x.family}>
+                  <tr className="group-row"><td colSpan={3}>{x.population}, {x.year}</td></tr>
+                  <tr><td>Captura en el 20 % de celdas</td><td className="num strong">{pct(x.model.all_located?.capture_top20)}</td><td className="num">{pct(x.historical.all_located?.capture_top20)}</td></tr>
+                  <tr><td>Área bajo la curva ROC</td><td className="num strong">{fmtValue(x.model.all_located?.auc ?? null, 2)}</td><td className="num">{fmtValue(x.historical.all_located?.auc ?? null, 2)}</td></tr>
+                </Fragment>
+              ))}
+              {h3 && (
                 <>
-                  <tr><td>Siniestros en el 20 % de celdas priorizadas</td><td className="num strong">{pct(prio.cell_year.model.capture_top20)}</td><td className="num">{pct(prio.cell_year.historical_average.capture_top20)}</td></tr>
-                  <tr><td>Área bajo la curva ROC</td><td className="num strong">{fmtValue(prio.cell_year.model.auc, 2)}</td><td className="num">{fmtValue(prio.cell_year.historical_average.auc, 2)}</td></tr>
+                  <tr className="group-row"><td colSpan={3}>Tres años adelante, de {h3.last_observed} a {h3.target}</td></tr>
+                  <tr><td>Área bajo la curva ROC</td><td className="num strong">{fmtValue(h3.model.all_located?.auc ?? null, 2)}</td><td className="num">{fmtValue(h3.historical.all_located?.auc ?? null, 2)}</td></tr>
                 </>
               )}
-              <tr><td>Error por distrito frente al histórico</td><td className="num strong">{signedPct(test?.relative_improvement_pct == null ? null : -test.relative_improvement_pct)}</td><td className="num">referencia</td></tr>
             </tbody>
           </table>
+          <p className="source-note">Fuente: evaluación fuera de muestra, vista Modelo, secciones 5 y 6.</p>
         </section>
 
         <section className="card">

@@ -4,7 +4,7 @@
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
 import { Notice } from "../components/Controls";
-import { DocPage, DocTable, type DocSection } from "../components/Doc";
+import { DocPage, DocTable, Source, type DocSection } from "../components/Doc";
 import { GROUP_LABEL } from "../components/ZonePanel";
 
 const year = (d?: string | null) => (d ? d.slice(0, 4) : "");
@@ -67,7 +67,7 @@ export function MethodologyPage() {
             El índice ordena cada valor dentro de la distribución de los años de entrenamiento. Los umbrales (
             {p.meta.legend.version}) se fijaron antes de evaluar la prueba y no cambian entre periodos.
           </p>
-          <DocTable n={1} caption="Lectura del índice y de las capas del mapa.">
+          <DocTable n={1} source={<Source files={["ml/configs/v5-final.json", "ml/fused/indicators.py"]}>umbrales levels-v1</Source>} caption="Lectura del índice y de las capas del mapa.">
             <thead>
               <tr><th scope="col">Nivel</th><th scope="col">Índice</th><th scope="col">Lectura</th></tr>
             </thead>
@@ -87,12 +87,12 @@ export function MethodologyPage() {
       title: "Proceso",
       body: (
         <ol>
-          <li><strong>Captura.</strong> Cada fuente se guarda con su URL, licencia, fecha de captura y huella SHA-256.</li>
-          <li><strong>Fusión.</strong> El censo de comisarías 2011–2017 (todas las severidades) y el ONSV 2021–2024 (fatales) se tratan como observaciones parciales del mismo fenómeno.</li>
-          <li><strong>Ubicación.</strong> La dirección policial se busca entre las calles de OpenStreetMap del distrito. Si no coincide, el evento se conserva solo a nivel de distrito; no se inventan coordenadas.</li>
-          <li><strong>Estimación.</strong> La red CNN-RNN aprende patrones espaciales de cada año y su secuencia; cada año usa solo información anterior.</li>
-          <li><strong>Evaluación.</strong> Se compara con el promedio histórico en años que no intervienen en el entrenamiento. Los resultados están en la vista Modelo.</li>
-          <li><strong>Publicación.</strong> Los resultados se cargan a la base de datos en una sola operación; la aplicación solo los consulta.</li>
+          <li><strong>Captura.</strong> Cada fuente se guarda con su URL, licencia, fecha de captura y huella SHA-256. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/pipelines/fusion/__main__.py" target="_blank" rel="noreferrer"><code>pipelines/fusion/__main__.py</code></a></li>
+          <li><strong>Fusión.</strong> El censo de comisarías 2011–2017 (todas las severidades) y el ONSV 2021–2024 (fatales) se tratan como observaciones parciales del mismo fenómeno. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/pipelines/fusion/events.py" target="_blank" rel="noreferrer"><code>pipelines/fusion/events.py</code></a></li>
+          <li><strong>Ubicación.</strong> La dirección policial se busca entre las calles de OpenStreetMap del distrito. Si no coincide, el evento se conserva solo a nivel de distrito; no se inventan coordenadas. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/pipelines/fusion/geocode.py" target="_blank" rel="noreferrer"><code>pipelines/fusion/geocode.py</code></a></li>
+          <li><strong>Estimación.</strong> La red CNN-RNN aprende patrones espaciales de cada año y su secuencia; cada año usa solo información anterior. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/ml/fused/model.py" target="_blank" rel="noreferrer"><code>ml/fused/model.py</code></a></li>
+          <li><strong>Evaluación.</strong> Se compara con el promedio histórico en años que no intervienen en el entrenamiento. Los resultados están en la vista Modelo. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/docs/ml/performance-v10.md" target="_blank" rel="noreferrer"><code>docs/ml/performance-v10.md</code></a></li>
+          <li><strong>Publicación.</strong> Los resultados se cargan a la base de datos en una sola operación; la aplicación solo los consulta. <a className="step-src" href="https://github.com/David-std2/RAP-LM/blob/main/pipelines/publication/publisher.py" target="_blank" rel="noreferrer"><code>pipelines/publication/publisher.py</code></a></li>
         </ol>
       ),
     },
@@ -101,7 +101,7 @@ export function MethodologyPage() {
       title: "Fuentes",
       body: (
         <>
-          <DocTable n={2} caption={`Fuentes incorporadas (${incorporated.length}).`} wide>
+          <DocTable n={2} source={<Source files={["docs/data/source-qualification.md", "pipelines/fusion/__main__.py"]}>URL, licencia y huella SHA-256 de cada archivo en el manifiesto del dataset</Source>} caption={`Fuentes incorporadas (${incorporated.length}).`} wide>
             <thead>
               <tr><th scope="col">Fuente</th><th scope="col">Contenido</th><th scope="col" className="num">Periodo</th><th scope="col">Cobertura</th></tr>
             </thead>
@@ -120,7 +120,7 @@ export function MethodologyPage() {
             </tbody>
           </DocTable>
           {excluded.length > 0 && (
-            <DocTable n={3} caption={`Fuentes evaluadas y no incorporadas (${excluded.length}).`} wide>
+            <DocTable n={3} source={<Source files={["docs/data/source-qualification.md", "docs/data/performance-source-acquisition-2026-11-24.md"]} />} caption={`Fuentes evaluadas y no incorporadas (${excluded.length}).`} wide>
               <thead>
                 <tr><th scope="col">Fuente</th><th scope="col">Contenido</th><th scope="col">Motivo</th></tr>
               </thead>
@@ -142,7 +142,7 @@ export function MethodologyPage() {
       id: "variables",
       title: "Variables",
       body: (
-        <DocTable n={excluded.length > 0 ? 4 : 3} caption="Variables por grupo conceptual, con su periodo de referencia.">
+        <DocTable n={excluded.length > 0 ? 4 : 3} source={<Source files={["pipelines/fusion/context.py", "docs/data/feature-coverage-evidence.md"]} />} caption="Variables por grupo conceptual, con su periodo de referencia.">
           <thead>
             <tr><th scope="col">Grupo</th><th scope="col">Variable</th><th scope="col" className="num">Periodo</th><th scope="col">Estado</th></tr>
           </thead>

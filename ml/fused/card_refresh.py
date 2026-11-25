@@ -31,11 +31,13 @@ def main() -> None:
     for key, src in (
         ("prioritisation", args.prioritisation),
         ("noise_ceiling", args.noise_ceiling),
+        ("evaluation", args.evaluation),
     ):
         if src is None:
             continue
         dst = args.run / f"{key}.json"
-        shutil.copyfile(src, dst)
+        if src.resolve() != dst.resolve():
+            shutil.copyfile(src, dst)
         card[key] = json.loads(dst.read_text(encoding="utf-8"))
     card_path.write_text(json.dumps(card), encoding="utf-8")
     print("card updated:", card_path)

@@ -365,6 +365,7 @@ export interface ModelCardDto {
     reproducibility: Record<string, unknown> | null;
     prioritisation?: PrioritisationRow[] | null;
     noise_ceiling?: NoiseCeilingRow[] | null;
+    evaluation?: EvaluationBlock | null;
   };
   benchmark: BenchmarkMetrics & { search?: SearchRow[]; selected_config?: SearchRow };
   corridor_summary: {
@@ -464,4 +465,18 @@ export interface ForecastDto {
   day_type: DayType;
   band: number;
   data: ForecastRow[];
+}
+
+/** Out-of-sample evidence of the published procedure (D-17, D-18). */
+export interface EvalScores {
+  district: { mae: number; deviance: number; spearman: number; capture_top20: number };
+  all_located?: { auc: number; average_precision: number; capture_top5: number; capture_top10: number; capture_top20: number; positives: number };
+  precise?: { auc: number; average_precision: number; capture_top5: number; capture_top10: number; capture_top20: number; positives: number };
+}
+export interface EvaluationBlock {
+  protocol: string;
+  note: string;
+  tests: { family: string; year: number; population: string; model: EvalScores; historical: EvalScores }[];
+  horizons: { family: string; last_observed: number; target: number; horizon: number; model: EvalScores; historical: EvalScores }[];
+  ablation: { arm: string; label: string; cenacom_2016: { mae: number; average_precision: number; auc: number }; onsv_2023: { mae: number; average_precision: number; auc: number } }[];
 }
